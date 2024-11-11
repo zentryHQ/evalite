@@ -1,0 +1,52 @@
+{
+  "thread": {
+    "prefix": "thread",
+    "body": ["🧵"]
+  },
+  "point-down": {
+    "prefix": "point-down",
+    "body": ["👇"]
+  },
+  "fire": {
+    "prefix": "fire",
+    "body": ["🔥"]
+  },
+  "ts": {
+    "prefix": "ts",
+    "body": ["```ts twoslash", "$1", "```"]
+  },
+  "tsx": {
+    "prefix": "tsx",
+    "body": ["```tsx twoslash", "$1", "```"]
+  },
+  "json": {
+    "prefix": "json",
+    "body": ["```json", "$1", "```"]
+  },
+  "fm": {
+    "prefix": "fm",
+    "body": ["---", "summary: \"$1\"", "---"]
+  },
+  "create-server-function": {
+    "prefix": ["csf"],
+    "body": [
+      "createServerFunction(",
+      "  z.object({ $1 }),",
+      "  async ({ input, p, fs }) => {$2}",
+      "),"
+    ]
+  },
+  "component": {
+    "prefix": ["comp", "c"],
+    "body": [
+      "export interface $1Props {",
+      "  className?: string;",
+      "  children?: React.ReactNode;",
+      "}",
+      "",
+      "export const $1 = (props: $1Props) => {",
+      "  return <$2 className={cn(\"\", props.className)}>{props.children}</$2>;",
+      "}"
+    ]
+  }
+}

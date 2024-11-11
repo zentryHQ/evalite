@@ -1,0 +1,33 @@
+{
+  "name": "total-typescript-monorepo",
+  "version": "1.0.0",
+  "type": "module",
+  "packageManager": "pnpm@9.11.0",
+  "description": "",
+  "engines": {
+    "node": ">=22"
+  },
+  "private": true,
+  "scripts": {
+    "dev": "turbo watch build lint test",
+    "ci": "turbo build test lint",
+    "build": "turbo build",
+    "release": "pnpm run ci && changeset publish"
+  },
+  "keywords": [],
+  "author": "Matt Pocock",
+  "license": "ISC",
+  "dependencies": {
+    "@changesets/cli": "^2.27.7",
+    "@total-typescript/tsconfig": "^1.0.4",
+    "@types/node": "^22.7.7",
+    "prettier": "^3.3.3",
+    "tsx": "^4.19.0",
+    "turbo": "2.2.4-canary.8",
+    "typescript": "5.6.2",
+    "vitest": "^2.0.5"
+  },
+  "resolutions": {
+    "typescript": "5.6.2"
+  }
+}
