@@ -1,0 +1,19 @@
+{
+  "name": "example",
+  "version": "0.0.2",
+  "private": true,
+  "type": "module",
+  "files": [
+    "./dist/*"
+  ],
+  "scripts": {
+    "test": "vitest"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./reporter": "./dist/reporter.js"
+  },
+  "dependencies": {
+    "evalite-vitest": "workspace:*"
+  }
+}
