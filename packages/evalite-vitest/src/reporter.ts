@@ -8,7 +8,7 @@ export default class EvaliteReporter extends BasicReporter {
   override onInit(ctx: any): void {
     this.ctx = ctx;
     this.start = performance.now();
-    // this.ctx.logger.log("TODO: Start Dev Server");
+    this.ctx.logger.log("TODO: Start Dev Server");
   }
 
   override onFinished = async (
@@ -33,7 +33,7 @@ export default class EvaliteReporter extends BasicReporter {
       }
     }
 
-    // this.ctx.logger.log("TODO: Report Run");
+    this.ctx.logger.log("TODO: Report Run");
     super.onFinished(files, errors);
   };
 
