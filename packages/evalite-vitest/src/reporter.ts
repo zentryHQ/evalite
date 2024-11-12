@@ -3,6 +3,15 @@ import { BasicReporter } from "vitest/reporters";
 import type { Evalite } from "./index.js";
 
 import c from "tinyrainbow";
+import { writeFile } from "fs/promises";
+
+export const sum = <T>(arr: T[], fn: (item: T) => number | undefined) => {
+  return arr.reduce((a, b) => a + (fn(b) || 0), 0);
+};
+
+export const average = <T>(arr: T[], fn: (item: T) => number | undefined) => {
+  return sum(arr, fn) / arr.length;
+};
 
 export default class EvaliteReporter extends BasicReporter {
   override onInit(ctx: any): void {
@@ -17,10 +26,49 @@ export default class EvaliteReporter extends BasicReporter {
   ) => {
     const data: Evalite.TaskReport[] = [];
 
+    type ReadableTask = {
+      task: string;
+      score: number;
+      duration: number;
+      results: {
+        input: unknown;
+        result: unknown;
+        scores: Evalite.Score[];
+        duration: number;
+      }[];
+    };
+
+    type ReadableFile = {
+      file: string;
+      score: number;
+      tasks: ReadableTask[];
+    };
+
+    const readableReports: ReadableFile[] = [];
+
     for (const file of files) {
+      const report: ReadableFile = {
+        file: file.name,
+        score: average(file.tasks, (task) => {
+          return average(task.meta.evalite?.results || [], (t) => {
+            return average(t.scores, (s) => s.score);
+          });
+        }),
+        tasks: [],
+      };
       for (const task of file.tasks) {
+        const readableTask: ReadableTask = {
+          task: task.name,
+          score: average(task.meta.evalite?.results || [], (t) => {
+            return average(t.scores, (s) => s.score);
+          }),
+          duration: sum(task.meta.evalite?.results || [], (t) => t.duration),
+          results: [],
+        };
+
         if (task.meta.evalite) {
-          for (const { input, result, scores } of task.meta.evalite.results) {
+          for (const { input, result, scores, duration } of task.meta.evalite
+            .results) {
             data.push({
               file: file.name,
               task: task.name,
@@ -28,12 +76,28 @@ export default class EvaliteReporter extends BasicReporter {
               result,
               scores,
             });
+
+            readableTask.results.push({
+              input,
+              result,
+              scores,
+              duration,
+            });
           }
         }
+
+        report.tasks.push(readableTask);
       }
+
+      readableReports.push(report);
     }
 
-    // this.ctx.logger.log("TODO: Report Run");
+    await writeFile(
+      "./report.json",
+      JSON.stringify(readableReports, null, 2),
+      "utf-8"
+    );
+
     super.onFinished(files, errors);
   };
 
@@ -50,7 +114,13 @@ export default class EvaliteReporter extends BasicReporter {
 
     const scores: number[] = [];
 
-    for (const { meta } of task.tasks) {
+    let failed = false;
+
+    for (const { meta, result } of task.tasks) {
+      if ((result?.errors?.length || 0) > 0) {
+        failed = true;
+        break;
+      }
       if (meta.evalite) {
         scores.push(
           ...meta.evalite!.results.flatMap((r) => r.scores.map((s) => s.score))
@@ -64,8 +134,10 @@ export default class EvaliteReporter extends BasicReporter {
     const color =
       averageScore >= 80 ? c.green : averageScore >= 50 ? c.yellow : c.red;
 
+    const title = failed ? c.red("✖") : c.bold(color(averageScore + "%"));
+
     const toLog = [
-      ` ${c.bold(color(averageScore + "%"))} `,
+      ` ${title} `,
       `${task.name}  `,
       c.dim(
         `(${task.tasks.length} ${task.tasks.length > 1 ? "evals" : "eval"})`

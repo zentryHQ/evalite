@@ -14,6 +14,9 @@
     "./reporter": "./dist/reporter.js"
   },
   "dependencies": {
-    "evalite-vitest": "workspace:*"
+    "evalite-vitest": "workspace:*",
+    "ai": "^3.4.33",
+    "@ai-sdk/openai": "0.0.72",
+    "dotenv": "^16.4.5"
   }
 }

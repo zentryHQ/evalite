@@ -1,0 +1,70 @@
+[
+  {
+    "file": "src/index.test.ts",
+    "score": 1,
+    "tasks": [
+      {
+        "task": "Add 'world' to end of pharse",
+        "score": 1,
+        "duration": 1997,
+        "results": [
+          {
+            "input": "Hello",
+            "result": "Hello World",
+            "scores": [
+              {
+                "name": "Levenshtein",
+                "score": 1
+              }
+            ],
+            "duration": 545
+          },
+          {
+            "input": "Hello Mr",
+            "result": "Hello Mr World",
+            "scores": [
+              {
+                "name": "Levenshtein",
+                "score": 1
+              }
+            ],
+            "duration": 298
+          },
+          {
+            "input": "World",
+            "result": "World World",
+            "scores": [
+              {
+                "name": "Levenshtein",
+                "score": 1
+              }
+            ],
+            "duration": 451
+          },
+          {
+            "input": "World World World World",
+            "result": "World World World World World",
+            "scores": [
+              {
+                "name": "Levenshtein",
+                "score": 1
+              }
+            ],
+            "duration": 443
+          },
+          {
+            "input": "",
+            "result": "World",
+            "scores": [
+              {
+                "name": "Levenshtein",
+                "score": 1
+              }
+            ],
+            "duration": 260
+          }
+        ]
+      }
+    ]
+  }
+]

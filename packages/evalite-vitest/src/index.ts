@@ -14,6 +14,7 @@ export declare namespace Evalite {
     input: unknown;
     result: unknown;
     scores: Score[];
+    duration: number;
   };
 
   export type TaskReport = {
@@ -54,7 +55,9 @@ export const evalite = <T>(testName: string, opts: Evalite.RunnerOpts<T>) => {
     }
     task.meta.evalite = { results: [] };
     for (const { input, expected } of await opts.data()) {
+      const start = performance.now();
       const result = await opts.task(input);
+      const duration = Math.round(performance.now() - start);
 
       const scores: {
         score: number;
@@ -69,12 +72,14 @@ export const evalite = <T>(testName: string, opts: Evalite.RunnerOpts<T>) => {
         input,
         result,
         scores,
+        duration,
       });
 
       task.file.meta.evalite.results.push({
         input,
         result,
         scores,
+        duration,
       });
     }
   });
