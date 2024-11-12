@@ -1,7 +1,6 @@
 import { evalite, Levenshtein } from "evalite-vitest";
 
 evalite("Testing my LLM awesomeness", {
-  // Replace with your dataset
   data: async () => [
     {
       input: "Hello",
@@ -9,10 +8,9 @@ evalite("Testing my LLM awesomeness", {
     },
     {
       input: "Hello Mr",
-      expected: "Hello Mr World!!",
+      expected: "Hello Mr Awesome!!",
     },
   ],
-  // Replace with your LLM call
   task: async (input) => {
     return input + " World";
   },

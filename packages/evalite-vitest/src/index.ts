@@ -1,36 +1,57 @@
-import type { RunnerTestFile } from "vitest";
-import { it } from "vitest";
 import levenshtein from "js-levenshtein";
+import { it } from "vitest";
 
 type MaybePromise<T> = T | Promise<T>;
 
 declare module "vitest" {
   interface TaskMeta {
-    evalite?: {
-      results: {
-        input: unknown;
-        result: unknown;
-        scores: {
-          score: number;
-          name: string;
-        }[];
-      }[];
-    };
+    evalite?: Evalite.TaskMeta;
   }
 }
 
-export const evalite = <T>(
-  testName: string,
-  opts: {
+export declare namespace Evalite {
+  export type Result = {
+    input: unknown;
+    result: unknown;
+    scores: Score[];
+  };
+
+  export type TaskReport = {
+    file: string;
+    task: string;
+    input: unknown;
+    result: unknown;
+    scores: Score[];
+  };
+
+  export type Score = {
+    score: number;
+    name: string;
+  };
+
+  export type ScoreInput<T> = {
+    output: T;
+    expected?: T;
+  };
+
+  export type TaskMeta = {
+    results: Result[];
+  };
+
+  export type Scorer<T> = (opts: ScoreInput<T>) => MaybePromise<Score>;
+
+  export type RunnerOpts<T> = {
     data: () => MaybePromise<{ input: T; expected?: T }[]>;
     task: (input: T) => MaybePromise<T>;
-    scores: ((opts: { output: T; expected?: T }) => MaybePromise<{
-      score: number;
-      name: string;
-    }>)[];
-  }
-) => {
+    scores: Scorer<T>[];
+  };
+}
+
+export const evalite = <T>(testName: string, opts: Evalite.RunnerOpts<T>) => {
   return it(testName, async ({ task }) => {
+    if (!task.file.meta.evalite) {
+      task.file.meta.evalite = { results: [] };
+    }
     task.meta.evalite = { results: [] };
     for (const { input, expected } of await opts.data()) {
       const result = await opts.task(input);
@@ -49,11 +70,17 @@ export const evalite = <T>(
         result,
         scores,
       });
+
+      task.file.meta.evalite.results.push({
+        input,
+        result,
+        scores,
+      });
     }
   });
 };
 
-export const Levenshtein = (args: { output: string; expected?: string }) => {
+export const Levenshtein = (args: Evalite.ScoreInput<string>) => {
   if (args.expected === undefined) {
     throw new Error("LevenshteinScorer requires an expected value");
   }
