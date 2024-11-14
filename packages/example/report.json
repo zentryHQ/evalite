@@ -6,30 +6,8 @@
       {
         "task": "Add 'world' to end of pharse",
         "score": 1,
-        "duration": 1997,
+        "duration": 598,
         "results": [
-          {
-            "input": "Hello",
-            "result": "Hello World",
-            "scores": [
-              {
-                "name": "Levenshtein",
-                "score": 1
-              }
-            ],
-            "duration": 545
-          },
-          {
-            "input": "Hello Mr",
-            "result": "Hello Mr World",
-            "scores": [
-              {
-                "name": "Levenshtein",
-                "score": 1
-              }
-            ],
-            "duration": 298
-          },
           {
             "input": "World",
             "result": "World World",
@@ -39,7 +17,18 @@
                 "score": 1
               }
             ],
-            "duration": 451
+            "duration": 505
+          },
+          {
+            "input": "Hello",
+            "result": "Hello World",
+            "scores": [
+              {
+                "name": "Levenshtein",
+                "score": 1
+              }
+            ],
+            "duration": 551
           },
           {
             "input": "World World World World",
@@ -50,7 +39,18 @@
                 "score": 1
               }
             ],
-            "duration": 443
+            "duration": 554
+          },
+          {
+            "input": "Hello Mr",
+            "result": "Hello Mr World",
+            "scores": [
+              {
+                "name": "Levenshtein",
+                "score": 1
+              }
+            ],
+            "duration": 581
           },
           {
             "input": "",
@@ -61,7 +61,7 @@
                 "score": 1
               }
             ],
-            "duration": 260
+            "duration": 597
           }
         ]
       }

@@ -37,6 +37,7 @@ export declare namespace Evalite {
 
   export type TaskMeta = {
     results: Result[];
+    duration: number | undefined;
   };
 
   export type Scorer<T> = (opts: ScoreInput<T>) => MaybePromise<Score>;
@@ -48,40 +49,65 @@ export declare namespace Evalite {
   };
 }
 
+const runTask = async <T>(opts: {
+  input: T;
+  expected: T | undefined;
+  task: (input: T) => MaybePromise<T>;
+  scores: Evalite.Scorer<T>[];
+}) => {
+  const start = performance.now();
+  const result = await opts.task(opts.input);
+  const duration = Math.round(performance.now() - start);
+
+  const scores: {
+    score: number;
+    name: string;
+  }[] = [];
+
+  for (const score of opts.scores) {
+    scores.push(await score({ output: result, expected: opts.expected }));
+  }
+
+  return {
+    result,
+    scores,
+    duration,
+  };
+};
+
 export const evalite = <T>(testName: string, opts: Evalite.RunnerOpts<T>) => {
   return it(testName, async ({ task }) => {
     if (!task.file.meta.evalite) {
-      task.file.meta.evalite = { results: [] };
+      task.file.meta.evalite = { results: [], duration: undefined };
     }
-    task.meta.evalite = { results: [] };
-    for (const { input, expected } of await opts.data()) {
-      const start = performance.now();
-      const result = await opts.task(input);
-      const duration = Math.round(performance.now() - start);
+    task.meta.evalite = { results: [], duration: undefined };
+    const data = await opts.data();
+    const start = performance.now();
+    await Promise.all(
+      data.map(async ({ input, expected }) => {
+        const { result, scores, duration } = await runTask({
+          expected,
+          input,
+          scores: opts.scores,
+          task: opts.task,
+        });
 
-      const scores: {
-        score: number;
-        name: string;
-      }[] = [];
+        task.meta.evalite!.results.push({
+          input,
+          result,
+          scores,
+          duration,
+        });
 
-      for (const score of opts.scores) {
-        scores.push(await score({ output: result, expected }));
-      }
-
-      task.meta.evalite.results.push({
-        input,
-        result,
-        scores,
-        duration,
-      });
-
-      task.file.meta.evalite.results.push({
-        input,
-        result,
-        scores,
-        duration,
-      });
-    }
+        task.file.meta.evalite!.results.push({
+          input,
+          result,
+          scores,
+          duration,
+        });
+      })
+    );
+    task.meta.evalite.duration = Math.round(performance.now() - start);
   });
 };
 

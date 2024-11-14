@@ -62,7 +62,7 @@ export default class EvaliteReporter extends BasicReporter {
           score: average(task.meta.evalite?.results || [], (t) => {
             return average(t.scores, (s) => s.score);
           }),
-          duration: sum(task.meta.evalite?.results || [], (t) => t.duration),
+          duration: task.meta.evalite?.duration ?? 0,
           results: [],
         };
 
