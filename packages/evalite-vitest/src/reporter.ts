@@ -32,6 +32,7 @@ export default class EvaliteReporter extends BasicReporter {
       duration: number;
       results: {
         input: unknown;
+        expected: unknown;
         result: unknown;
         scores: Evalite.Score[];
         duration: number;
@@ -67,8 +68,8 @@ export default class EvaliteReporter extends BasicReporter {
         };
 
         if (task.meta.evalite) {
-          for (const { input, result, scores, duration } of task.meta.evalite
-            .results) {
+          for (const { input, result, scores, duration, expected } of task.meta
+            .evalite.results) {
             data.push({
               file: file.name,
               task: task.name,
@@ -80,6 +81,7 @@ export default class EvaliteReporter extends BasicReporter {
             readableTask.results.push({
               input,
               result,
+              expected,
               scores,
               duration,
             });

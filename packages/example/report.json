@@ -1,67 +1,84 @@
 [
   {
-    "file": "src/index.test.ts",
-    "score": 1,
+    "file": "src/word-counter.test.ts",
+    "score": 0.8809523809523809,
     "tasks": [
       {
-        "task": "Add 'world' to end of pharse",
-        "score": 1,
-        "duration": 598,
+        "task": "Sentence counter",
+        "score": 0.8809523809523809,
+        "duration": 785,
         "results": [
           {
-            "input": "World",
-            "result": "World World",
+            "input": "Hello, you wonderful soul. You fantastic beast.",
+            "result": 8,
+            "expected": 7,
             "scores": [
               {
-                "name": "Levenshtein",
-                "score": 1
+                "name": "NumericDifference",
+                "score": 0.8571428571428572
               }
             ],
-            "duration": 505
+            "duration": 400
+          },
+          {
+            "input": "\n        What luck. The best of times. The worst of times.\n        The best of times.\n      ",
+            "result": 9,
+            "expected": 14,
+            "scores": [
+              {
+                "name": "NumericDifference",
+                "score": 0.6428571428571428
+              }
+            ],
+            "duration": 566
           },
           {
             "input": "Hello",
-            "result": "Hello World",
+            "result": 1,
+            "expected": 1,
             "scores": [
               {
-                "name": "Levenshtein",
+                "name": "NumericDifference",
                 "score": 1
               }
             ],
-            "duration": 551
+            "duration": 596
           },
           {
-            "input": "World World World World",
-            "result": "World World World World World",
+            "input": "Tongue-tied",
+            "result": 1,
+            "expected": 1,
             "scores": [
               {
-                "name": "Levenshtein",
+                "name": "NumericDifference",
                 "score": 1
               }
             ],
-            "duration": 554
+            "duration": 608
           },
           {
-            "input": "Hello Mr",
-            "result": "Hello Mr World",
+            "input": "\n        My extraordinary fate was to be bound up with these\n        hobbits for all time.\n      ",
+            "result": 11,
+            "expected": 14,
             "scores": [
               {
-                "name": "Levenshtein",
-                "score": 1
+                "name": "NumericDifference",
+                "score": 0.7857142857142857
               }
             ],
-            "duration": 581
+            "duration": 644
           },
           {
-            "input": "",
-            "result": "World",
+            "input": "Tongue tied",
+            "result": 2,
+            "expected": 2,
             "scores": [
               {
-                "name": "Levenshtein",
+                "name": "NumericDifference",
                 "score": 1
               }
             ],
-            "duration": 597
+            "duration": 784
           }
         ]
       }

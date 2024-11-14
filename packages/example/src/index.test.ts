@@ -2,7 +2,7 @@ import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
 import { evalite, Levenshtein } from "evalite-vitest";
 
-evalite("Add 'world' to end of pharse", {
+evalite("Add 'world' to end of phrase", {
   // Replace with your dataset
   data: async () => [
     {
@@ -55,5 +55,5 @@ evalite("Add 'world' to end of pharse", {
 
     return result.text;
   },
-  scores: [Levenshtein],
+  scorers: [Levenshtein],
 });

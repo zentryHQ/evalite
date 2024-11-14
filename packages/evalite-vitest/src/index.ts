@@ -13,6 +13,7 @@ export declare namespace Evalite {
   export type Result = {
     input: unknown;
     result: unknown;
+    expected: unknown | undefined;
     scores: Score[];
     duration: number;
   };
@@ -30,9 +31,9 @@ export declare namespace Evalite {
     name: string;
   };
 
-  export type ScoreInput<T> = {
-    output: T;
-    expected?: T;
+  export type ScoreInput<TExpected> = {
+    output: TExpected;
+    expected?: TExpected;
   };
 
   export type TaskMeta = {
@@ -40,20 +41,22 @@ export declare namespace Evalite {
     duration: number | undefined;
   };
 
-  export type Scorer<T> = (opts: ScoreInput<T>) => MaybePromise<Score>;
+  export type Scorer<TExpected> = (
+    opts: ScoreInput<TExpected>
+  ) => MaybePromise<Score>;
 
-  export type RunnerOpts<T> = {
-    data: () => MaybePromise<{ input: T; expected?: T }[]>;
-    task: (input: T) => MaybePromise<T>;
-    scores: Scorer<T>[];
+  export type RunnerOpts<TInput, TExpected> = {
+    data: () => MaybePromise<{ input: TInput; expected?: TExpected }[]>;
+    task: (input: TInput) => MaybePromise<TExpected>;
+    scorers: Scorer<TExpected>[];
   };
 }
 
-const runTask = async <T>(opts: {
-  input: T;
-  expected: T | undefined;
-  task: (input: T) => MaybePromise<T>;
-  scores: Evalite.Scorer<T>[];
+const runTask = async <TInput, TExpected>(opts: {
+  input: TInput;
+  expected: TExpected | undefined;
+  task: (input: TInput) => MaybePromise<TExpected>;
+  scores: Evalite.Scorer<TExpected>[];
 }) => {
   const start = performance.now();
   const result = await opts.task(opts.input);
@@ -75,7 +78,10 @@ const runTask = async <T>(opts: {
   };
 };
 
-export const evalite = <T>(testName: string, opts: Evalite.RunnerOpts<T>) => {
+export const evalite = <TInput, TExpected>(
+  testName: string,
+  opts: Evalite.RunnerOpts<TInput, TExpected>
+) => {
   return it(testName, async ({ task }) => {
     if (!task.file.meta.evalite) {
       task.file.meta.evalite = { results: [], duration: undefined };
@@ -88,7 +94,7 @@ export const evalite = <T>(testName: string, opts: Evalite.RunnerOpts<T>) => {
         const { result, scores, duration } = await runTask({
           expected,
           input,
-          scores: opts.scores,
+          scores: opts.scorers,
           task: opts.task,
         });
 
@@ -97,6 +103,7 @@ export const evalite = <T>(testName: string, opts: Evalite.RunnerOpts<T>) => {
           result,
           scores,
           duration,
+          expected,
         });
 
         task.file.meta.evalite!.results.push({
@@ -104,6 +111,7 @@ export const evalite = <T>(testName: string, opts: Evalite.RunnerOpts<T>) => {
           result,
           scores,
           duration,
+          expected,
         });
       })
     );
@@ -127,5 +135,16 @@ export const Levenshtein = (args: Evalite.ScoreInput<string>) => {
   return {
     name: "Levenshtein",
     score,
+  };
+};
+
+export const numericDifference = (args: Evalite.ScoreInput<number>) => {
+  if (args.expected === undefined) {
+    throw new Error("NumericDifferenceScorer requires an expected value");
+  }
+
+  return {
+    name: "NumericDifference",
+    score: 1 - Math.abs(args.output - args.expected) / args.expected,
   };
 };
