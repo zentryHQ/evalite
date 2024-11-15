@@ -5,3 +5,7 @@ export const sum = <T>(arr: T[], fn: (item: T) => number | undefined) => {
 export const average = <T>(arr: T[], fn: (item: T) => number | undefined) => {
   return sum(arr, fn) / arr.length;
 };
+
+export const max = <T>(arr: T[], fn: (item: T) => number | undefined) => {
+  return arr.reduce((a, b) => Math.max(a, fn(b) || 0), 0);
+};

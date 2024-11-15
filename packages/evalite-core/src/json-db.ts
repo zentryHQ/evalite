@@ -1,17 +1,13 @@
 import { appendFile, readFile } from "fs/promises";
-import { average } from "./utils.js";
+import { average, max } from "./utils.js";
 import type { Evalite } from "./index.js";
 
-export type JsonDBRun = {
-  id: string;
-  datetime: string;
-  files: JsonDBFile[];
-};
-
-export type JsonDBFile = {
+export type JsonDBFileResult = {
   file: string;
+  datetime: string;
   score: number;
   tasks: JsonDBTask[];
+  duration: number;
 };
 
 export type JsonDBTask = {
@@ -39,21 +35,20 @@ export const appendToJsonDb = async (opts: {
     }[];
   }[];
 }) => {
-  const jsonDbRun: JsonDBRun = {
-    id: crypto.randomUUID(),
-    datetime: new Date().toISOString(),
-    files: [],
-  };
+  const datetime = new Date().toISOString();
+  const files: JsonDBFileResult[] = [];
 
   for (const file of opts.files) {
-    const jsonDbFile: JsonDBFile = {
+    const jsonDbFile: JsonDBFileResult = {
       file: file.name,
+      datetime,
       score: average(file.tasks, (task) => {
         return average(task.meta.evalite?.results || [], (t) => {
           return average(t.scores, (s) => s.score);
         });
       }),
       tasks: [],
+      duration: max(file.tasks, (task) => task.meta.evalite?.duration || 0),
     };
     for (const task of file.tasks) {
       const jsonDbTask: JsonDBTask = {
@@ -81,21 +76,82 @@ export const appendToJsonDb = async (opts: {
       jsonDbFile.tasks.push(jsonDbTask);
     }
 
-    jsonDbRun.files.push(jsonDbFile);
+    files.push(jsonDbFile);
   }
 
-  await appendFile(opts.dbLocation, JSON.stringify(jsonDbRun) + "\n", {
-    encoding: "utf-8",
-  });
+  await appendFile(
+    opts.dbLocation,
+    files.map((file) => JSON.stringify(file)).join("\n") + "\n",
+    {
+      encoding: "utf-8",
+    }
+  );
 };
 
-export const getJsonDbRuns = async (opts: {
+export type GetJsonDbFilesResult = Record<string, JsonDBFileResult[]>;
+
+export const getJsonDbFiles = async (opts: {
   dbLocation: string;
-}): Promise<JsonDBRun[]> => {
+}): Promise<GetJsonDbFilesResult> => {
+  const dbContents = await readFile(opts.dbLocation, { encoding: "utf-8" });
+
+  const map: GetJsonDbFilesResult = {};
+
+  await getRows({
+    dbLocation: opts.dbLocation,
+    mapper: (row) => {
+      const filename = row.file;
+
+      if (!map[filename]) {
+        map[filename] = [];
+      }
+
+      map[filename]!.unshift(row);
+    },
+  });
+
+  return map;
+};
+
+const getRows = async <T>(opts: {
+  dbLocation: string;
+  mapper: (row: JsonDBFileResult) => T;
+}): Promise<T[]> => {
   const dbContents = await readFile(opts.dbLocation, { encoding: "utf-8" });
 
   return dbContents
     .trim()
     .split("\n")
-    .map((line) => JSON.parse(line));
+    .map((line) => {
+      const parsed: JsonDBFileResult = JSON.parse(line);
+
+      return opts.mapper(parsed);
+    });
+};
+
+export type TasksMap = Record<string, JsonDBTask[]>;
+
+export const getJsonDbFile = async (opts: {
+  dbLocation: string;
+  file: string;
+}): Promise<TasksMap> => {
+  const tasks: TasksMap = {};
+
+  await getRows({
+    dbLocation: opts.dbLocation,
+    mapper: (row) => {
+      if (row.file !== opts.file) return;
+
+      row.tasks.forEach((task) => {
+        const taskName = task.task;
+        if (!tasks[taskName]) {
+          tasks[taskName] = [];
+        }
+
+        tasks[taskName].unshift(task);
+      });
+    },
+  });
+
+  return tasks;
 };

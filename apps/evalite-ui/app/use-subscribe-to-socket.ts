@@ -1,9 +1,19 @@
 import type { Evalite } from "@evalite/core";
 import { DEFAULT_SERVER_PORT } from "@evalite/core/constants";
+import { useNavigate } from "@remix-run/react";
 import { useEffect, useState } from "react";
 
 export const useSubscribeToTestServer = () => {
   const [state, setState] = useState<"idle" | "running" | "failed">("idle");
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    navigate(window.location, {
+      preventScrollReset: true,
+      replace: false,
+    });
+  }, [state, navigate]);
 
   useEffect(() => {
     const socket = new WebSocket(

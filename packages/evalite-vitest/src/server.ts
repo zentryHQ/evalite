@@ -1,4 +1,4 @@
-import { getJsonDbRuns, type Evalite } from "@evalite/core";
+import { getJsonDbFile, getJsonDbFiles, type Evalite } from "@evalite/core";
 import { fastifyWebsocket } from "@fastify/websocket";
 import fastify from "fastify";
 
@@ -27,16 +27,49 @@ const createServer = (opts: { jsonDbLocation: string }) => {
     res.status(200).send("Hello, world!");
   });
 
-  server.get("/api/get-runs", async (req, res) => {
+  server.get("/api/files", async (req, res) => {
     return res
       .status(200)
       .header("access-control-allow-origin", "*")
-      .send(await getJsonDbRuns({ dbLocation: opts.jsonDbLocation }));
+      .send(await getJsonDbFiles({ dbLocation: opts.jsonDbLocation }));
+  });
+
+  server.route<{
+    Querystring: {
+      path: string;
+    };
+  }>({
+    method: "GET",
+    url: "/api/file",
+    schema: {
+      querystring: {
+        type: "object",
+        properties: {
+          path: { type: "string" },
+        },
+      },
+    },
+    handler: async (req, res) => {
+      const path = req.query.path;
+
+      const fileData = await getJsonDbFile({
+        dbLocation: opts.jsonDbLocation,
+        file: path,
+      });
+
+      if (!fileData) {
+        return res.status(404).send();
+      }
+
+      return res
+        .status(200)
+        .header("access-control-allow-origin", "*")
+        .send(fileData);
+    },
   });
 
   return {
     send: (event: Evalite.WebsocketEvent) => {
-      console.log(event.type);
       for (const listener of listeners.values()) {
         listener(event);
       }
