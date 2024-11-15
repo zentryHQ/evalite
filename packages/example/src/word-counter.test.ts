@@ -18,6 +18,10 @@ evalite("Sentence counter", {
       expected: 2,
     },
     {
+      input: `Ain't no mountain high enough`,
+      expected: 5,
+    },
+    {
       input: "Hello, you wonderful soul. You fantastic beast.",
       expected: 7,
     },

@@ -1,7 +1,6 @@
+import type { Evalite } from "@evalite/core";
 import levenshtein from "js-levenshtein";
 import { it } from "vitest";
-
-type MaybePromise<T> = T | Promise<T>;
 
 declare module "vitest" {
   interface TaskMeta {
@@ -9,53 +8,10 @@ declare module "vitest" {
   }
 }
 
-export declare namespace Evalite {
-  export type Result = {
-    input: unknown;
-    result: unknown;
-    expected: unknown | undefined;
-    scores: Score[];
-    duration: number;
-  };
-
-  export type TaskReport = {
-    file: string;
-    task: string;
-    input: unknown;
-    result: unknown;
-    scores: Score[];
-  };
-
-  export type Score = {
-    score: number;
-    name: string;
-  };
-
-  export type ScoreInput<TExpected> = {
-    output: TExpected;
-    expected?: TExpected;
-  };
-
-  export type TaskMeta = {
-    results: Result[];
-    duration: number | undefined;
-  };
-
-  export type Scorer<TExpected> = (
-    opts: ScoreInput<TExpected>
-  ) => MaybePromise<Score>;
-
-  export type RunnerOpts<TInput, TExpected> = {
-    data: () => MaybePromise<{ input: TInput; expected?: TExpected }[]>;
-    task: (input: TInput) => MaybePromise<TExpected>;
-    scorers: Scorer<TExpected>[];
-  };
-}
-
 const runTask = async <TInput, TExpected>(opts: {
   input: TInput;
   expected: TExpected | undefined;
-  task: (input: TInput) => MaybePromise<TExpected>;
+  task: (input: TInput) => Evalite.MaybePromise<TExpected>;
   scores: Evalite.Scorer<TExpected>[];
 }) => {
   const start = performance.now();

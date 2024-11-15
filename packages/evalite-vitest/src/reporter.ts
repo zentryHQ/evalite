@@ -1,104 +1,68 @@
 import type { RunnerTask, RunnerTestFile, TaskResultPack } from "vitest";
 import { BasicReporter } from "vitest/reporters";
-import type { Evalite } from "./index.js";
 
-import c from "tinyrainbow";
+import {
+  DEFAULT_SERVER_PORT,
+  type Evalite,
+  appendToJsonDb,
+} from "@evalite/core";
 import { writeFile } from "fs/promises";
-
-export const sum = <T>(arr: T[], fn: (item: T) => number | undefined) => {
-  return arr.reduce((a, b) => a + (fn(b) || 0), 0);
-};
-
-export const average = <T>(arr: T[], fn: (item: T) => number | undefined) => {
-  return sum(arr, fn) / arr.length;
-};
+import c from "tinyrainbow";
+import { runServer, type Server } from "./server.js";
+import { average } from "./utils.js";
 
 export default class EvaliteReporter extends BasicReporter {
+  private server: Server;
+  constructor() {
+    super();
+    this.server = runServer({
+      port: DEFAULT_SERVER_PORT,
+      jsonDbLocation: "./evalite-report.jsonl",
+    });
+  }
+
   override onInit(ctx: any): void {
     this.ctx = ctx;
     this.start = performance.now();
-    // this.ctx.logger.log("TODO: Start Dev Server");
+
+    this.ctx.logger.log(
+      ` ${c.magenta(c.bold("EVALITE"))} ${c.dim("running on")} ` +
+        c.cyan(`http://localhost:${c.bold(DEFAULT_SERVER_PORT)}/`)
+    );
+    this.ctx.logger.log("");
+
+    this.server.send({
+      type: "RUN_IN_PROGRESS",
+    });
+  }
+
+  override onTaskUpdate(packs: TaskResultPack[]): void {
+    this.server.send({
+      type: "RUN_IN_PROGRESS",
+    });
+    super.onTaskUpdate(packs);
+  }
+
+  override onWatcherStart(files?: RunnerTestFile[], errors?: unknown[]): void {
+    super.onWatcherStart(files, errors);
+  }
+
+  override onWatcherRerun(files: string[], trigger?: string): void {
+    super.onWatcherRerun(files, trigger);
   }
 
   override onFinished = async (
     files = this.ctx.state.getFiles(),
     errors = this.ctx.state.getUnhandledErrors()
   ) => {
-    const data: Evalite.TaskReport[] = [];
+    this.server.send({
+      type: "RUN_COMPLETE",
+    });
 
-    type ReadableTask = {
-      task: string;
-      score: number;
-      duration: number;
-      results: {
-        input: unknown;
-        expected: unknown;
-        result: unknown;
-        scores: Evalite.Score[];
-        duration: number;
-      }[];
-    };
-
-    type ReadableFile = {
-      file: string;
-      score: number;
-      tasks: ReadableTask[];
-    };
-
-    const readableReports: ReadableFile[] = [];
-
-    for (const file of files) {
-      const report: ReadableFile = {
-        file: file.name,
-        score: average(file.tasks, (task) => {
-          return average(task.meta.evalite?.results || [], (t) => {
-            return average(t.scores, (s) => s.score);
-          });
-        }),
-        tasks: [],
-      };
-      for (const task of file.tasks) {
-        const readableTask: ReadableTask = {
-          task: task.name,
-          score: average(task.meta.evalite?.results || [], (t) => {
-            return average(t.scores, (s) => s.score);
-          }),
-          duration: task.meta.evalite?.duration ?? 0,
-          results: [],
-        };
-
-        if (task.meta.evalite) {
-          for (const { input, result, scores, duration, expected } of task.meta
-            .evalite.results) {
-            data.push({
-              file: file.name,
-              task: task.name,
-              input,
-              result,
-              scores,
-            });
-
-            readableTask.results.push({
-              input,
-              result,
-              expected,
-              scores,
-              duration,
-            });
-          }
-        }
-
-        report.tasks.push(readableTask);
-      }
-
-      readableReports.push(report);
-    }
-
-    await writeFile(
-      "./report.json",
-      JSON.stringify(readableReports, null, 2),
-      "utf-8"
-    );
+    await appendToJsonDb({
+      dbLocation: "./evalite-report.jsonl",
+      files,
+    });
 
     super.onFinished(files, errors);
   };
