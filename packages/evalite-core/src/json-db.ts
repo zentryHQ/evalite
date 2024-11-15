@@ -10,17 +10,20 @@ export type JsonDBFileResult = {
   duration: number;
 };
 
+export type JsonDbResult = {
+  input: unknown;
+  expected: unknown;
+  result: unknown;
+  scores: Evalite.Score[];
+  duration: number;
+  score: number;
+};
+
 export type JsonDBTask = {
   task: string;
   score: number;
   duration: number;
-  results: {
-    input: unknown;
-    expected: unknown;
-    result: unknown;
-    scores: Evalite.Score[];
-    duration: number;
-  }[];
+  results: JsonDbResult[];
 };
 
 export const appendToJsonDb = async (opts: {
@@ -69,6 +72,7 @@ export const appendToJsonDb = async (opts: {
             expected,
             scores,
             duration,
+            score: average(scores, (s) => s.score),
           });
         }
       }

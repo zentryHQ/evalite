@@ -11,7 +11,7 @@ export const useSubscribeToTestServer = () => {
   useEffect(() => {
     navigate(window.location, {
       preventScrollReset: true,
-      replace: false,
+      replace: true,
     });
   }, [state, navigate]);
 

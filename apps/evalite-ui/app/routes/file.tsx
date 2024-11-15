@@ -1,7 +1,7 @@
 import type { TasksMap } from "@evalite/core";
 import { DEFAULT_SERVER_PORT } from "@evalite/core/constants";
 import type { LoaderFunctionArgs } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { Link, useLoaderData } from "@remix-run/react";
 import { useSubscribeToTestServer } from "~/use-subscribe-to-socket";
 import { scoreToPercent } from "~/utils";
 
@@ -56,7 +56,11 @@ export default function Page() {
             const first = results[0];
             return (
               <tr>
-                <td className="px-2">{taskName}</td>
+                <td className="px-2">
+                  <Link to={`/task?path=${filename}&task=${taskName}`}>
+                    {taskName}
+                  </Link>
+                </td>
                 <td className="px-2">{first.results.length}</td>
                 <td className="px-2">{scoreToPercent(first.score)}</td>
               </tr>

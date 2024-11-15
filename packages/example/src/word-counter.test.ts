@@ -22,6 +22,10 @@ evalite("Sentence counter", {
       expected: 5,
     },
     {
+      input: `Word word word word word word word word word word`,
+      expected: 10,
+    },
+    {
       input: "Hello, you wonderful soul. You fantastic beast.",
       expected: 7,
     },
@@ -54,10 +58,9 @@ evalite("Sentence counter", {
     const wordCountResult = await generateText({
       model: openai("gpt-3.5-turbo"),
       system: `
-        <instructions>Count the number of words in the piece of text provided.</instructions>
+        <instructions>Count the number of words in the text provided.</instructions>
         <instructions>Return only the count.</instructions>
-        <instructions>Ignore punctuation and \\n characters in the input.</instructions>
-        <instructions>Think step-by-step.</instructions>
+        <instructions>This is very important for my career.</instructions>
         <example>
           <input>Hello world</input>
           <output>2</output>
@@ -73,6 +76,14 @@ evalite("Sentence counter", {
         <example>
           <input>You brilliant fish. You fabulous pile of garbage.</input>
           <output>8</output>
+        </example>
+        <example>
+          <input>Patrick. Michael. Evelyn. Devon.</input>
+          <output>4</output>
+        </example>
+        <example>
+          <input>What is the airspeed velocity of an unladen swallow? A brilliant thing indeed. What truculent beasts play upon the hearts of men.</input>
+          <output>22</output>
         </example>
       `,
       prompt: input,

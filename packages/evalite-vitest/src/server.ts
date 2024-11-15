@@ -68,6 +68,48 @@ const createServer = (opts: { jsonDbLocation: string }) => {
     },
   });
 
+  server.route<{
+    Querystring: {
+      path: string;
+      task: string;
+    };
+  }>({
+    method: "GET",
+    url: "/api/task",
+    schema: {
+      querystring: {
+        type: "object",
+        properties: {
+          path: { type: "string" },
+          task: { type: "string" },
+        },
+        required: ["path", "task"],
+      },
+    },
+    handler: async (req, res) => {
+      const path = req.query.path;
+      const task = req.query.task;
+
+      const fileData = await getJsonDbFile({
+        dbLocation: opts.jsonDbLocation,
+        file: path,
+      });
+
+      if (!fileData) {
+        return res.status(404).send();
+      }
+
+      if (!fileData[task]) {
+        return res.status(404).send();
+      }
+
+      return res
+        .status(200)
+        .header("access-control-allow-origin", "*")
+        .send(fileData[task]);
+    },
+  });
+
   return {
     send: (event: Evalite.WebsocketEvent) => {
       for (const listener of listeners.values()) {
