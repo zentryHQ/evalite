@@ -1,15 +1,9 @@
 import type { RunnerTask, RunnerTestFile, TaskResultPack } from "vitest";
 import { BasicReporter } from "vitest/reporters";
 
-import {
-  DEFAULT_SERVER_PORT,
-  type Evalite,
-  appendToJsonDb,
-} from "@evalite/core";
-import { writeFile } from "fs/promises";
+import { appendToJsonDb, DEFAULT_SERVER_PORT } from "@evalite/core";
 import c from "tinyrainbow";
 import { runServer, type Server } from "./server.js";
-import { average } from "./utils.js";
 
 export default class EvaliteReporter extends BasicReporter {
   private server: Server;
@@ -78,15 +72,17 @@ export default class EvaliteReporter extends BasicReporter {
       return;
     }
 
+    const hasNoEvalite = task.tasks.every((t) => !t.meta.evalite);
+
+    if (hasNoEvalite) {
+      return super.printTask(task);
+    }
+
     const scores: number[] = [];
 
-    let failed = false;
+    const failed = task.tasks.some((t) => t.result?.state === "fail");
 
     for (const { meta, result } of task.tasks) {
-      if ((result?.errors?.length || 0) > 0) {
-        failed = true;
-        break;
-      }
       if (meta.evalite) {
         scores.push(
           ...meta.evalite!.results.flatMap((r) => r.scores.map((s) => s.score))
@@ -141,13 +137,17 @@ export default class EvaliteReporter extends BasicReporter {
 
     const totalDuration = collectTime + testsTime + setupTime;
 
+    const failedTasks = files.filter((file) => {
+      return file.tasks.some((task) => task.result?.state === "fail");
+    });
+
+    const scoreDisplay =
+      failedTasks.length > 0
+        ? c.red("✖ ") + c.dim(`(${failedTasks.length} failed)`)
+        : c.bold(scoreColor(averageScore + "%"));
+
     this.ctx.logger.log(
-      [
-        "      ",
-        c.dim("Score"),
-        "  ",
-        c.bold(scoreColor(averageScore + "%")),
-      ].join("")
+      ["      ", c.dim("Score"), "  ", scoreDisplay].join("")
     );
 
     this.ctx.logger.log(
