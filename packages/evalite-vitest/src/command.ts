@@ -7,7 +7,7 @@ import { createHash } from "crypto";
 
 declare module "vitest" {
   export interface ProvidedContext {
-    evaliteSourceCodeHash: string;
+    evaliteInputHash: string;
   }
 }
 
@@ -49,9 +49,7 @@ export const runVitest = async (opts: {
 
   const hash = createHash("sha256").update(codeFromSourceFiles).digest("hex");
 
-  console.log(hash);
-
-  vitest.provide("evaliteSourceCodeHash", hash);
+  vitest.provide("evaliteInputHash", hash);
 
   await vitest.start();
 

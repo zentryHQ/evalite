@@ -41,7 +41,7 @@ export const evalite = <TInput, TExpected>(
       throw new Error("You must provide at least one scorer.");
     }
 
-    const sourceCodeHash = inject("evaliteSourceCodeHash");
+    const sourceCodeHash = inject("evaliteInputHash");
 
     const data = await opts.data();
     const start = performance.now();
