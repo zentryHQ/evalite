@@ -1,9 +1,7 @@
-import { readFileSync } from "fs";
-import path from "path";
+import { getJsonDbEvals } from "@evalite/core";
 import { assert, expect, it } from "vitest";
 import { runVitest } from "../command.js";
 import { captureStdout, loadFixture } from "./test-utils.js";
-import { getJsonDbEvals, getRows } from "@evalite/core";
 
 it("Should report the basics correctly", async () => {
   using fixture = loadFixture("basics");
@@ -34,9 +32,7 @@ it("Should create a evalite-report.jsonl", async () => {
     testOutputWritable: captured.writable,
   });
 
-  const dbLocation = path.join(fixture.dir, "evalite-report.jsonl");
-
-  const evals = await getJsonDbEvals({ dbLocation });
+  const evals = await getJsonDbEvals({ dbLocation: fixture.jsonDbLocation });
 
   expect(evals).toMatchObject({
     Basics: [
@@ -68,9 +64,7 @@ it("Should capture the duration as being more than 0", async () => {
     testOutputWritable: captured.writable,
   });
 
-  const dbLocation = path.join(fixture.dir, "evalite-report.jsonl");
-
-  const evals = await getJsonDbEvals({ dbLocation });
+  const evals = await getJsonDbEvals({ dbLocation: fixture.jsonDbLocation });
 
   assert(typeof evals.Basics?.[0]?.duration === "number", "Duration exists");
   expect(evals.Basics?.[0]?.duration).toBeGreaterThan(0);
