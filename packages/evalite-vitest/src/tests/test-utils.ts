@@ -7,7 +7,9 @@ import stripAnsi from "strip-ansi";
 const FIXTURES_DIR = path.join(import.meta.dirname, "./fixtures");
 const PLAYGROUND_DIR = path.join(import.meta.dirname, "./playground");
 
-export const loadFixture = (name: string) => {
+export const loadFixture = (
+  name: "basics" | "failing-test" | (string & {})
+) => {
   const fixturePath = path.join(FIXTURES_DIR, name);
 
   const dirName = randomUUID().slice(0, 8);

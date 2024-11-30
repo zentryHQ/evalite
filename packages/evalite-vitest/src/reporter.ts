@@ -54,7 +54,7 @@ export default class EvaliteReporter extends BasicReporter {
     // });
 
     await appendToJsonDb({
-      dbLocation: "./evalite-report.jsonl",
+      dbLocation: __evalite_globals.jsonDbLocation,
       files,
     });
 

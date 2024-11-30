@@ -1,7 +1,8 @@
+import { readFileSync } from "fs";
+import path from "path";
 import { expect, it } from "vitest";
 import { runVitest } from "../command.js";
 import { captureStdout, loadFixture } from "./test-utils.js";
-import { readdirSync } from "fs";
 
 it("Should report the basics correctly", async () => {
   using fixture = loadFixture("basics");
@@ -32,7 +33,12 @@ it("Should create a evalite-report.jsonl", async () => {
     testOutputWritable: captured.writable,
   });
 
-  const dir = readdirSync(fixture.dir);
+  const file = readFileSync(
+    path.join(fixture.dir, "evalite-report.jsonl"),
+    "utf-8"
+  );
 
-  console.log(dir);
+  console.dir(JSON.parse(file), { depth: Infinity });
+
+  expect(typeof file).toEqual("string");
 });

@@ -1,12 +1,12 @@
 import { Command } from "commander";
+import path from "path";
 import { Writable } from "stream";
-import { inject } from "vitest";
-import { createVitest, startVitest } from "vitest/node";
+import { createVitest } from "vitest/node";
 
-declare module "vitest" {
-  export interface ProvidedContext {
-    wsPort: number;
-  }
+declare global {
+  var __evalite_globals: {
+    readonly jsonDbLocation: string;
+  };
 }
 
 export const runVitest = async (opts: {
@@ -14,6 +14,9 @@ export const runVitest = async (opts: {
   cwd: string | undefined;
   testOutputWritable?: Writable;
 }) => {
+  globalThis.__evalite_globals = {
+    jsonDbLocation: path.join(opts.cwd ?? "", "./evalite-report.jsonl"),
+  };
   const vitest = await createVitest(
     "test",
     {
