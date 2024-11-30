@@ -3,12 +3,17 @@ import { BasicReporter } from "vitest/reporters";
 
 import { appendToJsonDb, DEFAULT_SERVER_PORT } from "@evalite/core";
 import c from "tinyrainbow";
-import { runServer, type Server } from "./server.js";
+
+export interface EvaliteReporterOptions {
+  jsonDbLocation: string;
+}
 
 export default class EvaliteReporter extends BasicReporter {
+  private opts: EvaliteReporterOptions;
   // private server: Server;
-  constructor() {
+  constructor(opts: EvaliteReporterOptions) {
     super();
+    this.opts = opts;
     // this.server = runServer({
     //   port: DEFAULT_SERVER_PORT,
     //   jsonDbLocation: "./evalite-report.jsonl",
@@ -54,7 +59,7 @@ export default class EvaliteReporter extends BasicReporter {
     // });
 
     await appendToJsonDb({
-      dbLocation: __evalite_globals.jsonDbLocation,
+      dbLocation: this.opts.jsonDbLocation,
       files,
     });
 
@@ -82,7 +87,7 @@ export default class EvaliteReporter extends BasicReporter {
 
     const failed = task.tasks.some((t) => t.result?.state === "fail");
 
-    for (const { meta, result } of task.tasks) {
+    for (const { meta } of task.tasks) {
       if (meta.evalite) {
         scores.push(
           ...meta.evalite!.results.flatMap((r) => r.scores.map((s) => s.score))

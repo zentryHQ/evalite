@@ -4,30 +4,22 @@ import { Writable } from "stream";
 import { createVitest } from "vitest/node";
 import EvaliteReporter from "./reporter";
 
-declare global {
-  var __evalite_globals: {
-    /**
-     * The location of the JSON database file.
-     */
-    readonly jsonDbLocation: string;
-  };
-}
-
 export const runVitest = async (opts: {
   path: string | undefined;
   cwd: string | undefined;
   testOutputWritable?: Writable;
 }) => {
-  globalThis.__evalite_globals = {
-    jsonDbLocation: path.join(opts.cwd ?? "", "./evalite-report.jsonl"),
-  };
   const vitest = await createVitest(
     "test",
     {
       root: opts.cwd,
       include: ["**/*.eval.{js,ts}"],
       watch: false,
-      reporters: [new EvaliteReporter()],
+      reporters: [
+        new EvaliteReporter({
+          jsonDbLocation: path.join(opts.cwd ?? "", "./evalite-report.jsonl"),
+        }),
+      ],
     },
     {},
     {
