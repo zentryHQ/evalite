@@ -6,13 +6,13 @@ import c from "tinyrainbow";
 import { runServer, type Server } from "./server.js";
 
 export default class EvaliteReporter extends BasicReporter {
-  private server: Server;
+  // private server: Server;
   constructor() {
     super();
-    this.server = runServer({
-      port: DEFAULT_SERVER_PORT,
-      jsonDbLocation: "./evalite-report.jsonl",
-    });
+    // this.server = runServer({
+    //   port: DEFAULT_SERVER_PORT,
+    //   jsonDbLocation: "./evalite-report.jsonl",
+    // });
   }
 
   override onInit(ctx: any): void {
@@ -25,15 +25,15 @@ export default class EvaliteReporter extends BasicReporter {
     );
     this.ctx.logger.log("");
 
-    this.server.send({
-      type: "RUN_IN_PROGRESS",
-    });
+    // this.server.send({
+    //   type: "RUN_IN_PROGRESS",
+    // });
   }
 
   override onTaskUpdate(packs: TaskResultPack[]): void {
-    this.server.send({
-      type: "RUN_IN_PROGRESS",
-    });
+    // this.server.send({
+    //   type: "RUN_IN_PROGRESS",
+    // });
     super.onTaskUpdate(packs);
   }
 
@@ -49,9 +49,9 @@ export default class EvaliteReporter extends BasicReporter {
     files = this.ctx.state.getFiles(),
     errors = this.ctx.state.getUnhandledErrors()
   ) => {
-    this.server.send({
-      type: "RUN_COMPLETE",
-    });
+    // this.server.send({
+    //   type: "RUN_COMPLETE",
+    // });
 
     await appendToJsonDb({
       dbLocation: "./evalite-report.jsonl",

@@ -17,16 +17,13 @@
     },
     "test": {
       "dependsOn": ["^build"],
+      "outputs": ["evalite-report.jsonl"],
       "cache": true
     },
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist", "*.tsbuildinfo", ".next", "build"],
       "cache": true
-    },
-    "start": {
-      "dependsOn": ["build"],
-      "cache": false
     }
   }
 }

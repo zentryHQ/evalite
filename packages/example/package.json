@@ -6,9 +6,7 @@
   "files": [
     "./dist/*"
   ],
-  "scripts": {
-    "test": "vitest"
-  },
+  "scripts": {},
   "exports": {
     ".": "./dist/index.js",
     "./reporter": "./dist/reporter.js"

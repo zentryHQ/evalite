@@ -3,18 +3,22 @@
   "version": "0.0.2",
   "private": true,
   "type": "module",
+  "bin": {
+    "evalite-vitest": "./dist/bin.js"
+  },
   "files": [
     "./dist/*"
   ],
   "scripts": {
     "build": "tsc",
-    "test": "vitest run"
+    "test": "vitest run --passWithNoTests"
   },
   "exports": {
     ".": "./dist/index.js",
     "./reporter": "./dist/reporter.js"
   },
   "dependencies": {
+    "commander": "^12.1.0",
     "js-levenshtein": "^1.1.6",
     "tinyrainbow": "^1.2.0",
     "fastify": "^5.1.0",
@@ -23,6 +27,7 @@
     "@evalite/core": "workspace:*"
   },
   "devDependencies": {
+    "strip-ansi": "^7.1.0",
     "@types/js-levenshtein": "^1.1.3"
   }
 }
