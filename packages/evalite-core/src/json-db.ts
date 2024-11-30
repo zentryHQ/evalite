@@ -8,6 +8,7 @@ export type JsonDBEval = {
   startTime: string;
   duration: number;
   results: JsonDbResult[];
+  sourceCodeHash: string;
 };
 
 export type JsonDbResult = {
@@ -44,6 +45,7 @@ export const appendToJsonDb = async (opts: {
         duration: task.meta.evalite?.duration ?? 0,
         results: [],
         startTime: datetime,
+        sourceCodeHash: task.meta.evalite?.sourceCodeHash ?? "",
       };
 
       if (task.meta.evalite) {

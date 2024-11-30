@@ -69,3 +69,24 @@ it("Should capture the duration as being more than 0", async () => {
   assert(typeof evals.Basics?.[0]?.duration === "number", "Duration exists");
   expect(evals.Basics?.[0]?.duration).toBeGreaterThan(0);
 });
+
+it("Should capture a hash of the source code", async () => {
+  using fixture = loadFixture("basics");
+
+  const captured = captureStdout();
+
+  await runVitest({
+    cwd: fixture.dir,
+    path: undefined,
+    testOutputWritable: captured.writable,
+  });
+
+  const evals = await getJsonDbEvals({ dbLocation: fixture.jsonDbLocation });
+
+  assert(
+    typeof evals.Basics?.[0]?.sourceCodeHash === "string",
+    "Source code hash exists"
+  );
+
+  expect(evals.Basics[0].sourceCodeHash.length).toEqual(64);
+});

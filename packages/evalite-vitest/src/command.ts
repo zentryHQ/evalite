@@ -2,7 +2,14 @@ import { Command } from "commander";
 import path from "path";
 import { Writable } from "stream";
 import { createVitest } from "vitest/node";
-import EvaliteReporter from "./reporter";
+import EvaliteReporter from "./reporter.js";
+import { createHash } from "crypto";
+
+declare module "vitest" {
+  export interface ProvidedContext {
+    evaliteSourceCodeHash: string;
+  }
+}
 
 export const runVitest = async (opts: {
   path: string | undefined;
@@ -27,6 +34,24 @@ export const runVitest = async (opts: {
       stderr: opts.testOutputWritable || process.stderr,
     }
   );
+
+  await vitest.collect();
+
+  const allFileResults = Array.from(vitest.vitenode.fetchCache);
+
+  const sourceFileResults = allFileResults.filter(([path, item]) => {
+    return !(path.endsWith(".eval.ts") || path.endsWith(".eval.js"));
+  });
+
+  const codeFromSourceFiles = sourceFileResults.reduce((acc, [path, item]) => {
+    return acc + (item.result.code ?? "");
+  }, "");
+
+  const hash = createHash("sha256").update(codeFromSourceFiles).digest("hex");
+
+  console.log(hash);
+
+  vitest.provide("evaliteSourceCodeHash", hash);
 
   await vitest.start();
 

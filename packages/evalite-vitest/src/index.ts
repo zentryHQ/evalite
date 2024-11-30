@@ -1,6 +1,6 @@
 import type { Evalite } from "@evalite/core";
 import levenshtein from "js-levenshtein";
-import { it } from "vitest";
+import { inject, it } from "vitest";
 
 declare module "vitest" {
   interface TaskMeta {
@@ -41,6 +41,8 @@ export const evalite = <TInput, TExpected>(
       throw new Error("You must provide at least one scorer.");
     }
 
+    const sourceCodeHash = inject("evaliteSourceCodeHash");
+
     const data = await opts.data();
     const start = performance.now();
     const results = await Promise.all(
@@ -64,6 +66,7 @@ export const evalite = <TInput, TExpected>(
     task.meta.evalite = {
       results,
       duration: Math.round(performance.now() - start),
+      sourceCodeHash,
     };
   });
 };

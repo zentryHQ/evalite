@@ -40,6 +40,7 @@ export declare namespace Evalite {
   export type TaskMeta = {
     results: Result[];
     duration: number | undefined;
+    sourceCodeHash: string;
   };
 
   export type Scorer<TExpected> = (
