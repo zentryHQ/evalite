@@ -1,13 +1,13 @@
 import { appendFile, readFile } from "fs/promises";
-import { average, max } from "./utils.js";
 import type { Evalite } from "./index.js";
+import { average } from "./utils.js";
 
-export type JsonDBFileResult = {
-  file: string;
-  datetime: string;
+export type JsonDBEval = {
+  name: string;
   score: number;
-  tasks: JsonDBTask[];
+  startTime: string;
   duration: number;
+  results: JsonDbResult[];
 };
 
 export type JsonDbResult = {
@@ -17,13 +17,6 @@ export type JsonDbResult = {
   scores: Evalite.Score[];
   duration: number;
   score: number;
-};
-
-export type JsonDBTask = {
-  task: string;
-  score: number;
-  duration: number;
-  results: JsonDbResult[];
 };
 
 export const appendToJsonDb = async (opts: {
@@ -39,28 +32,18 @@ export const appendToJsonDb = async (opts: {
   }[];
 }) => {
   const datetime = new Date().toISOString();
-  const files: JsonDBFileResult[] = [];
+  const evals: JsonDBEval[] = [];
 
   for (const file of opts.files) {
-    const jsonDbFile: JsonDBFileResult = {
-      file: file.name,
-      datetime,
-      score: average(file.tasks, (task) => {
-        return average(task.meta.evalite?.results || [], (t) => {
-          return average(t.scores, (s) => s.score);
-        });
-      }),
-      tasks: [],
-      duration: max(file.tasks, (task) => task.meta.evalite?.duration || 0),
-    };
     for (const task of file.tasks) {
-      const jsonDbTask: JsonDBTask = {
-        task: task.name,
+      const jsonDbTask: JsonDBEval = {
+        name: task.name,
         score: average(task.meta.evalite?.results || [], (t) => {
           return average(t.scores, (s) => s.score);
         }),
         duration: task.meta.evalite?.duration ?? 0,
         results: [],
+        startTime: datetime,
       };
 
       if (task.meta.evalite) {
@@ -77,49 +60,45 @@ export const appendToJsonDb = async (opts: {
         }
       }
 
-      jsonDbFile.tasks.push(jsonDbTask);
+      evals.push(jsonDbTask);
     }
-
-    files.push(jsonDbFile);
   }
 
   await appendFile(
     opts.dbLocation,
-    files.map((file) => JSON.stringify(file)).join("\n") + "\n",
+    evals.map((evaluation) => JSON.stringify(evaluation)).join("\n") + "\n",
     {
       encoding: "utf-8",
     }
   );
 };
 
-export type GetJsonDbFilesResult = Record<string, JsonDBFileResult[]>;
+export type GetJsonDbEvalsResult = Record<string, JsonDBEval[]>;
 
-export const getJsonDbFiles = async (opts: {
+export const getJsonDbEvals = async (opts: {
   dbLocation: string;
-}): Promise<GetJsonDbFilesResult> => {
-  const dbContents = await readFile(opts.dbLocation, { encoding: "utf-8" });
-
-  const map: GetJsonDbFilesResult = {};
+}): Promise<GetJsonDbEvalsResult> => {
+  const map: GetJsonDbEvalsResult = {};
 
   await getRows({
     dbLocation: opts.dbLocation,
     mapper: (row) => {
-      const filename = row.file;
+      const evalName = row.name;
 
-      if (!map[filename]) {
-        map[filename] = [];
+      if (!map[evalName]) {
+        map[evalName] = [];
       }
 
-      map[filename]!.unshift(row);
+      map[evalName]!.unshift(row);
     },
   });
 
   return map;
 };
 
-const getRows = async <T>(opts: {
+export const getRows = async <T>(opts: {
   dbLocation: string;
-  mapper: (row: JsonDBFileResult) => T;
+  mapper: (row: JsonDBEval) => T;
 }): Promise<T[]> => {
   const dbContents = await readFile(opts.dbLocation, { encoding: "utf-8" });
 
@@ -127,35 +106,8 @@ const getRows = async <T>(opts: {
     .trim()
     .split("\n")
     .map((line) => {
-      const parsed: JsonDBFileResult = JSON.parse(line);
+      const parsed: JsonDBEval = JSON.parse(line);
 
       return opts.mapper(parsed);
     });
-};
-
-export type TasksMap = Record<string, JsonDBTask[]>;
-
-export const getJsonDbFile = async (opts: {
-  dbLocation: string;
-  file: string;
-}): Promise<TasksMap> => {
-  const tasks: TasksMap = {};
-
-  await getRows({
-    dbLocation: opts.dbLocation,
-    mapper: (row) => {
-      if (row.file !== opts.file) return;
-
-      row.tasks.forEach((task) => {
-        const taskName = task.task;
-        if (!tasks[taskName]) {
-          tasks[taskName] = [];
-        }
-
-        tasks[taskName].unshift(task);
-      });
-    },
-  });
-
-  return tasks;
 };

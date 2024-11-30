@@ -1,4 +1,4 @@
-import { getJsonDbFile, getJsonDbFiles, type Evalite } from "@evalite/core";
+import { getJsonDbEvals, type Evalite } from "@evalite/core";
 import { fastifyWebsocket } from "@fastify/websocket";
 import fastify from "fastify";
 
@@ -31,7 +31,7 @@ const createServer = (opts: { jsonDbLocation: string }) => {
     return res
       .status(200)
       .header("access-control-allow-origin", "*")
-      .send(await getJsonDbFiles({ dbLocation: opts.jsonDbLocation }));
+      .send(await getJsonDbEvals({ dbLocation: opts.jsonDbLocation }));
   });
 
   server.route<{
@@ -52,9 +52,9 @@ const createServer = (opts: { jsonDbLocation: string }) => {
     handler: async (req, res) => {
       const path = req.query.path;
 
-      const fileData = await getJsonDbFile({
+      const fileData = await getJsonDbEvals({
         dbLocation: opts.jsonDbLocation,
-        file: path,
+        name: path,
       });
 
       if (!fileData) {
@@ -90,7 +90,7 @@ const createServer = (opts: { jsonDbLocation: string }) => {
       const path = req.query.path;
       const task = req.query.task;
 
-      const fileData = await getJsonDbFile({
+      const fileData = await getEvalsByName({
         dbLocation: opts.jsonDbLocation,
         file: path,
       });

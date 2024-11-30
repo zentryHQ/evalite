@@ -26,7 +26,6 @@ export const runVitest = async (opts: {
       reporters: ["evalite-vitest/reporter"],
     },
     {},
-
     {
       stdout: opts.testOutputWritable || process.stdout,
       stderr: opts.testOutputWritable || process.stderr,
