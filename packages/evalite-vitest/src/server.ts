@@ -36,7 +36,7 @@ const createServer = (opts: { jsonDbLocation: string }) => {
 
   server.route<{
     Querystring: {
-      path: string;
+      name: string;
     };
   }>({
     method: "GET",
@@ -50,11 +50,10 @@ const createServer = (opts: { jsonDbLocation: string }) => {
       },
     },
     handler: async (req, res) => {
-      const path = req.query.path;
+      const path = req.query.name;
 
       const fileData = await getJsonDbEvals({
         dbLocation: opts.jsonDbLocation,
-        name: path,
       });
 
       if (!fileData) {

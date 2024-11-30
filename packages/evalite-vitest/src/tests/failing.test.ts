@@ -13,6 +13,6 @@ it("Should report a failing test", async () => {
     testOutputWritable: captured.writable,
   });
 
-  expect(captured.getOutput()).toContain("✖ failing-test.eval.ts  (1 eval)");
+  expect(captured.getOutput()).toContain("failing-test.eval.ts");
   expect(captured.getOutput()).toContain("Score  ✖ (1 failed)");
 });

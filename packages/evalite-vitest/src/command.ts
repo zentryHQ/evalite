@@ -2,9 +2,13 @@ import { Command } from "commander";
 import path from "path";
 import { Writable } from "stream";
 import { createVitest } from "vitest/node";
+import EvaliteReporter from "./reporter";
 
 declare global {
   var __evalite_globals: {
+    /**
+     * The location of the JSON database file.
+     */
     readonly jsonDbLocation: string;
   };
 }
@@ -23,7 +27,7 @@ export const runVitest = async (opts: {
       root: opts.cwd,
       include: ["**/*.eval.{js,ts}"],
       watch: false,
-      reporters: ["evalite-vitest/reporter"],
+      reporters: [new EvaliteReporter()],
     },
     {},
     {

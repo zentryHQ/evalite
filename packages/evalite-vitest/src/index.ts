@@ -18,14 +18,12 @@ const runTask = async <TInput, TExpected>(opts: {
   const result = await opts.task(opts.input);
   const duration = Math.round(performance.now() - start);
 
-  const scores: {
-    score: number;
-    name: string;
-  }[] = [];
-
-  for (const score of opts.scores) {
-    scores.push(await score({ output: result, expected: opts.expected }));
-  }
+  const scores = await Promise.all(
+    opts.scores.map(
+      async (scorer) =>
+        await scorer({ output: result, expected: opts.expected })
+    )
+  );
 
   return {
     result,
@@ -43,14 +41,10 @@ export const evalite = <TInput, TExpected>(
       throw new Error("You must provide at least one scorer.");
     }
 
-    if (!task.file.meta.evalite) {
-      task.file.meta.evalite = { results: [], duration: undefined };
-    }
-    task.meta.evalite = { results: [], duration: undefined };
     const data = await opts.data();
     const start = performance.now();
-    await Promise.all(
-      data.map(async ({ input, expected }) => {
+    const results = await Promise.all(
+      data.map(async ({ input, expected }): Promise<Evalite.Result> => {
         const { result, scores, duration } = await runTask({
           expected,
           input,
@@ -58,24 +52,19 @@ export const evalite = <TInput, TExpected>(
           task: opts.task,
         });
 
-        task.meta.evalite!.results.push({
+        return {
           input,
           result,
           scores,
           duration,
           expected,
-        });
-
-        task.file.meta.evalite!.results.push({
-          input,
-          result,
-          scores,
-          duration,
-          expected,
-        });
+        };
       })
     );
-    task.meta.evalite.duration = Math.round(performance.now() - start);
+    task.meta.evalite = {
+      results,
+      duration: Math.round(performance.now() - start),
+    };
   });
 };
 

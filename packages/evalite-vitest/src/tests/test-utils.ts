@@ -29,6 +29,7 @@ export const loadFixture = (
         force: true,
       });
     },
+    jsonDbLocation: path.join(dirPath, "evalite-report.jsonl"),
   };
 };
 
