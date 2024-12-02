@@ -90,3 +90,21 @@ it("Should capture a hash of the source code", async () => {
 
   expect(evals.Basics[0].sourceCodeHash.length).toEqual(64);
 });
+
+it("Should display a table when there is only one eval", async () => {
+  using fixture = loadFixture("basics");
+
+  const captured = captureStdout();
+
+  await runVitest({
+    cwd: fixture.dir,
+    path: undefined,
+    testOutputWritable: captured.writable,
+  });
+
+  expect(captured.getOutput()).toContain("Input");
+  expect(captured.getOutput()).toContain("Output");
+  expect(captured.getOutput()).toContain("Score");
+  expect(captured.getOutput()).toContain("abc");
+  expect(captured.getOutput()).toContain("abcdef");
+});

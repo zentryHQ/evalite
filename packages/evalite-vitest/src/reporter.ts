@@ -3,6 +3,8 @@ import { BasicReporter } from "vitest/reporters";
 
 import { appendToJsonDb, DEFAULT_SERVER_PORT } from "@evalite/core";
 import c from "tinyrainbow";
+import { average, sum } from "./utils.js";
+import { table } from "table";
 
 export interface EvaliteReporterOptions {
   jsonDbLocation: string;
@@ -10,6 +12,7 @@ export interface EvaliteReporterOptions {
 
 export default class EvaliteReporter extends BasicReporter {
   private opts: EvaliteReporterOptions;
+
   // private server: Server;
   constructor(opts: EvaliteReporterOptions) {
     super();
@@ -19,7 +22,6 @@ export default class EvaliteReporter extends BasicReporter {
     //   jsonDbLocation: "./evalite-report.jsonl",
     // });
   }
-
   override onInit(ctx: any): void {
     this.ctx = ctx;
     this.start = performance.now();
@@ -96,12 +98,9 @@ export default class EvaliteReporter extends BasicReporter {
     }
 
     const totalScore = scores.reduce((a, b) => a + b, 0);
-    const averageScore = Math.round((totalScore / scores.length) * 100);
+    const averageScore = totalScore / scores.length;
 
-    const color =
-      averageScore >= 80 ? c.green : averageScore >= 50 ? c.yellow : c.red;
-
-    const title = failed ? c.red("✖") : c.bold(color(averageScore + "%"));
+    const title = failed ? c.red("✖") : displayScore(averageScore);
 
     const toLog = [
       ` ${title} `,
@@ -119,22 +118,18 @@ export default class EvaliteReporter extends BasicReporter {
   }
 
   override reportTestSummary(files: RunnerTestFile[], errors: unknown[]): void {
-    const scores = files.flatMap((file) =>
-      file.tasks.flatMap((task) => {
-        if (task.meta.evalite) {
-          return task.meta.evalite.results.flatMap((r) =>
-            r.scores.map((s) => s.score)
-          );
-        }
-        return [];
-      })
+    // this.printErrorsSummary(errors); // TODO
+
+    const evals = files.flatMap((file) =>
+      file.tasks.filter((task) => task.meta.evalite)
     );
 
-    const totalScore = scores.reduce((a, b) => a + b, 0);
-    const averageScore = Math.round((totalScore / scores.length) * 100);
+    const scores = evals.flatMap((task) =>
+      task.meta.evalite!.results.flatMap((r) => r.scores.map((s) => s.score))
+    );
 
-    const scoreColor =
-      averageScore >= 80 ? c.green : averageScore >= 50 ? c.yellow : c.red;
+    const totalScore = sum(scores, (score) => score);
+    const averageScore = totalScore / scores.length;
 
     const collectTime = files.reduce((a, b) => a + (b.collectDuration || 0), 0);
     const testsTime = files.reduce((a, b) => a + (b.result?.duration || 0), 0);
@@ -149,7 +144,7 @@ export default class EvaliteReporter extends BasicReporter {
     const scoreDisplay =
       failedTasks.length > 0
         ? c.red("✖ ") + c.dim(`(${failedTasks.length} failed)`)
-        : c.bold(scoreColor(averageScore + "%"));
+        : displayScore(averageScore);
 
     this.ctx.logger.log(
       ["      ", c.dim("Score"), "  ", scoreDisplay].join("")
@@ -174,6 +169,60 @@ export default class EvaliteReporter extends BasicReporter {
       )
     );
 
-    // super.reportTestSummary(files, errors);
+    if (evals.length === 1 && evals[0]) {
+      this.renderTable(
+        evals[0].meta.evalite!.results.map((result) => ({
+          input: result.input,
+          output: result.result,
+          score: average(result.scores, (s) => s.score),
+        }))
+      );
+    }
+  }
+
+  private renderTable(
+    props: {
+      input: unknown;
+      output: unknown;
+      score: number;
+    }[]
+  ) {
+    this.ctx.logger.log("");
+
+    const availableColumns = process.stdout.columns || 80;
+
+    const scoreWidth = 5;
+    const columnsWritableWidth = 11;
+    const availableInnerSpace =
+      availableColumns - columnsWritableWidth - scoreWidth;
+
+    const colWidth = Math.floor(availableInnerSpace / 2);
+
+    this.ctx.logger.log(
+      table(
+        [
+          [c.bold("Input"), c.bold("Output"), c.bold("Score")],
+          ...props.map((p) => [p.input, p.output, displayScore(p.score)]),
+        ],
+        {
+          columns: [
+            { width: colWidth, wrapWord: true },
+            { width: colWidth, wrapWord: true },
+            { width: scoreWidth },
+          ],
+        }
+      )
+    );
   }
 }
+
+const displayScore = (score: number) => {
+  const percentageScore = Math.round(score * 100);
+  if (percentageScore >= 80) {
+    return c.bold(c.green(percentageScore + "%"));
+  } else if (percentageScore >= 50) {
+    return c.bold(c.yellow(percentageScore + "%"));
+  } else {
+    return c.bold(c.red(percentageScore + "%"));
+  }
+};

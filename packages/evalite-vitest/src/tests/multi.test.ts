@@ -21,3 +21,17 @@ it("Should report multiple evals correctly", async () => {
   expect(captured.getOutput()).toContain("100% multi-2.eval.ts  (1 eval)");
   expect(captured.getOutput()).toContain("100% multi-3.eval.ts  (2 evals)");
 });
+
+it("Should not show a table when running multiple evals", async () => {
+  using fixture = loadFixture("multi");
+
+  const captured = captureStdout();
+
+  await runVitest({
+    cwd: fixture.dir,
+    path: undefined,
+    testOutputWritable: captured.writable,
+  });
+
+  expect(captured.getOutput()).not.toContain("ONLY ONE EVAL");
+});
