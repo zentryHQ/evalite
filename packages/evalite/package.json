@@ -1,10 +1,10 @@
 {
-  "name": "evalite-vitest",
+  "name": "evalite",
   "version": "0.0.2",
   "private": true,
   "type": "module",
   "bin": {
-    "evalite-vitest": "./dist/bin.js"
+    "evalite": "./dist/bin.js"
   },
   "files": [
     "./dist/*"
@@ -25,10 +25,10 @@
     "tinyrainbow": "^1.2.0",
     "fastify": "^5.1.0",
     "@fastify/websocket": "11.0.1",
-    "@types/ws": "^8.5.13",
     "@evalite/core": "workspace:*"
   },
   "devDependencies": {
+    "@types/ws": "^8.5.13",
     "strip-ansi": "^7.1.0",
     "@types/js-levenshtein": "^1.1.3"
   }
