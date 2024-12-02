@@ -201,7 +201,11 @@ export default class EvaliteReporter extends BasicReporter {
     this.ctx.logger.log(
       table(
         [
-          [c.bold("Input"), c.bold("Output"), c.bold("Score")],
+          [
+            c.cyan(c.bold("Input")),
+            c.cyan(c.bold("Output")),
+            c.cyan(c.bold("Score")),
+          ],
           ...props.map((p) => [p.input, p.output, displayScore(p.score)]),
         ],
         {
