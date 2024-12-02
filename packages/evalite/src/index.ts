@@ -1,6 +1,7 @@
 import type { Evalite } from "@evalite/core";
 import levenshtein from "js-levenshtein";
 import { inject, it } from "vitest";
+import { reportTraceLocalStorage } from "./trace-model-async-storage.js";
 
 declare module "vitest" {
   interface TaskMeta {
@@ -41,6 +42,10 @@ export const evalite = <TInput, TExpected>(
       throw new Error("You must provide at least one scorer.");
     }
 
+    const traces: Evalite.Trace[] = [];
+
+    reportTraceLocalStorage.enterWith((trace) => traces.push(trace));
+
     const sourceCodeHash = inject("evaliteInputHash");
 
     const data = await opts.data();
@@ -67,6 +72,7 @@ export const evalite = <TInput, TExpected>(
       results,
       duration: Math.round(performance.now() - start),
       sourceCodeHash,
+      traces,
     };
   });
 };
@@ -88,6 +94,18 @@ export const Levenshtein = (args: Evalite.ScoreInput<string>) => {
     name: "Levenshtein",
     score,
   };
+};
+
+export const reportTrace = (trace: Evalite.Trace) => {
+  const _reportTrace = reportTraceLocalStorage.getStore();
+
+  if (!_reportTrace) {
+    throw new Error(
+      "An error occurred: reportTrace must be called inside an evalite eval"
+    );
+  }
+
+  _reportTrace(trace);
 };
 
 export const numericDifference = (args: Evalite.ScoreInput<number>) => {

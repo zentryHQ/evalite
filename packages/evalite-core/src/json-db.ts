@@ -7,17 +7,18 @@ export type JsonDBEval = {
   score: number;
   startTime: string;
   duration: number;
-  results: JsonDbResult[];
+  results: JsonDbRun[];
   sourceCodeHash: string;
 };
 
-export type JsonDbResult = {
+export type JsonDbRun = {
   input: unknown;
   expected: unknown;
   result: unknown;
   scores: Evalite.Score[];
   duration: number;
   score: number;
+  traces: Evalite.Trace[];
 };
 
 export const appendToJsonDb = async (opts: {
@@ -58,6 +59,7 @@ export const appendToJsonDb = async (opts: {
             scores,
             duration,
             score: average(scores, (s) => s.score),
+            traces: task.meta.evalite.traces,
           });
         }
       }

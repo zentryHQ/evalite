@@ -19,14 +19,6 @@ export declare namespace Evalite {
     duration: number;
   };
 
-  export type TaskReport = {
-    file: string;
-    task: string;
-    input: unknown;
-    result: unknown;
-    scores: Score[];
-  };
-
   export type Score = {
     score: number;
     name: string;
@@ -41,6 +33,7 @@ export declare namespace Evalite {
     results: Result[];
     duration: number | undefined;
     sourceCodeHash: string;
+    traces: Trace[];
   };
 
   export type Scorer<TExpected> = (
@@ -51,6 +44,28 @@ export declare namespace Evalite {
     data: () => MaybePromise<{ input: TInput; expected?: TExpected }[]>;
     task: (input: TInput) => MaybePromise<TExpected>;
     scorers: Scorer<TExpected>[];
+  };
+
+  export interface Trace {
+    prompt: TracePrompt[];
+    usage: {
+      promptTokens: number;
+      completionTokens: number;
+    };
+    output: string;
+    start: number;
+    end: number;
+    duration: number;
+  }
+
+  export type TracePrompt = {
+    role: string;
+    content: TracePromptTextContent[] | string;
+  };
+
+  export type TracePromptTextContent = {
+    type: "text";
+    text: string;
   };
 }
 
