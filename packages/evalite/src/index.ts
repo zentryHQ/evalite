@@ -1,7 +1,7 @@
 import type { Evalite } from "@evalite/core";
 import levenshtein from "js-levenshtein";
 import { inject, it } from "vitest";
-import { reportTraceLocalStorage } from "./trace-model-async-storage.js";
+import { reportTraceLocalStorage } from "./traces.js";
 
 declare module "vitest" {
   interface TaskMeta {
@@ -96,18 +96,6 @@ export const Levenshtein = (args: Evalite.ScoreInput<string>) => {
   };
 };
 
-export const reportTrace = (trace: Evalite.Trace) => {
-  const _reportTrace = reportTraceLocalStorage.getStore();
-
-  if (!_reportTrace) {
-    throw new Error(
-      "An error occurred: reportTrace must be called inside an evalite eval"
-    );
-  }
-
-  _reportTrace(trace);
-};
-
 export const numericDifference = (args: Evalite.ScoreInput<number>) => {
   if (args.expected === undefined) {
     throw new Error("NumericDifferenceScorer requires an expected value");
@@ -118,3 +106,5 @@ export const numericDifference = (args: Evalite.ScoreInput<number>) => {
     score: 1 - Math.abs(args.output - args.expected) / args.expected,
   };
 };
+
+export { reportTrace } from "./traces.js";

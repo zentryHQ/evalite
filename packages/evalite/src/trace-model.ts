@@ -1,5 +1,5 @@
 import { experimental_wrapLanguageModel, type LanguageModelV1 } from "ai";
-import { reportTrace } from "./index.js";
+import { reportTrace } from "./traces.js";
 
 export const traceAISDKModel = (model: LanguageModelV1) => {
   return experimental_wrapLanguageModel({
