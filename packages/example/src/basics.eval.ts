@@ -3,7 +3,7 @@ import { generateText } from "ai";
 import { evalite, Levenshtein } from "evalite";
 import { createStorage } from "unstorage";
 import fsDriver from "unstorage/drivers/fs";
-import { cacheLanguageModel } from "./cacheLanguageModel.js";
+import { cacheModel } from "./cache-model.js";
 
 const storage = createStorage({
   driver: (fsDriver as any)({
@@ -36,7 +36,7 @@ evalite("Test basics", {
   ],
   task: async (input) => {
     const result = await generateText({
-      model: cacheLanguageModel(openai("gpt-3.5-turbo"), storage),
+      model: cacheModel(openai("gpt-3.5-turbo"), storage),
       system: `
         Answer the question concisely, in as few words as possible.
       `,

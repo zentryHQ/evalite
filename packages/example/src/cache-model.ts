@@ -19,10 +19,7 @@ const createResultFromCachedObject = (
   return obj as any;
 };
 
-export const cacheLanguageModel = (
-  model: LanguageModelV1,
-  storage: Storage
-) => {
+export const cacheModel = (model: LanguageModelV1, storage: Storage) => {
   return experimental_wrapLanguageModel({
     model,
     middleware: {
