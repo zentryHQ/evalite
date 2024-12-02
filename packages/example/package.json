@@ -12,6 +12,7 @@
     "./reporter": "./dist/reporter.js"
   },
   "dependencies": {
+    "unstorage": "^1.13.1",
     "evalite": "workspace:*",
     "ai": "^3.4.33",
     "@ai-sdk/openai": "0.0.72",

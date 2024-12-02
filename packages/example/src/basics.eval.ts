@@ -1,12 +1,21 @@
 import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
 import { evalite, Levenshtein } from "evalite";
+import { createStorage } from "unstorage";
+import fsDriver from "unstorage/drivers/fs";
+import { cacheLanguageModel } from "./cacheLanguageModel.js";
+
+const storage = createStorage({
+  driver: (fsDriver as any)({
+    base: "./llm-cache.local",
+  }),
+});
 
 evalite("Test basics", {
   data: async () => [
     {
       input: `What's the capital of France?`,
-      expected: `Lille.`,
+      expected: `Paris.`,
     },
     {
       input: `What's the capital of Germany?`,
@@ -20,10 +29,14 @@ evalite("Test basics", {
       input: `What's the capital of the United States?`,
       expected: `Washington, D.C.`,
     },
+    {
+      input: `What's the capital of Canada?`,
+      expected: `Ottawa.`,
+    },
   ],
   task: async (input) => {
     const result = await generateText({
-      model: openai("gpt-3.5-turbo"),
+      model: cacheLanguageModel(openai("gpt-3.5-turbo"), storage),
       system: `
         Answer the question concisely, in as few words as possible.
       `,
