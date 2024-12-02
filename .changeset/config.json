@@ -6,13 +6,5 @@
   "linked": [],
   "access": "public",
   "baseBranch": "main",
-  "updateInternalDependencies": "patch",
-  "ignore": [
-    "@total-typescript/env",
-    "@total-typescript/internal-cli",
-    "scriptkit-sync",
-    "example-app",
-    "remotion-code-hike",
-    "example-package"
-  ]
+  "updateInternalDependencies": "patch"
 }
