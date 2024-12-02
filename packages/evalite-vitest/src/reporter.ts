@@ -26,9 +26,13 @@ export default class EvaliteReporter extends BasicReporter {
     this.ctx = ctx;
     this.start = performance.now();
 
+    // this.ctx.logger.log(
+    //   ` ${c.magenta(c.bold("EVALITE"))} ${c.dim("running on")} ` +
+    //     c.cyan(`http://localhost:${c.bold(DEFAULT_SERVER_PORT)}/`)
+    // );
+    this.ctx.logger.log("");
     this.ctx.logger.log(
-      ` ${c.magenta(c.bold("EVALITE"))} ${c.dim("running on")} ` +
-        c.cyan(`http://localhost:${c.bold(DEFAULT_SERVER_PORT)}/`)
+      ` ${c.magenta(c.bold("EVALITE"))} ${c.dim("running...")}`
     );
     this.ctx.logger.log("");
 
