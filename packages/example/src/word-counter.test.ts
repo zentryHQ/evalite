@@ -1,6 +1,6 @@
 import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
-import { evalite, numericDifference } from "evalite-vitest";
+import { evalite, numericDifference } from "evalite";
 
 evalite("Sentence counter", {
   // Replace with your dataset

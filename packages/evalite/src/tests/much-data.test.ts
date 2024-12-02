@@ -20,7 +20,7 @@ it("Should report long datasets consistently in the same order", async () => {
     dbLocation: fixture.jsonDbLocation,
   });
 
-  expect(jsonDbEvals["Much Data"][0]!.results).toMatchObject([
+  expect(jsonDbEvals["Much Data"]![0]!.results).toMatchObject([
     {
       input: "first",
     },

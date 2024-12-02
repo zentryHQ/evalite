@@ -1,6 +1,6 @@
 import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
-import { evalite, Levenshtein } from "evalite-vitest";
+import { evalite, Levenshtein } from "evalite";
 
 evalite("Test basics", {
   data: async () => [

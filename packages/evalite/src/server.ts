@@ -86,26 +86,27 @@ const createServer = (opts: { jsonDbLocation: string }) => {
       },
     },
     handler: async (req, res) => {
-      const path = req.query.path;
-      const task = req.query.task;
+      throw new Error("Not implemented");
+      // const path = req.query.path;
+      // const task = req.query.task;
 
-      const fileData = await getEvalsByName({
-        dbLocation: opts.jsonDbLocation,
-        file: path,
-      });
+      // const fileData = await getEvalsByName({
+      //   dbLocation: opts.jsonDbLocation,
+      //   file: path,
+      // });
 
-      if (!fileData) {
-        return res.status(404).send();
-      }
+      // if (!fileData) {
+      //   return res.status(404).send();
+      // }
 
-      if (!fileData[task]) {
-        return res.status(404).send();
-      }
+      // if (!fileData[task]) {
+      //   return res.status(404).send();
+      // }
 
-      return res
-        .status(200)
-        .header("access-control-allow-origin", "*")
-        .send(fileData[task]);
+      // return res
+      //   .status(200)
+      //   .header("access-control-allow-origin", "*")
+      //   .send(fileData[task]);
     },
   });
 
