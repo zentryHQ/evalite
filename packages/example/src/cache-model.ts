@@ -18,13 +18,14 @@ const createResultFromCachedObject = (
   return obj as any;
 };
 
-export const cacheModel = (
-  model: LanguageModelV1,
-  storage: {
-    get: (key: string) => Promise<object>;
-    set: (key: string, value: string) => Promise<void>;
-  }
-) => {
+export type StorageValue = string | number | null | object;
+
+export type CacheStore = {
+  get: (key: string) => Promise<StorageValue>;
+  set: (key: string, value: StorageValue) => Promise<void>;
+};
+
+export const cacheModel = (model: LanguageModelV1, storage: CacheStore) => {
   return experimental_wrapLanguageModel({
     model,
     middleware: {
