@@ -1,4 +1,5 @@
-import { evalite, Levenshtein } from "../../../index.js";
+import { evalite } from "../../../index.js";
+import { Levenshtein } from "autoevals";
 
 evalite("Long Text", {
   data: () => {

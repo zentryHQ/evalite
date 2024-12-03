@@ -1,8 +1,9 @@
 import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
-import { evalite, Levenshtein } from "evalite";
+import { evalite } from "evalite";
 import { createStorage } from "unstorage";
 import fsDriver from "unstorage/drivers/fs";
+import { Levenshtein } from "autoevals";
 import { cacheModel } from "./cache-model.js";
 
 const storage = createStorage({

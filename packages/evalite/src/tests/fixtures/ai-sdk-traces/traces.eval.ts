@@ -1,7 +1,8 @@
 import { generateText } from "ai";
 import { MockLanguageModelV1 } from "ai/test";
 import { traceAISDKModel } from "../../../ai-sdk.js";
-import { evalite, Levenshtein } from "../../../index.js";
+import { evalite } from "../../../index.js";
+import { Levenshtein } from "autoevals";
 
 const model = new MockLanguageModelV1({
   doGenerate: async () => ({

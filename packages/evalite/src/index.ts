@@ -1,5 +1,4 @@
 import type { Evalite } from "@evalite/core";
-import levenshtein from "js-levenshtein";
 import { inject, it } from "vitest";
 import { reportTraceLocalStorage } from "./traces.js";
 
@@ -76,35 +75,3 @@ export const evalite = <TInput, TExpected>(
     };
   });
 };
-
-export const Levenshtein = (args: Evalite.ScoreInput<string>) => {
-  if (args.expected === undefined) {
-    throw new Error("LevenshteinScorer requires an expected value");
-  }
-
-  const [output, expected] = [`${args.output}`, `${args.expected}`];
-  const maxLen = Math.max(output.length, expected.length);
-
-  let score = 1;
-  if (maxLen > 0) {
-    score = 1 - levenshtein(output, expected) / maxLen;
-  }
-
-  return {
-    name: "Levenshtein",
-    score,
-  };
-};
-
-export const numericDifference = (args: Evalite.ScoreInput<number>) => {
-  if (args.expected === undefined) {
-    throw new Error("NumericDifferenceScorer requires an expected value");
-  }
-
-  return {
-    name: "NumericDifference",
-    score: 1 - Math.abs(args.output - args.expected) / args.expected,
-  };
-};
-
-export { reportTrace } from "./traces.js";

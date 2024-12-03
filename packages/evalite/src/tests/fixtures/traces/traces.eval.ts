@@ -1,4 +1,6 @@
-import { evalite, Levenshtein, reportTrace } from "../../../index.js";
+import { evalite } from "../../../index.js";
+import { reportTrace } from "../../../traces.js";
+import { Levenshtein } from "autoevals";
 
 evalite("Traces", {
   data: () => {

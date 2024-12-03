@@ -1,4 +1,5 @@
-import { evalite, Levenshtein } from "../../../index.js";
+import { evalite } from "../../../index.js";
+import { Levenshtein } from "autoevals";
 import { setTimeout } from "node:timers/promises";
 
 evalite("Basics", {
