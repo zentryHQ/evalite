@@ -1,7 +1,8 @@
 import { experimental_wrapLanguageModel, type LanguageModelV1 } from "ai";
-import { reportTrace } from "./traces.js";
+import { reportTrace, shouldReportTrace } from "./traces.js";
 
-export const traceAISDKModel = (model: LanguageModelV1) => {
+export const traceAISDKModel = (model: LanguageModelV1): LanguageModelV1 => {
+  if (!shouldReportTrace()) return model;
   return experimental_wrapLanguageModel({
     model,
     middleware: {
@@ -23,7 +24,7 @@ export const traceAISDKModel = (model: LanguageModelV1) => {
             const content = prompt.content.map((content) => {
               if (content.type !== "text") {
                 throw new Error(
-                  `Unsupported content type: ${content.type}. Only text is currently supported.`
+                  `Unsupported content type: ${content.type}. Only text is currently supported by traceAISDKModel.`
                 );
               }
 
@@ -39,7 +40,6 @@ export const traceAISDKModel = (model: LanguageModelV1) => {
             };
           }),
           usage: generated.usage,
-          duration: end - start,
           start,
           end,
         });

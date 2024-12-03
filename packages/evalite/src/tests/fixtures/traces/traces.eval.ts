@@ -1,5 +1,4 @@
 import { evalite, Levenshtein, reportTrace } from "../../../index.js";
-import { setTimeout } from "node:timers/promises";
 
 evalite("Traces", {
   data: () => {
@@ -12,7 +11,6 @@ evalite("Traces", {
   },
   task: async (input) => {
     reportTrace({
-      duration: 100,
       start: 0,
       end: 100,
       output: "abcdef",

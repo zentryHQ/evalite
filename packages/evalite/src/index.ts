@@ -42,7 +42,7 @@ export const evalite = <TInput, TExpected>(
       throw new Error("You must provide at least one scorer.");
     }
 
-    const traces: Evalite.Trace[] = [];
+    const traces: Evalite.StoredTrace[] = [];
 
     reportTraceLocalStorage.enterWith((trace) => traces.push(trace));
 

@@ -4,7 +4,7 @@ The TypeScript-native, open-source tool for testing LLM-powered apps.
 
 - Fully open source: **No API Key required**
 - Based on Vitest
-- Supports
+- Supports tracing, custom scorers, and
 
 ## Quickstart
 
@@ -67,22 +67,87 @@ This runs `evalite`, which runs the evals:
 - Runs the `data` function to get the test data
 - Runs the `task` function on each test data
 - Scores the output of the `task` function using the `scorers`
+- Appends the result of the eval to a `evalite-report.jsonl` file
 
-It then produces:
+It then:
 
-- A report of the
-- If you only ran one eval, it also shows table summarizing the eval in the terminal
+- Shows a UI for viewing the traces, scores, inputs and outputs at http://localhost:3006.
+- If you only ran one eval, it also shows a table summarizing the eval in the terminal.
 
-##
+### 5. View Your Eval
 
-I want a simple test runner that can:
+Open http://localhost:3006 in your browser to view the results of the eval.
 
--Run my evals on a watch script
--Show me a UI for viewing traces, scores, inputs and outputs
--Not need me to sign up for an API key
+## Guides
 
-So, I'm building one.
+### Traces
 
-It's based on Vitest, and it's called Evalite.
+Traces are used to track the behaviour of each individual call to an LLM inside your task.
 
-Here's an [early preview](https://www.aihero.dev/evalite-an-early-preview).
+You can report a trace by calling `reportTrace` inside an `evalite` eval:
+
+```ts
+import { evalite, type Evalite } from "evalite";
+import { reportTrace } from "evalite/evals";
+
+evalite("My Eval", {
+  data: async () => {
+    return [{ input: "Hello", output: "Hello World!" }];
+  },
+  task: async (input) => {
+    // Track the start time
+    const start = performance.now();
+
+    // Call our LLM
+    const result = await myLLMCall();
+
+    // Report the trace once it's finished
+    reportTrace({
+      start,
+      end: performance.now(),
+      output: result.output,
+      prompt: [
+        {
+          role: "user",
+          content: input,
+        },
+      ],
+      usage: {
+        completionTokens: result.completionTokens,
+        promptTokens: result.promptTokens,
+      },
+    });
+
+    // Return the output
+    return result.output;
+  },
+  scorers: [Levenshtein],
+});
+```
+
+> [!NOTE]
+>
+> `reportTrace` is a no-op in production, so you can leave it in your code without worrying about performance.
+
+#### Reporting Traces Automatically
+
+If you're using the [Vercel AI SDK](https://sdk.vercel.ai/docs/introduction), you can automatically report traces by wrapping your model in `traceAISDKModel` function:
+
+```ts
+import { traceAISDKModel } from "evalite/ai-sdk";
+import { generateText } from "ai";
+import { openai } from "@ai-sdk/openai";
+
+// All calls to this model will be recorded in evalite!
+const tracedModel = traceAISDKModel(openai("gpt-3.5-turbo"));
+
+const result = await generateText({
+  model: tracedModel,
+  system: `Answer the question concisely.`,
+  prompt: `What is the capital of France?`,
+});
+```
+
+> [!NOTE]
+>
+> `traceAISDKModel`, like `reportTrace`, is a no-op in production.

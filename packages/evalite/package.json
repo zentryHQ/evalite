@@ -15,7 +15,9 @@
   },
   "exports": {
     ".": "./dist/index.js",
-    "./reporter": "./dist/reporter.js"
+    "./reporter": "./dist/reporter.js",
+    "./traces": "./dist/traces.js",
+    "./ai-sdk": "./dist/ai-sdk.js"
   },
   "dependencies": {
     "table": "^6.8.2",

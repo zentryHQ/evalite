@@ -18,7 +18,7 @@ export type JsonDbRun = {
   scores: Evalite.Score[];
   duration: number;
   score: number;
-  traces: Evalite.Trace[];
+  traces: Evalite.UserProvidedTrace[];
 };
 
 export const appendToJsonDb = async (opts: {

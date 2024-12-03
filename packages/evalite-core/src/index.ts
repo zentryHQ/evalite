@@ -33,7 +33,7 @@ export declare namespace Evalite {
     results: Result[];
     duration: number | undefined;
     sourceCodeHash: string;
-    traces: Trace[];
+    traces: StoredTrace[];
   };
 
   export type Scorer<TExpected> = (
@@ -46,15 +46,20 @@ export declare namespace Evalite {
     scorers: Scorer<TExpected>[];
   };
 
-  export interface Trace {
+  export interface UserProvidedTrace {
     prompt: TracePrompt[];
-    usage: {
-      promptTokens: number;
-      completionTokens: number;
-    };
+    usage:
+      | {
+          promptTokens: number;
+          completionTokens: number;
+        }
+      | undefined;
     output: string;
     start: number;
     end: number;
+  }
+
+  export interface StoredTrace extends UserProvidedTrace {
     duration: number;
   }
 
