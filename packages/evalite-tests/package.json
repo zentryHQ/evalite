@@ -8,7 +8,10 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@evalite/core": "workspace:*",
     "evalite": "workspace:*",
-    "strip-ansi": "^7.1.0"
+    "strip-ansi": "^7.1.0",
+    "autoevals": "^0.0.108",
+    "ai": "^4.0.11"
   }
 }
