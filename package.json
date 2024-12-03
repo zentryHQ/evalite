@@ -13,7 +13,8 @@
     "ci": "turbo build test lint",
     "build": "turbo build",
     "release": "pnpm run ci && changeset publish",
-    "test-example": "cd packages/example && evalite"
+    "test-example": "cd packages/example && evalite",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "Matt Pocock",
@@ -26,7 +27,8 @@
     "tsx": "^4.19.0",
     "turbo": "2.3.3",
     "typescript": "5.6.2",
-    "vitest": "^2.0.5"
+    "vitest": "^2.0.5",
+    "husky": "^9.1.7"
   },
   "resolutions": {
     "typescript": "5.6.2"
