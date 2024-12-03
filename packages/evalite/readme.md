@@ -93,7 +93,7 @@ This will watch for changes to your `.eval.ts` files and re-run the evals when t
 
 > [!IMPORTANT]
 >
-> I strongly recommend implementing a caching layer in your LLM calls. This will keep your tests running fast and avoid burning through your API credits.
+> I strongly recommend implementing a caching layer in your LLM calls when using watch mode. This will keep your evals running fast and avoid burning through your API credits.
 
 ### Environment Variables
 
