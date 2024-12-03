@@ -1,5 +1,11 @@
 # evalite
 
+## 0.1.1
+
+### Patch Changes
+
+- a6a86f1: Made table columns max width 80 chars.
+
 ## 0.1.0
 
 ### Minor Changes
