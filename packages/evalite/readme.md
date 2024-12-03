@@ -1,3 +1,5 @@
+<!-- packages/evalite/readme.md is the source of truth for this file -->
+
 # Evalite
 
 The TypeScript-native, open-source tool for testing LLM-powered apps.
