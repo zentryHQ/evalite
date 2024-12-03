@@ -8,6 +8,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "evalite": "workspace:*"
+    "evalite": "workspace:*",
+    "strip-ansi": "^7.1.0"
   }
 }
