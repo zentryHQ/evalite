@@ -1,29 +1,24 @@
-import { evalite } from "../../../index.js";
+import { evalite } from "evalite";
 import { Levenshtein } from "autoevals";
 import { setTimeout } from "node:timers/promises";
 
-evalite("Multiple 3", {
+evalite("Much Data", {
   data: () => {
     return [
       {
-        input: "abc",
+        input: "first",
         expected: "abcdef",
       },
-    ];
-  },
-  task: async (input) => {
-    // To test whether duration is calculated properly
-    await setTimeout(10);
-    return input + "def";
-  },
-  scorers: [Levenshtein],
-});
-
-evalite("Multiple 4", {
-  data: () => {
-    return [
       {
-        input: "abc",
+        input: "second",
+        expected: "abcdef",
+      },
+      {
+        input: "third",
+        expected: "abcdef",
+      },
+      {
+        input: "fourth",
         expected: "abcdef",
       },
     ];

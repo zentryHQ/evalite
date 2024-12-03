@@ -1,24 +1,12 @@
-import { evalite } from "../../../index.js";
+import { evalite } from "evalite";
 import { Levenshtein } from "autoevals";
 import { setTimeout } from "node:timers/promises";
 
-evalite("Much Data", {
+evalite("Basics", {
   data: () => {
     return [
       {
-        input: "first",
-        expected: "abcdef",
-      },
-      {
-        input: "second",
-        expected: "abcdef",
-      },
-      {
-        input: "third",
-        expected: "abcdef",
-      },
-      {
-        input: "fourth",
+        input: "abc",
         expected: "abcdef",
       },
     ];

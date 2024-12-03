@@ -157,6 +157,12 @@ importers:
 
   packages/evalite-core: {}
 
+  packages/evalite-tests:
+    dependencies:
+      evalite:
+        specifier: workspace:*
+        version: link:../evalite
+
   packages/example:
     dependencies:
       '@ai-sdk/openai':

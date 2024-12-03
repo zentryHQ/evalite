@@ -96,7 +96,9 @@ export default class EvaliteReporter extends BasicReporter {
     for (const { meta } of task.tasks) {
       if (meta.evalite) {
         scores.push(
-          ...meta.evalite!.results.flatMap((r) => r.scores.map((s) => s.score))
+          ...meta.evalite!.results.flatMap((r) =>
+            r.scores.map((s) => s.score ?? 0)
+          )
         );
       }
     }
@@ -132,7 +134,7 @@ export default class EvaliteReporter extends BasicReporter {
       task.meta.evalite!.results.flatMap((r) => r.scores.map((s) => s.score))
     );
 
-    const totalScore = sum(scores, (score) => score);
+    const totalScore = sum(scores, (score) => score ?? 0);
     const averageScore = totalScore / scores.length;
 
     const collectTime = files.reduce((a, b) => a + (b.collectDuration || 0), 0);
@@ -178,7 +180,7 @@ export default class EvaliteReporter extends BasicReporter {
         evals[0].meta.evalite!.results.map((result) => ({
           input: result.input,
           output: result.result,
-          score: average(result.scores, (s) => s.score),
+          score: average(result.scores, (s) => s.score ?? 0),
         }))
       );
     }

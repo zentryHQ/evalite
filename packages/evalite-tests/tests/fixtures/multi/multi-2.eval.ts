@@ -1,8 +1,8 @@
-import { evalite } from "../../../index.js";
+import { evalite } from "evalite";
 import { Levenshtein } from "autoevals";
 import { setTimeout } from "node:timers/promises";
 
-evalite("Multiple 1", {
+evalite("Multiple 2", {
   data: () => {
     return [
       {

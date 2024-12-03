@@ -1,4 +1,4 @@
-import { evalite } from "../../../index.js";
+import { evalite } from "evalite";
 import { Levenshtein } from "autoevals";
 
 evalite("Failing", {

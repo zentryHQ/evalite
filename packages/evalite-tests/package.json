@@ -1,0 +1,13 @@
+{
+  "name": "evalite-tests",
+  "version": "0.0.2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vitest",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "evalite": "workspace:*"
+  }
+}

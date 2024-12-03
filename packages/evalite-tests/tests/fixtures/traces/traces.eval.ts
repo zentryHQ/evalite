@@ -1,5 +1,5 @@
-import { evalite } from "../../../index.js";
-import { reportTrace } from "../../../traces.js";
+import { evalite } from "evalite";
+import { reportTrace } from "evalite/traces";
 import { Levenshtein } from "autoevals";
 
 evalite("Traces", {
