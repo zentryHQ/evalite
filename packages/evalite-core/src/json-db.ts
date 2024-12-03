@@ -41,7 +41,7 @@ export const appendToJsonDb = async (opts: {
       const jsonDbTask: JsonDBEval = {
         name: task.name,
         score: average(task.meta.evalite?.results || [], (t) => {
-          return average(t.scores, (s) => s.score);
+          return average(t.scores, (s) => s.score ?? 0);
         }),
         duration: task.meta.evalite?.duration ?? 0,
         results: [],
@@ -58,7 +58,7 @@ export const appendToJsonDb = async (opts: {
             expected,
             scores,
             duration,
-            score: average(scores, (s) => s.score),
+            score: average(scores, (s) => s.score ?? 0),
             traces: task.meta.evalite.traces,
           });
         }
