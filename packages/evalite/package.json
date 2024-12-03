@@ -2,6 +2,22 @@
   "name": "evalite",
   "version": "0.0.2",
   "type": "module",
+  "description": "Test your LLM-powered apps with a TypeScript-native, Vitest-based eval runner. No API key required.",
+  "homepage": "https://github.com/mattpocock/evalite",
+  "keywords": [
+    "ai",
+    "evals",
+    "typescript",
+    "vitest"
+  ],
+  "bugs": {
+    "url": "https://github.com/mattpocock/evalite/issues"
+  },
+  "author": "Matt Pocock <team@aihero.dev> (https://aihero.dev)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mattpocock/evalite.git"
+  },
   "bin": {
     "evalite": "./dist/bin.js"
   },
