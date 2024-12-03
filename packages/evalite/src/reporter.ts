@@ -1,10 +1,10 @@
 import type { RunnerTask, RunnerTestFile, TaskResultPack } from "vitest";
 import { BasicReporter } from "vitest/reporters";
 
-import { appendToJsonDb, DEFAULT_SERVER_PORT } from "@evalite/core";
+import { appendToJsonDb } from "@evalite/core";
+import { table } from "table";
 import c from "tinyrainbow";
 import { average, sum } from "./utils.js";
-import { table } from "table";
 
 export interface EvaliteReporterOptions {
   jsonDbLocation: string;
