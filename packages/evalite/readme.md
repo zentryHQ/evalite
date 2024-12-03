@@ -82,6 +82,32 @@ Open http://localhost:3006 in your browser to view the results of the eval.
 
 ## Guides
 
+### Scorers
+
+Scorers are used to score the output of your LLM call.
+
+[Autoevals](https://github.com/braintrustdata/autoevals) is a great library of scorers to get you started.
+
+You can create your own using `createScorer`:
+
+```ts
+import { createScorer } from "evalite";
+
+const containsParis = createScorer<string>("Contains Paris", ({ output }) => {
+  return output.includes("Paris") ? 1 : 0;
+});
+
+evalite("My Eval", {
+  data: async () => {
+    return [{ input: "Hello", output: "Hello World!" }];
+  },
+  task: async (input) => {
+    return input + " World!";
+  },
+  scorers: [containsParis],
+});
+```
+
 ### Traces
 
 Traces are used to track the behaviour of each individual call to an LLM inside your task.
