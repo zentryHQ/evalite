@@ -1,1 +1,2 @@
 cp packages/evalite/readme.md readme.md
+git add readme.md
