@@ -1,11 +1,12 @@
 # Evalite
 
-The TypeScript-native, open-source tool for testing LLM-powered apps.
+The TypeScript-native, local-first tool for testing LLM-powered apps.
 
-- Fully open source: **No API Key required**
-- Based on Vitest
-- Terminal UI for quick prototyping
-- Supports tracing and custom scorers
+- Fully open source: **No API Key required**.
+- Local-first: runs on your machine, your data never leaves your laptop.
+- Based on [Vitest](https://vitest.dev/), the best TypeScript test runner around.
+- Terminal UI for quick prototyping.
+- Supports tracing and custom scorers.
 
 ## Quickstart
 
