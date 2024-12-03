@@ -7,11 +7,11 @@ export type JsonDBEval = {
   score: number;
   startTime: string;
   duration: number;
-  results: JsonDbRun[];
+  results: JsonDbResult[];
   sourceCodeHash: string;
 };
 
-export type JsonDbRun = {
+export type JsonDbResult = {
   input: unknown;
   expected: unknown;
   result: unknown;

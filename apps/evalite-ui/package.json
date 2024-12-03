@@ -7,7 +7,7 @@
     "build": "remix vite:build",
     "dev": "remix vite:dev",
     "start": "remix-serve ./build/server/index.js",
-    "typecheck": "tsc"
+    "lint": "tsc"
   },
   "dependencies": {
     "@remix-run/node": "^2.14.0",

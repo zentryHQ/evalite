@@ -1,18 +1,35 @@
 import { getJsonDbEvals, type Evalite } from "@evalite/core";
+import { fastifyStatic } from "@fastify/static";
 import { fastifyWebsocket } from "@fastify/websocket";
 import fastify from "fastify";
+import path from "path";
 
 export type Server = ReturnType<typeof createServer>;
 
-const createServer = (opts: { jsonDbLocation: string }) => {
+export const createServer = (opts: { jsonDbLocation: string }) => {
+  const UI_ROOT = path.join(import.meta.dirname, "./ui");
   const server = fastify();
 
   server.register(fastifyWebsocket);
+  server.register(fastifyStatic, {
+    root: path.join(UI_ROOT),
+  });
 
   const listeners = new Map<string, (event: Evalite.WebsocketEvent) => void>();
 
+  server.setNotFoundHandler(async (req, res) => {
+    res.sendFile(path.join(UI_ROOT, "index.html"));
+  });
+
+  server.get("/api/evals", async (req, reply) => {
+    return reply
+      .code(200)
+      .header("access-control-allow-origin", "*")
+      .send(await getJsonDbEvals({ dbLocation: opts.jsonDbLocation }));
+  });
+
   server.register(async (fastify) => {
-    fastify.get("/socket", { websocket: true }, (socket, req) => {
+    fastify.get("/api/socket", { websocket: true }, (socket, req) => {
       listeners.set(req.id, (event) => {
         socket.send(JSON.stringify(event));
       });
@@ -23,90 +40,72 @@ const createServer = (opts: { jsonDbLocation: string }) => {
     });
   });
 
-  server.get("/", async (req, res) => {
-    res.status(200).send("Hello, world!");
-  });
-
-  server.get("/api/files", async (req, res) => {
-    return res
-      .status(200)
-      .header("access-control-allow-origin", "*")
-      .send(await getJsonDbEvals({ dbLocation: opts.jsonDbLocation }));
-  });
-
   server.route<{
     Querystring: {
       name: string;
     };
   }>({
     method: "GET",
-    url: "/api/file",
+    url: "/api/eval",
     schema: {
       querystring: {
         type: "object",
         properties: {
-          path: { type: "string" },
+          name: { type: "string" },
         },
       },
     },
     handler: async (req, res) => {
-      const path = req.query.name;
+      const name = req.query.name;
 
       const fileData = await getJsonDbEvals({
         dbLocation: opts.jsonDbLocation,
       });
 
       if (!fileData) {
-        return res.status(404).send();
+        return res.code(404).send();
       }
 
       return res
-        .status(200)
+        .code(200)
         .header("access-control-allow-origin", "*")
-        .send(fileData);
+        .send(fileData[name] ?? []);
     },
   });
 
   server.route<{
     Querystring: {
-      path: string;
-      task: string;
+      name: string;
+      timestamp: string;
     };
   }>({
     method: "GET",
-    url: "/api/task",
+    url: "/api/eval/run",
     schema: {
       querystring: {
         type: "object",
         properties: {
-          path: { type: "string" },
-          task: { type: "string" },
+          name: { type: "string" },
+          timestamp: { type: "string" },
         },
-        required: ["path", "task"],
       },
     },
     handler: async (req, res) => {
-      throw new Error("Not implemented");
-      // const path = req.query.path;
-      // const task = req.query.task;
+      const timestamp = req.query.timestamp;
 
-      // const fileData = await getEvalsByName({
-      //   dbLocation: opts.jsonDbLocation,
-      //   file: path,
-      // });
+      const fileData = await getJsonDbEvals({
+        dbLocation: opts.jsonDbLocation,
+      });
 
-      // if (!fileData) {
-      //   return res.status(404).send();
-      // }
+      const run = fileData[req.query.name]?.find(
+        (item) => item.startTime === timestamp
+      );
 
-      // if (!fileData[task]) {
-      //   return res.status(404).send();
-      // }
+      if (!run) {
+        return res.code(404).send();
+      }
 
-      // return res
-      //   .status(200)
-      //   .header("access-control-allow-origin", "*")
-      //   .send(fileData[task]);
+      return res.code(200).header("access-control-allow-origin", "*").send(run);
     },
   });
 
@@ -130,12 +129,4 @@ const createServer = (opts: { jsonDbLocation: string }) => {
       );
     },
   };
-};
-
-export const runServer = (opts: { port: number; jsonDbLocation: string }) => {
-  const server = createServer(opts);
-
-  server.start(opts.port);
-
-  return server;
 };

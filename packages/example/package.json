@@ -6,10 +6,8 @@
   "files": [
     "./dist/*"
   ],
-  "scripts": {},
-  "exports": {
-    ".": "./dist/index.js",
-    "./reporter": "./dist/reporter.js"
+  "scripts": {
+    "dev": "evalite watch"
   },
   "dependencies": {
     "unstorage": "^1.13.1",

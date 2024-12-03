@@ -3,6 +3,8 @@ import { Writable } from "stream";
 import { createVitest } from "vitest/node";
 import EvaliteReporter from "./reporter.js";
 import { createHash } from "crypto";
+import { DEFAULT_SERVER_PORT } from "@evalite/core";
+import { createServer } from "@evalite/core/server";
 
 export const runVitest = async (opts: {
   path: string | undefined;
@@ -10,6 +12,15 @@ export const runVitest = async (opts: {
   testOutputWritable?: Writable;
   mode: "watch-for-file-changes" | "run-once-and-exit";
 }) => {
+  const jsonDbLocation = path.join(opts.cwd ?? "", "./evalite-report.jsonl");
+  const server = createServer({
+    jsonDbLocation,
+  });
+
+  if (opts.mode === "watch-for-file-changes") {
+    server.start(DEFAULT_SERVER_PORT);
+  }
+
   const vitest = await createVitest(
     "test",
     {
@@ -18,7 +29,10 @@ export const runVitest = async (opts: {
       watch: opts.mode === "watch-for-file-changes",
       reporters: [
         new EvaliteReporter({
-          jsonDbLocation: path.join(opts.cwd ?? "", "./evalite-report.jsonl"),
+          jsonDbLocation,
+          logEvent: (event) => {
+            server.send(event);
+          },
         }),
       ],
       slowTestThreshold: 30_000,

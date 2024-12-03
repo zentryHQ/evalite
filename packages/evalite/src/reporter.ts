@@ -1,13 +1,14 @@
 import type { RunnerTask, RunnerTestFile, TaskResultPack } from "vitest";
 import { BasicReporter } from "vitest/reporters";
 
-import { appendToJsonDb } from "@evalite/core";
+import { appendToJsonDb, type Evalite } from "@evalite/core";
 import { table } from "table";
 import c from "tinyrainbow";
 import { average, sum } from "./utils.js";
 
 export interface EvaliteReporterOptions {
   jsonDbLocation: string;
+  logEvent: (event: Evalite.WebsocketEvent) => void;
 }
 
 export default class EvaliteReporter extends BasicReporter {
@@ -17,10 +18,6 @@ export default class EvaliteReporter extends BasicReporter {
   constructor(opts: EvaliteReporterOptions) {
     super();
     this.opts = opts;
-    // this.server = runServer({
-    //   port: DEFAULT_SERVER_PORT,
-    //   jsonDbLocation: "./evalite-report.jsonl",
-    // });
   }
   override onInit(ctx: any): void {
     this.ctx = ctx;
@@ -36,15 +33,15 @@ export default class EvaliteReporter extends BasicReporter {
     );
     this.ctx.logger.log("");
 
-    // this.server.send({
-    //   type: "RUN_IN_PROGRESS",
-    // });
+    this.opts.logEvent({
+      type: "RUN_IN_PROGRESS",
+    });
   }
 
   override onTaskUpdate(packs: TaskResultPack[]): void {
-    // this.server.send({
-    //   type: "RUN_IN_PROGRESS",
-    // });
+    this.opts.logEvent({
+      type: "RUN_IN_PROGRESS",
+    });
     super.onTaskUpdate(packs);
   }
 
@@ -60,9 +57,9 @@ export default class EvaliteReporter extends BasicReporter {
     files = this.ctx.state.getFiles(),
     errors = this.ctx.state.getUnhandledErrors()
   ) => {
-    // this.server.send({
-    //   type: "RUN_COMPLETE",
-    // });
+    this.opts.logEvent({
+      type: "RUN_COMPLETE",
+    });
 
     await appendToJsonDb({
       dbLocation: this.opts.jsonDbLocation,
