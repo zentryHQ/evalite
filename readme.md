@@ -82,6 +82,48 @@ Open http://localhost:3006 in your browser to view the results of the eval.
 
 ## Guides
 
+### Environment Variables
+
+To call your LLM from a third-party service, you'll likely need some environment variables to keep your API keys safe.
+
+Since Evalite is based on Vitest, it should already pick them up from your `vite.config.ts`.
+
+If you don't have Vitest set up, here's how to do it:
+
+1. Create a `.env` file in the root of your project:
+
+```
+OPENAI_API_KEY=your-api-key
+```
+
+2. Add `.env` to your `.gitignore`, if it's not already there
+
+```
+.env
+```
+
+3. Install `dotenv`:
+
+```bash
+pnpm add -D dotenv
+```
+
+4. Add a `vite.config.ts` file:
+
+```ts
+// vite.config.ts
+
+import { defineConfig } from "vite/config";
+
+export default defineConfig({
+  test: {
+    setupFiles: ["dotenv/config"],
+  },
+});
+```
+
+Now, your environment variables will be available in your evals.
+
 ### Scorers
 
 Scorers are used to score the output of your LLM call.
