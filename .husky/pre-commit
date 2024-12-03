@@ -1,2 +1,8 @@
+FILE="readme.md"
+if git diff --cached --name-only | grep -Fx "$FILE" > /dev/null; then
+    echo "Error: $FILE has been modified. Please move your changes to packages/evalite/readme.md instead."
+    exit 1
+fi
+
 cp packages/evalite/readme.md readme.md
 git add readme.md

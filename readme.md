@@ -82,6 +82,20 @@ Open http://localhost:3006 in your browser to view the results of the eval.
 
 ## Guides
 
+### Watch Mode
+
+You can run Evalite in watch mode by running `evalite watch`:
+
+```bash
+evalite watch
+```
+
+This will watch for changes to your `.eval.ts` files and re-run the evals when they change.
+
+> [!IMPORTANT]
+>
+> I strongly recommend implementing a caching layer in your LLM calls. This will keep your tests running fast and avoid burning through your API credits.
+
 ### Environment Variables
 
 To call your LLM from a third-party service, you'll likely need some environment variables to keep your API keys safe.
