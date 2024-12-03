@@ -1,12 +1,11 @@
-<!-- packages/evalite/readme.md is the source of truth for this file -->
-
 # Evalite
 
 The TypeScript-native, open-source tool for testing LLM-powered apps.
 
 - Fully open source: **No API Key required**
 - Based on Vitest
-- Supports tracing, custom scorers, and
+- Terminal UI for quick prototyping
+- Supports tracing and custom scorers
 
 ## Quickstart
 
