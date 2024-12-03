@@ -12,10 +12,10 @@ The TypeScript-native, local-first tool for testing LLM-powered apps.
 
 ### 1. Install `evalite` and `autoevals`:
 
-Install `evalite`, and a scoring library like `autoevals`:
+Install `evalite`, `vitest`, and a scoring library like `autoevals`:
 
 ```bash
-pnpm add -D evalite autoevals
+pnpm add -D evalite vitest autoevals
 ```
 
 ### 2. Add an `eval` script:

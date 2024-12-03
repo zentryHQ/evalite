@@ -202,7 +202,7 @@ export default class EvaliteReporter extends BasicReporter {
     const availableInnerSpace =
       availableColumns - columnsWritableWidth - scoreWidth;
 
-    const colWidth = Math.floor(availableInnerSpace / 2);
+    const colWidth = Math.min(Math.floor(availableInnerSpace / 2), 80);
 
     this.ctx.logger.log(
       table(
