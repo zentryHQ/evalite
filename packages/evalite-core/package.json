@@ -6,6 +6,7 @@
     "./dist/*"
   ],
   "scripts": {
+    "dev": "tsc -w",
     "build": "tsc",
     "test": "vitest run --passWithNoTests"
   },
