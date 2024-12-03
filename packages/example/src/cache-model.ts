@@ -4,7 +4,6 @@ import {
   type LanguageModelV1CallOptions,
 } from "ai";
 import { createHash } from "node:crypto";
-import { type Storage } from "unstorage";
 
 const createKey = (params: LanguageModelV1CallOptions) => {
   return createHash("sha256").update(JSON.stringify(params)).digest("hex");
@@ -19,7 +18,13 @@ const createResultFromCachedObject = (
   return obj as any;
 };
 
-export const cacheModel = (model: LanguageModelV1, storage: Storage) => {
+export const cacheModel = (
+  model: LanguageModelV1,
+  storage: {
+    get: (key: string) => Promise<object>;
+    set: (key: string, value: string) => Promise<void>;
+  }
+) => {
   return experimental_wrapLanguageModel({
     model,
     middleware: {
