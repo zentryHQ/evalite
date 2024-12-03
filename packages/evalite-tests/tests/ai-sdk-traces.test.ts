@@ -12,6 +12,7 @@ it("Should report traces from traceAISDKModel", async () => {
     cwd: fixture.dir,
     path: undefined,
     testOutputWritable: captured.writable,
+    mode: "run-once-and-exit",
   });
 
   const evals = await getJsonDbEvals({ dbLocation: fixture.jsonDbLocation });

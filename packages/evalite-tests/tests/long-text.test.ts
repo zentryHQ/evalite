@@ -12,6 +12,7 @@ it("Should report long text correctly", async () => {
     cwd: fixture.dir,
     path: undefined,
     testOutputWritable: captured.writable,
+    mode: "run-once-and-exit",
   });
 
   expect(captured.getOutput()).toContain("Input");

@@ -3,7 +3,7 @@ import { generateText } from "ai";
 import { evalite } from "evalite";
 import { createStorage } from "unstorage";
 import fsDriver from "unstorage/drivers/fs";
-import { Levenshtein } from "autoevals";
+import { Factuality, Levenshtein } from "autoevals";
 import { cacheModel } from "./cache-model.js";
 
 const storage = createStorage({
@@ -16,23 +16,27 @@ evalite("Test basics", {
   data: async () => [
     {
       input: `What's the capital of France?`,
-      expected: `Paris.`,
+      expected: `Paris`,
     },
     {
       input: `What's the capital of Germany?`,
-      expected: `Berlin.`,
+      expected: `Berlin`,
     },
     {
       input: `What's the capital of Italy?`,
-      expected: `Rome.`,
+      expected: `Rome`,
     },
     {
       input: `What's the capital of the United States?`,
-      expected: `Washington, D.C.`,
+      expected: `Washington DC`,
     },
     {
       input: `What's the capital of Canada?`,
-      expected: `Ottawa.`,
+      expected: `Ottawa`,
+    },
+    {
+      input: `What's the capital of Japan?`,
+      expected: `Tokyo`,
     },
   ],
   task: async (input) => {
@@ -46,5 +50,5 @@ evalite("Test basics", {
 
     return result.text;
   },
-  scorers: [Levenshtein],
+  scorers: [Factuality],
 });

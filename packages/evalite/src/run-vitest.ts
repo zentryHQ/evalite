@@ -8,18 +8,20 @@ export const runVitest = async (opts: {
   path: string | undefined;
   cwd: string | undefined;
   testOutputWritable?: Writable;
+  mode: "watch-for-file-changes" | "run-once-and-exit";
 }) => {
   const vitest = await createVitest(
     "test",
     {
       root: opts.cwd,
       include: ["**/*.eval.{js,ts}"],
-      watch: false,
+      watch: opts.mode === "watch-for-file-changes",
       reporters: [
         new EvaliteReporter({
           jsonDbLocation: path.join(opts.cwd ?? "", "./evalite-report.jsonl"),
         }),
       ],
+      slowTestThreshold: 30_000,
     },
     {},
     {

@@ -12,7 +12,7 @@ const runTask = async <TInput, TExpected>(opts: {
   input: TInput;
   expected: TExpected | undefined;
   task: (input: TInput) => Evalite.MaybePromise<TExpected>;
-  scores: Evalite.Scorer<TExpected>[];
+  scores: Evalite.Scorer<TInput, TExpected>[];
 }) => {
   const start = performance.now();
   const result = await opts.task(opts.input);
@@ -21,7 +21,11 @@ const runTask = async <TInput, TExpected>(opts: {
   const scores = await Promise.all(
     opts.scores.map(
       async (scorer) =>
-        await scorer({ output: result, expected: opts.expected })
+        await scorer({
+          input: opts.input,
+          output: result,
+          expected: opts.expected,
+        })
     )
   );
 
@@ -76,11 +80,13 @@ export const evalite = <TInput, TExpected>(
   });
 };
 
-export const createScorer = <TExpected>(
+export const createScorer = <TInput, TExpected>(
   name: string,
-  scorer: (input: Evalite.ScoreInput<TExpected>) => Evalite.MaybePromise<number>
-): Evalite.Scorer<TExpected> => {
-  return async (input: Evalite.ScoreInput<TExpected>) => {
+  scorer: (
+    input: Evalite.ScoreInput<TInput, TExpected>
+  ) => Evalite.MaybePromise<number>
+): Evalite.Scorer<TInput, TExpected> => {
+  return async (input: Evalite.ScoreInput<TInput, TExpected>) => {
     const score = await scorer(input);
 
     if (typeof score !== "number") {

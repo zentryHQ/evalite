@@ -30,7 +30,8 @@ export declare namespace Evalite {
     name: string;
   };
 
-  export type ScoreInput<TExpected> = {
+  export type ScoreInput<TInput, TExpected> = {
+    input: TInput;
     output: TExpected;
     expected?: TExpected;
   };
@@ -42,14 +43,14 @@ export declare namespace Evalite {
     traces: StoredTrace[];
   };
 
-  export type Scorer<TExpected> = (
-    opts: ScoreInput<TExpected>
+  export type Scorer<TInput, TExpected> = (
+    opts: ScoreInput<TInput, TExpected>
   ) => MaybePromise<Score>;
 
   export type RunnerOpts<TInput, TExpected> = {
     data: () => MaybePromise<{ input: TInput; expected?: TExpected }[]>;
     task: (input: TInput) => MaybePromise<TExpected>;
-    scorers: Scorer<TExpected>[];
+    scorers: Scorer<TInput, TExpected>[];
   };
 
   export interface UserProvidedTrace {

@@ -11,6 +11,7 @@ it("Should report multiple evals correctly", async () => {
     cwd: fixture.dir,
     path: undefined,
     testOutputWritable: captured.writable,
+    mode: "run-once-and-exit",
   });
 
   expect(captured.getOutput()).toContain("Duration");
@@ -31,6 +32,7 @@ it("Should not show a table when running multiple evals", async () => {
     cwd: fixture.dir,
     path: undefined,
     testOutputWritable: captured.writable,
+    mode: "run-once-and-exit",
   });
 
   expect(captured.getOutput()).not.toContain("ONLY ONE EVAL");

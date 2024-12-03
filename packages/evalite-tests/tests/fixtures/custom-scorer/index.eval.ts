@@ -1,5 +1,4 @@
-import { evalite, createScorer } from "evalite";
-import { Levenshtein } from "autoevals";
+import { createScorer, evalite } from "evalite";
 import { setTimeout } from "node:timers/promises";
 
 evalite("Index", {

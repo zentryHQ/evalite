@@ -12,6 +12,7 @@ it("Should report the basics correctly", async () => {
     cwd: fixture.dir,
     path: undefined,
     testOutputWritable: captured.writable,
+    mode: "run-once-and-exit",
   });
 
   expect(captured.getOutput()).toContain("Duration");
@@ -30,6 +31,7 @@ it("Should create a evalite-report.jsonl", async () => {
     cwd: fixture.dir,
     path: undefined,
     testOutputWritable: captured.writable,
+    mode: "run-once-and-exit",
   });
 
   const evals = await getJsonDbEvals({ dbLocation: fixture.jsonDbLocation });
@@ -62,6 +64,7 @@ it("Should capture the duration as being more than 0", async () => {
     cwd: fixture.dir,
     path: undefined,
     testOutputWritable: captured.writable,
+    mode: "run-once-and-exit",
   });
 
   const evals = await getJsonDbEvals({ dbLocation: fixture.jsonDbLocation });
@@ -79,6 +82,7 @@ it("Should capture a hash of the source code", async () => {
     cwd: fixture.dir,
     path: undefined,
     testOutputWritable: captured.writable,
+    mode: "run-once-and-exit",
   });
 
   const evals = await getJsonDbEvals({ dbLocation: fixture.jsonDbLocation });
@@ -100,6 +104,7 @@ it("Should display a table when there is only one eval", async () => {
     cwd: fixture.dir,
     path: undefined,
     testOutputWritable: captured.writable,
+    mode: "run-once-and-exit",
   });
 
   expect(captured.getOutput()).toContain("Input");

@@ -11,6 +11,7 @@ it("Should report a failing test", async () => {
     cwd: fixture.dir,
     path: undefined,
     testOutputWritable: captured.writable,
+    mode: "run-once-and-exit",
   });
 
   expect(captured.getOutput()).toContain("failing-test.eval.ts");

@@ -14,6 +14,7 @@ it("Should report long datasets consistently in the same order", async () => {
     cwd: fixture.dir,
     path: undefined,
     testOutputWritable: captured.writable,
+    mode: "run-once-and-exit",
   });
 
   const jsonDbEvals = await getJsonDbEvals({
