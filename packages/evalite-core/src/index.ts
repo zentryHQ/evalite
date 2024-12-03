@@ -19,14 +19,6 @@ export declare namespace Evalite {
     duration: number;
   };
 
-  export interface Runner {
-    <TInput, TExpected>(
-      testName: string,
-      runnerOpts: RunnerOpts<TInput, TExpected>
-    ): void;
-    only: Runner;
-  }
-
   export type Score = {
     /**
      * A number between 0 and 1.
