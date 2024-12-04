@@ -1,5 +1,11 @@
 # evalite
 
+## 0.1.2
+
+### Patch Changes
+
+- e43c7a4: Added early version of the UI, available on localhost:3006 in watch mode.
+
 ## 0.1.1
 
 ### Patch Changes
