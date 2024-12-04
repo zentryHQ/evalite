@@ -17,7 +17,7 @@ export const useSubscribeToTestServer = () => {
 
   useEffect(() => {
     const socket = new WebSocket(
-      `ws://localhost:${DEFAULT_SERVER_PORT}/socket`
+      `ws://localhost:${DEFAULT_SERVER_PORT}/api/socket`
     );
 
     socket.onmessage = (event) => {

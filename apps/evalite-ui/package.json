@@ -10,13 +10,14 @@
     "lint": "tsc"
   },
   "dependencies": {
+    "@evalite/core": "workspace:*",
     "@remix-run/node": "^2.14.0",
     "@remix-run/react": "^2.14.0",
     "@remix-run/serve": "^2.14.0",
     "isbot": "^4.1.0",
+    "lucide-react": "^0.464.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "@evalite/core": "workspace:*"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@remix-run/dev": "^2.14.0",

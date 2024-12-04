@@ -109,6 +109,7 @@ export const getRows = async <T>(opts: {
   return dbContents
     .trim()
     .split("\n")
+    .filter(Boolean)
     .map((line) => {
       const parsed: JsonDBEval = JSON.parse(line);
 
