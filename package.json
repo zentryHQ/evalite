@@ -10,7 +10,7 @@
   "private": true,
   "scripts": {
     "dev": "pnpm run -r --parallel dev",
-    "ci": "turbo build test lint",
+    "ci": "turbo build test lint after-build",
     "build": "turbo build after-build",
     "release": "pnpm run ci && changeset publish",
     "test-example": "cd packages/example && evalite watch",
