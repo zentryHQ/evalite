@@ -1,9 +1,34 @@
 import { getEvals } from "@evalite/core/sdk";
 import type { MetaFunction } from "@remix-run/node";
-import { Link, useLoaderData } from "@remix-run/react";
+import { Link, Outlet, useLoaderData } from "@remix-run/react";
+import {
+  ChevronDownCircleIcon,
+  ChevronUpCircleIcon,
+  MinusCircleIcon,
+  ZapIcon,
+} from "lucide-react";
+import { SidebarRight } from "~/components/sidebar-right";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+} from "~/components/ui/breadcrumb";
+import { Separator } from "~/components/ui/separator";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+} from "~/components/ui/sidebar";
 import { useSubscribeToTestServer } from "~/use-subscribe-to-socket";
-import { scoreToPercent } from "~/utils";
-import { Zap } from "lucide-react";
 
 export const meta: MetaFunction = () => {
   return [
@@ -12,10 +37,10 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+type ScoreState = "up" | "down" | "same" | "first";
+
 export const clientLoader = async () => {
   const evals = await getEvals();
-
-  console.log(evals);
 
   return {
     menu: Object.entries(evals).map(([key, value]) => {
@@ -25,7 +50,7 @@ export const clientLoader = async () => {
 
       const score = mostRecentEval.score;
 
-      const state = !secondMostRecentEval
+      const state: ScoreState = !secondMostRecentEval
         ? "first"
         : score > secondMostRecentEval.score
           ? "up"
@@ -44,45 +69,71 @@ export const clientLoader = async () => {
 export default function Index() {
   const evals = useLoaderData<typeof clientLoader>();
 
-  const server = useSubscribeToTestServer();
-
   return (
-    <div className="">
-      <nav className="flex items-center p-4 px-6 space-x-12">
-        <h1 className="text-xl flex items-center space-x-3 tracking-tight font-semibold">
-          <Zap />
-          <span>Evalite</span>
-        </h1>
-        <span className="bg-gray-800 uppercase px-4 py-1 rounded text-xs text-gray-200">
-          {server.state === "idle" ? "idle" : "running"}
-        </span>
-      </nav>
-      <main className="px-6">
-        <div>
-          <ul className="space-y-4">
-            {evals.menu.map((menuItem) => (
-              <li key={menuItem.name}>
-                <Link to={`/${menuItem.name}`}>
-                  <div className="flex items-center justify-between">
-                    <span>{menuItem.name}</span>
-                    <span
-                      className={`${
-                        menuItem.state === "up"
-                          ? "text-green-500"
-                          : menuItem.state === "down"
-                            ? "text-red-500"
-                            : ""
-                      }`}
-                    >
-                      {scoreToPercent(menuItem.score)}
-                    </span>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </main>
-    </div>
+    <SidebarProvider>
+      <Sidebar className="border-r-0">
+        <SidebarHeader>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <div className="px-2 py-1 flex items-center space-x-2.5">
+                <ZapIcon className="size-4" />
+                <span className="truncate font-semibold tracking-tight">
+                  Evalite
+                </span>
+              </div>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>Evals</SidebarGroupLabel>
+            <SidebarMenu>
+              {evals.menu.map((item) => (
+                <SidebarMenuItem key={item.name}>
+                  <SidebarMenuButton asChild>
+                    <Link to={`/${item.name}`} className="flex justify-between">
+                      <span>{item.name}</span>
+                      <Score score={item.score} state={item.state} />
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroup>
+        </SidebarContent>
+      </Sidebar>
+      <SidebarInset>
+        <Outlet />
+      </SidebarInset>
+      <SidebarRight />
+    </SidebarProvider>
   );
 }
+
+const Score = (props: { score: number; state: ScoreState }) => {
+  return (
+    <span className="flex items-center space-x-2">
+      <span>{Math.round(props.score * 100)}%</span>
+      {props.state === "up" && (
+        <span className="text-primary">
+          <ChevronUpCircleIcon />
+        </span>
+      )}
+      {props.state === "down" && (
+        <span className="text-destructive">
+          <ChevronDownCircleIcon className="" />
+        </span>
+      )}
+      {props.state === "same" && (
+        <span className="text-blue-500">
+          <MinusCircleIcon className="transform size-3" />
+        </span>
+      )}
+      {props.state === "first" && (
+        <span className="text-muted">
+          <MinusCircleIcon className="transform size-3" />
+        </span>
+      )}
+    </span>
+  );
+};
