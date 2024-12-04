@@ -1,5 +1,13 @@
 # evalite
 
+## 0.1.3
+
+### Patch Changes
+
+- 213211f: Fixed broken build
+- Updated dependencies [213211f]
+  - @evalite/core@0.0.4
+
 ## 0.1.2
 
 ### Patch Changes
