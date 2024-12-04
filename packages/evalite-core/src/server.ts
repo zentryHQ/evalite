@@ -15,11 +15,11 @@ export const createServer = (opts: { jsonDbLocation: string }) => {
     root: path.join(UI_ROOT),
   });
 
-  const listeners = new Map<string, (event: Evalite.WebsocketEvent) => void>();
-
-  server.setNotFoundHandler(async (req, res) => {
-    res.sendFile(path.join(UI_ROOT, "index.html"));
+  server.setNotFoundHandler(async (req, reply) => {
+    return reply.status(200).sendFile("index.html");
   });
+
+  const listeners = new Map<string, (event: Evalite.WebsocketEvent) => void>();
 
   server.get("/api/evals", async (req, reply) => {
     return reply
@@ -122,7 +122,7 @@ export const createServer = (opts: { jsonDbLocation: string }) => {
         },
         (err) => {
           if (err) {
-            server.log.error(err);
+            console.error(err);
             process.exit(1);
           }
         }

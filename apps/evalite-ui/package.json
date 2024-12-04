@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "remix vite:build",
-    "after-build": "rm -rf ../../packages/evalite/dist/ui && cp -r build/client ../../packages/evalite/dist/ui",
+    "after-build": "rm -rf ../../packages/evalite-core/dist/ui && cp -r build/client ../../packages/evalite-core/dist/ui",
     "dev": "remix vite:dev",
     "start": "remix-serve ./build/server/index.js",
     "lint": "tsc"

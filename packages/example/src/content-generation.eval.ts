@@ -19,7 +19,7 @@ evalite("Content generation", {
         input: "Write a TypeScript tweet",
       },
       {
-        input: "Write a tweet about TypeScript template literals types.",
+        input: "Write a tweet about TypeScript template literal types.",
       },
     ];
   },

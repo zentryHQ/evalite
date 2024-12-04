@@ -13,7 +13,7 @@
     "ci": "turbo build test lint",
     "build": "turbo build after-build",
     "release": "pnpm run ci && changeset publish",
-    "test-example": "cd packages/example && evalite",
+    "test-example": "cd packages/example && evalite watch",
     "prepare": "husky"
   },
   "keywords": [],
