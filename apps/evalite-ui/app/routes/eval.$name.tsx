@@ -9,7 +9,6 @@ import { MyLineChart } from "~/components/ui/line-chart";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,

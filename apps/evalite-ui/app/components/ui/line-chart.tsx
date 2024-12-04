@@ -18,7 +18,10 @@ const chartConfig = {
 
 export function MyLineChart(props: { data: { score: number }[] }) {
   return (
-    <ChartContainer config={chartConfig} className="h-24 overflow-visible">
+    <ChartContainer
+      config={chartConfig}
+      className="h-24 overflow-visible max-w-[120ch]"
+    >
       <AreaChart accessibilityLayer data={props.data}>
         <XAxis
           dataKey="month"
