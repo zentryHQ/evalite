@@ -21,6 +21,13 @@ evalite("Content generation", {
       {
         input: "Write a tweet about TypeScript template literal types.",
       },
+      {
+        input: 'Write a tweet about "TypeScript is a superset of JavaScript."',
+      },
+      {
+        input:
+          "Write a short article about whether TypeScript is a linter or not. Use markdown formatting.",
+      },
     ];
   },
   task: async (input) => {
@@ -40,7 +47,6 @@ evalite("Content generation", {
     return result.text;
   },
   scorers: [
-    Humor,
     createScorer("No Hashtags", ({ output }) => {
       return output.includes("#") ? 0 : 1;
     }),

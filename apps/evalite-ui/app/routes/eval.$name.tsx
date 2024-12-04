@@ -2,6 +2,7 @@ import { getEvalRunsByName } from "@evalite/core/sdk";
 import type { MetaFunction } from "@remix-run/node";
 import { useLoaderData, type ClientLoaderFunctionArgs } from "@remix-run/react";
 import { useContext } from "react";
+import { DisplayInput } from "~/components/display-input";
 import { InnerPageLayout } from "~/components/page-header";
 import { getScoreState, Score } from "~/components/score";
 import {
@@ -13,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { cn } from "~/lib/utils";
 import { TestServerStateContext } from "~/use-subscribe-to-socket";
 
 export const meta: MetaFunction<typeof clientLoader> = (args) => {
@@ -40,6 +42,10 @@ export default function Page() {
 
   const serverState = useContext(TestServerStateContext);
 
+  const showExpectedColumn = evaluation.results.every(
+    (result) => result.expected !== undefined
+  );
+
   return (
     <InnerPageLayout title={name}>
       <Table>
@@ -47,9 +53,14 @@ export default function Page() {
           <TableRow>
             <TableHead>Input</TableHead>
             <TableHead>Output</TableHead>
-            <TableHead>Expected</TableHead>
-            {firstResult?.scores.map((scorer) => (
-              <TableHead key={scorer.name}>{scorer.name}</TableHead>
+            {showExpectedColumn && <TableHead>Expected</TableHead>}
+            {firstResult?.scores.map((scorer, index) => (
+              <TableHead
+                key={scorer.name}
+                className={cn(index === 0 && "border-l")}
+              >
+                {scorer.name}
+              </TableHead>
             ))}
           </TableRow>
         </TableHeader>
@@ -57,15 +68,26 @@ export default function Page() {
           {evaluation.results.map((result) => {
             return (
               <TableRow key={result.input as any}>
-                <TableCell>{result.input as any}</TableCell>
-                <TableCell>{result.result as any}</TableCell>
-                <TableCell>{result.expected as any}</TableCell>
-                {result.scores.map((scorer) => {
+                <TableCell>
+                  <DisplayInput input={result.input} />
+                </TableCell>
+                <TableCell>
+                  <DisplayInput input={result.result} />
+                </TableCell>
+                {showExpectedColumn && (
+                  <TableCell>
+                    <DisplayInput input={result.expected} />
+                  </TableCell>
+                )}
+                {result.scores.map((scorer, index) => {
                   const scoreInPreviousEvaluation = prevEvaluation?.results
                     .find((r) => r.input === result.input)
                     ?.scores.find((s) => s.name === scorer.name);
                   return (
-                    <TableCell key={scorer.name}>
+                    <TableCell
+                      key={scorer.name}
+                      className={cn(index === 0 && "border-l")}
+                    >
                       <Score
                         score={scorer.score ?? 0}
                         isRunning={

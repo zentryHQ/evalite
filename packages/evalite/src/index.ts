@@ -76,7 +76,7 @@ export const evalite = <TInput, TExpected>(
   });
 };
 
-export const createScorer = <TInput, TExpected>(
+export const createScorer = <TInput, TExpected = TInput>(
   name: string,
   scorer: (
     input: Evalite.ScoreInput<TInput, TExpected>
