@@ -2,14 +2,12 @@ import type { MetaFunction } from "@remix-run/node";
 import { useLoaderData, type ClientLoaderFunctionArgs } from "@remix-run/react";
 import { InnerPageLayout } from "~/components/page-header";
 
-export const meta: MetaFunction = () => {
+export const meta: MetaFunction<typeof clientLoader> = (args) => {
   return [
-    { title: "New Remix App" },
+    { title: `${(args.data as any)?.name} | Evalite` },
     { name: "description", content: "Welcome to Remix!" },
   ];
 };
-
-type ScoreState = "up" | "down" | "same" | "first";
 
 export const clientLoader = async (args: ClientLoaderFunctionArgs) => {
   return {
