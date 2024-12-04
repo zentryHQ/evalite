@@ -1,10 +1,23 @@
 import type { Evalite } from "@evalite/core";
 import { DEFAULT_SERVER_PORT } from "@evalite/core/constants";
 import { useNavigate } from "@remix-run/react";
-import { useEffect, useState } from "react";
+import { createContext, useEffect, useMemo, useState } from "react";
+
+export const TestServerStateContext = createContext<
+  ReturnType<typeof useSubscribeToTestServer>
+>({} as never);
+
+export type TestServerState =
+  | {
+      type: "running";
+      filepaths: Set<string>;
+    }
+  | {
+      type: "idle";
+    };
 
 export const useSubscribeToTestServer = () => {
-  const [state, setState] = useState<"idle" | "running" | "failed">("idle");
+  const [state, setState] = useState<TestServerState>({ type: "idle" });
 
   const navigate = useNavigate();
 
@@ -24,10 +37,13 @@ export const useSubscribeToTestServer = () => {
       const data: Evalite.WebsocketEvent = JSON.parse(event.data);
       switch (data.type) {
         case "RUN_IN_PROGRESS":
-          setState("running");
+          setState({
+            type: "running",
+            filepaths: new Set(data.filepaths),
+          });
           break;
         case "RUN_COMPLETE":
-          setState("idle");
+          setState({ type: "idle" });
           break;
       }
     };
@@ -37,5 +53,5 @@ export const useSubscribeToTestServer = () => {
     };
   }, []);
 
-  return { state };
+  return useMemo(() => ({ state }), [state]);
 };

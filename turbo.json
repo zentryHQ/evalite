@@ -25,6 +25,10 @@
       "dependsOn": ["^build"],
       "outputs": ["dist", "*.tsbuildinfo", ".next", "build"],
       "cache": true
+    },
+    "after-build": {
+      "dependsOn": ["build"],
+      "cache": false
     }
   }
 }

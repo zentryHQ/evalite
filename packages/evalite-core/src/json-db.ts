@@ -3,6 +3,7 @@ import type { Evalite } from "./index.js";
 import { average } from "./utils.js";
 
 export type JsonDBEval = {
+  filepath: string;
   name: string;
   score: number;
   startTime: string;
@@ -25,6 +26,7 @@ export const appendToJsonDb = async (opts: {
   dbLocation: string;
   files: {
     name: string;
+    filepath: string;
     tasks: {
       name: string;
       meta: {
@@ -39,6 +41,7 @@ export const appendToJsonDb = async (opts: {
   for (const file of opts.files) {
     for (const task of file.tasks) {
       const jsonDbTask: JsonDBEval = {
+        filepath: file.filepath,
         name: task.name,
         score: average(task.meta.evalite?.results || [], (t) => {
           return average(t.scores, (s) => s.score ?? 0);

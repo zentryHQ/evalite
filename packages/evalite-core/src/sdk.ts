@@ -11,7 +11,9 @@ export const getEvals = async (): Promise<GetJsonDbEvalsResult> => {
   return res.json() as Promise<GetJsonDbEvalsResult>;
 };
 
-export const getEvalByName = async (name: string): Promise<JsonDBEval[]> => {
+export const getEvalRunsByName = async (
+  name: string
+): Promise<JsonDBEval[]> => {
   const res = await fetch(`${BASE_URL}/api/eval?name=${name}`);
   return res.json() as Promise<JsonDBEval[]>;
 };

@@ -10,8 +10,9 @@ import {
 } from "@remix-run/react";
 import {
   ChevronDownCircleIcon,
+  ChevronRightCircleIcon,
   ChevronUpCircleIcon,
-  MinusCircleIcon,
+  LoaderCircleIcon,
   ZapIcon,
 } from "lucide-react";
 import { SidebarRight } from "~/components/sidebar-right";
@@ -28,8 +29,13 @@ import {
   SidebarProvider,
 } from "~/components/ui/sidebar";
 
-import "./tailwind.css";
 import { getEvals } from "@evalite/core/sdk";
+import "./tailwind.css";
+import {
+  TestServerStateContext,
+  useSubscribeToTestServer,
+} from "./use-subscribe-to-socket";
+import { Score, type ScoreState } from "./components/score";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -62,8 +68,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-type ScoreState = "up" | "down" | "same" | "first";
-
 export const clientLoader = async () => {
   const evals = await getEvals();
 
@@ -86,6 +90,7 @@ export const clientLoader = async () => {
         name: key,
         state,
         score,
+        filepath: mostRecentEval.filepath,
       };
     }),
   };
@@ -94,71 +99,62 @@ export const clientLoader = async () => {
 export default function App() {
   const evals = useLoaderData<typeof clientLoader>();
 
+  const testServer = useSubscribeToTestServer();
+
   return (
-    <SidebarProvider>
-      <Sidebar className="border-r-0">
-        <SidebarHeader>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <div className="px-2 py-1 flex items-center space-x-2.5">
-                <ZapIcon className="size-4" />
-                <span className="truncate font-semibold tracking-tight">
-                  Evalite
-                </span>
-              </div>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel>Evals</SidebarGroupLabel>
+    <TestServerStateContext.Provider value={testServer}>
+      <SidebarProvider>
+        <Sidebar className="border-r-0">
+          <SidebarHeader>
             <SidebarMenu>
-              {evals.menu.map((item) => (
-                <SidebarMenuItem key={item.name}>
-                  <SidebarMenuButton asChild>
-                    <Link to={`/${item.name}`} className="flex justify-between">
-                      <span>{item.name}</span>
-                      <Score score={item.score} state={item.state} />
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              <SidebarMenuItem>
+                <div className="px-2 py-1 flex items-center space-x-2.5">
+                  <ZapIcon className="size-4" />
+                  <span className="truncate font-semibold tracking-tight">
+                    Evalite
+                  </span>
+                </div>
+              </SidebarMenuItem>
             </SidebarMenu>
-          </SidebarGroup>
-        </SidebarContent>
-      </Sidebar>
-      <SidebarInset>
-        <Outlet />
-      </SidebarInset>
-      <SidebarRight />
-    </SidebarProvider>
+          </SidebarHeader>
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupLabel>Evals</SidebarGroupLabel>
+              <SidebarMenu>
+                {evals.menu.map((item) => {
+                  let isRunning = false;
+
+                  if (testServer.state.type === "running") {
+                    isRunning = testServer.state.filepaths.has(item.filepath);
+                  }
+                  return (
+                    <SidebarMenuItem key={item.name}>
+                      <SidebarMenuButton asChild>
+                        <Link
+                          to={`/eval/${item.name}`}
+                          className="flex justify-between"
+                        >
+                          <span>{item.name}</span>
+
+                          <Score
+                            score={item.score}
+                            state={item.state}
+                            isRunning={isRunning}
+                          />
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroup>
+          </SidebarContent>
+        </Sidebar>
+        <SidebarInset>
+          <Outlet />
+        </SidebarInset>
+        <SidebarRight />
+      </SidebarProvider>
+    </TestServerStateContext.Provider>
   );
 }
-
-const Score = (props: { score: number; state: ScoreState }) => {
-  return (
-    <span className="flex items-center space-x-2">
-      <span>{Math.round(props.score * 100)}%</span>
-      {props.state === "up" && (
-        <span className="text-primary">
-          <ChevronUpCircleIcon />
-        </span>
-      )}
-      {props.state === "down" && (
-        <span className="text-destructive">
-          <ChevronDownCircleIcon className="" />
-        </span>
-      )}
-      {props.state === "same" && (
-        <span className="text-blue-500">
-          <MinusCircleIcon className="transform size-3" />
-        </span>
-      )}
-      {props.state === "first" && (
-        <span className="text-muted">
-          <MinusCircleIcon className="transform size-3" />
-        </span>
-      )}
-    </span>
-  );
-};

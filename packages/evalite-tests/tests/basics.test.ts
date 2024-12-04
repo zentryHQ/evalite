@@ -113,3 +113,20 @@ it("Should display a table when there is only one eval", async () => {
   expect(captured.getOutput()).toContain("abc");
   expect(captured.getOutput()).toContain("abcdef");
 });
+
+it("Should capture the filepath of the eval", async () => {
+  using fixture = loadFixture("basics");
+
+  const captured = captureStdout();
+
+  await runVitest({
+    cwd: fixture.dir,
+    path: undefined,
+    testOutputWritable: captured.writable,
+    mode: "run-once-and-exit",
+  });
+
+  const evals = await getJsonDbEvals({ dbLocation: fixture.jsonDbLocation });
+
+  expect(evals.Basics?.[0]?.filepath).toContain("basics.eval.ts");
+});

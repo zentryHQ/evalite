@@ -35,21 +35,26 @@ export default class EvaliteReporter extends BasicReporter {
 
     this.opts.logEvent({
       type: "RUN_IN_PROGRESS",
+      filepaths: this.ctx.state.getFiles().map((f) => f.filepath),
     });
   }
 
-  override onTaskUpdate(packs: TaskResultPack[]): void {
-    this.opts.logEvent({
-      type: "RUN_IN_PROGRESS",
-    });
-    super.onTaskUpdate(packs);
-  }
+  // override onTaskUpdate(packs: TaskResultPack[]): void {
+  //   this.opts.logEvent({
+  //     type: "RUN_IN_PROGRESS",
+  //   });
+  //   super.onTaskUpdate(packs);
+  // }
 
-  override onWatcherStart(files?: RunnerTestFile[], errors?: unknown[]): void {
+  override onWatcherStart(files: RunnerTestFile[], errors?: unknown[]): void {
     super.onWatcherStart(files, errors);
   }
 
   override onWatcherRerun(files: string[], trigger?: string): void {
+    this.opts.logEvent({
+      type: "RUN_IN_PROGRESS",
+      filepaths: files,
+    });
     super.onWatcherRerun(files, trigger);
   }
 

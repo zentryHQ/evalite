@@ -11,7 +11,7 @@ export const clientLoader = async () => {
   const firstName = Object.keys(evals)[0];
 
   if (firstName) {
-    return redirect(`/${firstName}`);
+    return redirect(`/eval/${firstName}`);
   }
 
   return null;
