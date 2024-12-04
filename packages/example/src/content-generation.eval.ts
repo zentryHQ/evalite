@@ -1,10 +1,9 @@
+import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
 import { createScorer, evalite } from "evalite";
-import { cacheModel } from "./cache-model";
-import { openai } from "@ai-sdk/openai";
 import { createStorage } from "unstorage";
 import fsDriver from "unstorage/drivers/fs";
-import { Humor } from "autoevals";
+import { cacheModel } from "./cache-model";
 
 const storage = createStorage({
   driver: (fsDriver as any)({
