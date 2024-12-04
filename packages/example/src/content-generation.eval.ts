@@ -27,6 +27,9 @@ evalite("Content generation", {
         input:
           "Write a short article about whether TypeScript is a linter or not. Use markdown formatting.",
       },
+      {
+        input: `Write an article about TypeScript's basic types, like string and number.`,
+      },
     ];
   },
   task: async (input) => {

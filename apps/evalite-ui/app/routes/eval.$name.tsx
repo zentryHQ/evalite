@@ -5,6 +5,7 @@ import { useContext } from "react";
 import { DisplayInput } from "~/components/display-input";
 import { InnerPageLayout } from "~/components/page-header";
 import { getScoreState, Score } from "~/components/score";
+import { MyLineChart } from "~/components/ui/line-chart";
 import {
   Table,
   TableBody,
@@ -27,15 +28,23 @@ export const meta: MetaFunction<typeof clientLoader> = (args) => {
 export const clientLoader = async (args: ClientLoaderFunctionArgs) => {
   const evaluations = await getEvalRunsByName(args.params.name!);
 
+  const history = evaluations
+    .map((e) => ({
+      score: Math.round(e.score * 100),
+      date: e.startTime,
+    }))
+    .reverse();
+
   return {
     evaluation: evaluations[0]!,
     prevEvaluation: evaluations[1],
     name: args.params.name!,
+    history,
   };
 };
 
 export default function Page() {
-  const { name, evaluation, prevEvaluation } =
+  const { name, evaluation, prevEvaluation, history } =
     useLoaderData<typeof clientLoader>();
 
   const firstResult = evaluation.results[0];
@@ -48,6 +57,7 @@ export default function Page() {
 
   return (
     <InnerPageLayout title={name}>
+      <MyLineChart data={history} />
       <Table>
         <TableHeader>
           <TableRow>
