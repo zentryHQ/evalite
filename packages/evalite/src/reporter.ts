@@ -46,7 +46,7 @@ export default class EvaliteReporter extends BasicReporter {
   //   super.onTaskUpdate(packs);
   // }
 
-  override onWatcherStart(files: RunnerTestFile[], errors?: unknown[]): void {
+  override onWatcherStart(files?: RunnerTestFile[], errors?: unknown[]): void {
     super.onWatcherStart(files, errors);
   }
 

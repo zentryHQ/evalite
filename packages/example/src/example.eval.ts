@@ -46,6 +46,10 @@ evalite("Test Capitals", {
       input: `Name all the capitals of each part of the UK.`,
       expected: `London, Edinburgh, Cardiff, Belfast`,
     },
+    {
+      input: `What's the capital of Antarctica?`,
+      expected: `Antarctica has no capital.`,
+    },
   ],
   task: async (input) => {
     const result = await generateText({

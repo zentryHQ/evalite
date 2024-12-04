@@ -35,7 +35,7 @@ export const runVitest = async (opts: {
           },
         }),
       ],
-      slowTestThreshold: 30_000,
+      testTimeout: 30_000,
     },
     {},
     {

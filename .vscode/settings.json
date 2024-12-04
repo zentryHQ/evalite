@@ -14,5 +14,5 @@
     "^@radix-ui",
     "^cmdk$"
   ],
-  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.preferences.includePackageJsonAutoImports": "on"
 }

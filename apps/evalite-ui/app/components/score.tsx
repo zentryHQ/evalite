@@ -46,3 +46,19 @@ export const Score = (props: {
     </span>
   );
 };
+
+export const getScoreState = (
+  score: number,
+  prevScore: number | null | undefined
+) => {
+  const state: ScoreState =
+    typeof prevScore === "undefined" || prevScore === null
+      ? "first"
+      : score > prevScore
+        ? "up"
+        : score < prevScore
+          ? "down"
+          : "same";
+
+  return state;
+};

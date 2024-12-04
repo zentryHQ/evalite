@@ -41,10 +41,6 @@ export const evalite = <TInput, TExpected>(
   opts: Evalite.RunnerOpts<TInput, TExpected>
 ) => {
   return it(testName, async ({ task }) => {
-    if (opts.scorers.length === 0) {
-      throw new Error("You must provide at least one scorer.");
-    }
-
     const traces: Evalite.StoredTrace[] = [];
 
     reportTraceLocalStorage.enterWith((trace) => traces.push(trace));

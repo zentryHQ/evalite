@@ -35,7 +35,7 @@ import {
   TestServerStateContext,
   useSubscribeToTestServer,
 } from "./use-subscribe-to-socket";
-import { Score, type ScoreState } from "./components/score";
+import { getScoreState, Score, type ScoreState } from "./components/score";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -79,13 +79,7 @@ export const clientLoader = async () => {
 
       const score = mostRecentEval.score;
 
-      const state: ScoreState = !secondMostRecentEval
-        ? "first"
-        : score > secondMostRecentEval.score
-          ? "up"
-          : score < secondMostRecentEval.score
-            ? "down"
-            : "same";
+      const state = getScoreState(score, secondMostRecentEval?.score);
       return {
         name: key,
         state,

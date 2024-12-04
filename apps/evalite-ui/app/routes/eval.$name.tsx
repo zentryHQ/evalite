@@ -3,7 +3,7 @@ import type { MetaFunction } from "@remix-run/node";
 import { useLoaderData, type ClientLoaderFunctionArgs } from "@remix-run/react";
 import { useContext } from "react";
 import { InnerPageLayout } from "~/components/page-header";
-import { Score } from "~/components/score";
+import { getScoreState, Score } from "~/components/score";
 import {
   Table,
   TableBody,
@@ -33,9 +33,10 @@ export const clientLoader = async (args: ClientLoaderFunctionArgs) => {
 };
 
 export default function Page() {
-  const { name, evaluation } = useLoaderData<typeof clientLoader>();
+  const { name, evaluation, prevEvaluation } =
+    useLoaderData<typeof clientLoader>();
 
-  const firstResult = evaluation.results[0]!;
+  const firstResult = evaluation.results[0];
 
   const serverState = useContext(TestServerStateContext);
 
@@ -47,7 +48,7 @@ export default function Page() {
             <TableHead>Input</TableHead>
             <TableHead>Output</TableHead>
             <TableHead>Expected</TableHead>
-            {firstResult.scores.map((scorer) => (
+            {firstResult?.scores.map((scorer) => (
               <TableHead key={scorer.name}>{scorer.name}</TableHead>
             ))}
           </TableRow>
@@ -60,6 +61,9 @@ export default function Page() {
                 <TableCell>{result.result as any}</TableCell>
                 <TableCell>{result.expected as any}</TableCell>
                 {result.scores.map((scorer) => {
+                  const scoreInPreviousEvaluation = prevEvaluation?.results
+                    .find((r) => r.input === result.input)
+                    ?.scores.find((s) => s.name === scorer.name);
                   return (
                     <TableCell key={scorer.name}>
                       <Score
@@ -68,7 +72,10 @@ export default function Page() {
                           serverState.state.type === "running" &&
                           serverState.state.filepaths.has(evaluation.filepath)
                         }
-                        state="up" // TODO
+                        state={getScoreState(
+                          scorer.score ?? 0,
+                          scoreInPreviousEvaluation?.score
+                        )}
                       />
                     </TableCell>
                   );
