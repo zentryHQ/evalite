@@ -33,6 +33,8 @@ export const runVitest = async (opts: {
           logEvent: (event) => {
             server.send(event);
           },
+          port: DEFAULT_SERVER_PORT,
+          isWatching: opts.mode === "watch-for-file-changes",
         }),
       ],
       testTimeout: 30_000,

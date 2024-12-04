@@ -8,8 +8,26 @@ import { average, sum } from "./utils.js";
 
 export interface EvaliteReporterOptions {
   jsonDbLocation: string;
+  isWatching: boolean;
+  port: number;
   logEvent: (event: Evalite.WebsocketEvent) => void;
 }
+
+const renderers = {
+  title: () => {
+    return c.magenta(c.bold("EVALITE"));
+  },
+  description: (opts: EvaliteReporterOptions) => {
+    if (opts.isWatching) {
+      return [
+        c.dim("running on "),
+        c.cyan(`http://localhost:${c.bold(opts.port)}/`),
+      ].join("");
+    }
+
+    return c.dim("running...");
+  },
+};
 
 export default class EvaliteReporter extends BasicReporter {
   private opts: EvaliteReporterOptions;
@@ -23,13 +41,9 @@ export default class EvaliteReporter extends BasicReporter {
     this.ctx = ctx;
     this.start = performance.now();
 
-    // this.ctx.logger.log(
-    //   ` ${c.magenta(c.bold("EVALITE"))} ${c.dim("running on")} ` +
-    //     c.cyan(`http://localhost:${c.bold(DEFAULT_SERVER_PORT)}/`)
-    // );
     this.ctx.logger.log("");
     this.ctx.logger.log(
-      ` ${c.magenta(c.bold("EVALITE"))} ${c.dim("running...")}`
+      ` ${renderers.title()} ${renderers.description(this.opts)}`
     );
     this.ctx.logger.log("");
 
