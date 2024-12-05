@@ -1,6 +1,7 @@
 import { getEvalResult } from "@evalite/core/sdk";
 import {
   Link,
+  NavLink,
   useLoaderData,
   useLocation,
   useSearchParams,
@@ -23,6 +24,7 @@ import {
   SidebarContent,
   SidebarHeader,
 } from "~/components/ui/sidebar";
+import { cn } from "~/lib/utils";
 import { TestServerStateContext } from "~/use-subscribe-to-socket";
 
 const SidebarSection = ({
@@ -95,12 +97,13 @@ export default function Page() {
         <Separator className="mt-2" />
       </SidebarHeader>
       <SidebarContent className="p-2 pb-8 flex flex-row h-full">
-        <div className="w-44 pr-2 flex flex-col gap-5 flex-shrink-0">
+        <div className="w-44 flex flex-col gap-3 flex-shrink-0">
           <Trace
             title="Eval"
             startPercent={0}
             endPercent={100}
-            to={`/eval/${name}/trace/${resultIndex}`}
+            href={`/eval/${name}/trace/${resultIndex}`}
+            isActive={!searchParams.get("trace")}
           />
           {result.traces.map((trace, traceIndex) => {
             const startTimeWithinTrace = trace.start - startTime;
@@ -112,20 +115,21 @@ export default function Page() {
             return (
               <Trace
                 title={`Trace ${traceIndex + 1}`}
-                to={`/eval/${name}/trace/${resultIndex}?trace=${traceIndex}`}
+                href={`/eval/${name}/trace/${resultIndex}?trace=${traceIndex}`}
                 endPercent={endPercent}
                 startPercent={startPercent}
+                isActive={searchParams.get("trace") === String(traceIndex)}
               ></Trace>
             );
           })}
           {result.traces.length === 0 && (
-            <span className="text-xs block text-gray-500">
-              No traces captured.
+            <span className="text-xs block text-gray-500 text-center text-balance">
+              Use <code>reportTrace</code> to capture traces.
             </span>
           )}
         </div>
         <div className="flex-grow border-l pl-4">
-          {!searchParams.has("trace") && (
+          {!searchParams.get("trace") && (
             <>
               <DisplayTraceData
                 input={result.input}
@@ -213,23 +217,36 @@ const Trace = (props: {
    * Number between 0 and 100
    */
   endPercent: number;
-  to: string;
+  href: string;
+  isActive: boolean;
 }) => {
   const length = props.endPercent - props.startPercent;
 
   return (
-    <Link to={props.to}>
+    <NavLink
+      to={props.href}
+      className={cn(
+        "px-2 py-2 hover:bg-gray-100 transition-colors",
+        props.isActive && "bg-gray-200 hover:bg-gray-200"
+      )}
+      end
+    >
       <span className="block text-sm mb-1">{props.title}</span>
       <div className="relative w-full">
-        <div className="w-full rounded-full h-1 bg-gray-200"></div>
         <div
-          className="absolute top-0 w-full rounded-full h-1 bg-gray-600"
+          className={cn(
+            "w-full rounded-full h-1 bg-gray-200 transition-colors",
+            props.isActive && "bg-gray-300"
+          )}
+        ></div>
+        <div
+          className="absolute top-0 w-full rounded-full h-1 bg-gray-500"
           style={{
             left: `${props.startPercent}%`,
             width: `${length}%`,
           }}
         ></div>
       </div>
-    </Link>
+    </NavLink>
   );
 };

@@ -2,6 +2,7 @@ import { getEvalRunsByName } from "@evalite/core/sdk";
 import type { MetaFunction } from "@remix-run/node";
 import {
   Link,
+  NavLink,
   Outlet,
   useLoaderData,
   type ClientLoaderFunctionArgs,
@@ -89,41 +90,50 @@ export default function Page() {
           <TableBody>
             {evaluation.results.map((result, index) => {
               const Wrapper = (props: { children: React.ReactNode }) => (
-                <Link to={`trace/${index}`} preventScrollReset>
+                <NavLink
+                  to={`trace/${index}`}
+                  preventScrollReset
+                  className={({ isActive }) => {
+                    return cn("block h-full p-4", isActive && "active");
+                  }}
+                >
                   {props.children}
-                </Link>
+                </NavLink>
               );
               return (
-                <TableRow key={JSON.stringify(result.input)}>
-                  <TableCell>
+                <TableRow
+                  key={JSON.stringify(result.input)}
+                  className="has-[.active]:bg-gray-100"
+                >
+                  <td>
                     <DisplayInput
                       input={result.input}
                       shouldTruncateText
                       Wrapper={Wrapper}
                     />
-                  </TableCell>
-                  <TableCell>
+                  </td>
+                  <td>
                     <DisplayInput
                       input={result.result}
                       shouldTruncateText
                       Wrapper={Wrapper}
                     />
-                  </TableCell>
+                  </td>
                   {showExpectedColumn && (
-                    <TableCell>
+                    <td>
                       <DisplayInput
                         input={result.expected}
                         shouldTruncateText
                         Wrapper={Wrapper}
                       />
-                    </TableCell>
+                    </td>
                   )}
                   {result.scores.map((scorer, index) => {
                     const scoreInPreviousEvaluation = prevEvaluation?.results
                       .find((r) => r.input === result.input)
                       ?.scores.find((s) => s.name === scorer.name);
                     return (
-                      <TableCell
+                      <td
                         key={scorer.name}
                         className={cn(index === 0 && "border-l")}
                       >
@@ -142,7 +152,7 @@ export default function Page() {
                             )}
                           />
                         </Wrapper>
-                      </TableCell>
+                      </td>
                     );
                   })}
                 </TableRow>
@@ -153,7 +163,7 @@ export default function Page() {
       </InnerPageLayout>
       <div
         className={cn(
-          "fixed top-0 h-svh w-[700px] border-l p-2 bg-sidebar overflow-auto",
+          "fixed top-0 z-20 h-svh w-[700px] border-l p-2 bg-sidebar overflow-auto",
           "transition-[left,right,width] ease-linear shadow-lg",
           isTraceRoute ? "right-0" : "right-[-700px]"
         )}

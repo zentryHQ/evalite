@@ -16,7 +16,7 @@ export const Score = (props: {
     <span className="flex items-center space-x-2">
       <span>{Math.round(props.score * 100)}%</span>
       {props.isRunning ? (
-        <span className="text-blue-500">
+        <span className="text-gray-500">
           <LoaderCircleIcon className="size-3 animate-spin" />
         </span>
       ) : (
@@ -32,12 +32,12 @@ export const Score = (props: {
             </span>
           )}
           {props.state === "same" && (
-            <span className="text-blue-600">
+            <span className="text-gray-600">
               <ChevronRightCircleIcon className="size-3" />
             </span>
           )}
           {props.state === "first" && (
-            <span className="text-blue-600">
+            <span className="text-gray-600">
               <ChevronRightCircleIcon className="size-3" />
             </span>
           )}

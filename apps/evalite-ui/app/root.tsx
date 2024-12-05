@@ -3,6 +3,7 @@ import {
   Link,
   Links,
   Meta,
+  NavLink,
   Outlet,
   Scripts,
   ScrollRestoration,
@@ -36,6 +37,7 @@ import {
   useSubscribeToTestServer,
 } from "./use-subscribe-to-socket";
 import { getScoreState, Score, type ScoreState } from "./components/score";
+import { cn } from "./lib/utils";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -123,20 +125,24 @@ export default function App() {
                   }
                   return (
                     <SidebarMenuItem key={item.name}>
-                      <SidebarMenuButton asChild>
-                        <Link
-                          to={`/eval/${item.name}`}
-                          className="flex justify-between"
-                        >
-                          <span>{item.name}</span>
+                      <NavLink
+                        to={`/eval/${item.name}`}
+                        className={({ isActive }) =>
+                          cn(
+                            "flex justify-between text-sm px-2 py-1 rounded hover:bg-gray-100 transition-colors",
+                            isActive &&
+                              "bg-gray-200 text-gray-800 hover:bg-gray-200"
+                          )
+                        }
+                      >
+                        <span>{item.name}</span>
 
-                          <Score
-                            score={item.score}
-                            state={item.state}
-                            isRunning={isRunning}
-                          />
-                        </Link>
-                      </SidebarMenuButton>
+                        <Score
+                          score={item.score}
+                          state={item.state}
+                          isRunning={isRunning}
+                        />
+                      </NavLink>
                     </SidebarMenuItem>
                   );
                 })}
