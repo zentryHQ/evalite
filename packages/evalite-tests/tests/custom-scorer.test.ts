@@ -25,11 +25,18 @@ it("Should let users create custom scorers", async () => {
 });
 
 it("Should fail if the custom scorer does not return a number", async () => {
-  const scorer = createScorer<string>("Is Same", ({ output, expected }) => {
-    return "1" as any;
+  const scorer = createScorer<string>({
+    name: "Is Same",
+    // @ts-expect-error
+    scorer: async (input) => {
+      return input === ("awdawd" as any);
+    },
   });
 
-  await expect(() => scorer({ output: "awdawd" })).rejects.toThrowError(
-    "The scorer 'Is Same' must return a number."
-  );
+  await expect(() =>
+    scorer({
+      // @ts-expect-error
+      output: "awdawd",
+    })
+  ).rejects.toThrowError("The scorer 'Is Same' must return a number.");
 });

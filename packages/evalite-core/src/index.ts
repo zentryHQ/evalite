@@ -31,6 +31,7 @@ export declare namespace Evalite {
     score: number | null;
     name: string;
     description?: string;
+    metadata?: unknown;
   };
 
   export type ScoreInput<TInput, TExpected> = {

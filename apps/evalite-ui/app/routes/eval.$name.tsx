@@ -1,7 +1,6 @@
 import { getEvalRunsByName } from "@evalite/core/sdk";
 import type { MetaFunction } from "@remix-run/node";
 import {
-  Link,
   NavLink,
   Outlet,
   useLoaderData,
@@ -11,12 +10,9 @@ import React, { useContext } from "react";
 import { DisplayInput } from "~/components/display-input";
 import { InnerPageLayout } from "~/components/page-layout";
 import { getScoreState, Score } from "~/components/score";
-import { MyLineChart } from "~/components/ui/line-chart";
-import { Sidebar } from "~/components/ui/sidebar";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
@@ -70,7 +66,7 @@ export default function Page() {
         vscodeUrl={`vscode://file${evaluation.filepath}`}
         filepath={evaluation.filepath.split(/(\/|\\)/).slice(-1)[0]!}
       >
-        {history.length > 1 && <MyLineChart data={history} />}
+        {/* {history.length > 1 && <MyLineChart data={history} />} */}
         <Table>
           <TableHeader>
             <TableRow>
@@ -163,9 +159,11 @@ export default function Page() {
       </InnerPageLayout>
       <div
         className={cn(
-          "fixed top-0 z-20 h-svh w-[700px] border-l p-2 bg-sidebar overflow-auto",
-          "transition-[left,right,width] ease-linear shadow-lg",
-          isTraceRoute ? "right-0" : "right-[-700px]"
+          "fixed top-0 z-20 h-svh border-l p-2 bg-sidebar overflow-auto",
+          "transition-[right] ease-linear shadow-lg duration-300",
+          "hidden w-full sm:block sm:right-[-100%] sm:w-[500px] md:w-[600px] lg:w-[800px]",
+          isTraceRoute && "block sm:right-0",
+          !isTraceRoute && ""
         )}
       >
         <Outlet />

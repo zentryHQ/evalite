@@ -3,13 +3,12 @@ import {
   Link,
   NavLink,
   useLoaderData,
-  useLocation,
   useSearchParams,
   type ClientLoaderFunctionArgs,
 } from "@remix-run/react";
 import { SidebarCloseIcon } from "lucide-react";
 import type React from "react";
-import { useContext, useLayoutEffect, useRef, useState } from "react";
+import { useContext } from "react";
 import { DisplayInput } from "~/components/display-input";
 import { getScoreState, Score } from "~/components/score";
 import {
@@ -19,24 +18,25 @@ import {
 } from "~/components/ui/breadcrumb";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-} from "~/components/ui/sidebar";
+import { SidebarContent, SidebarHeader } from "~/components/ui/sidebar";
 import { cn } from "~/lib/utils";
 import { TestServerStateContext } from "~/use-subscribe-to-socket";
 
 const SidebarSection = ({
   title,
+  description,
   children,
 }: {
   title: string;
+  description?: string;
   children: React.ReactNode;
 }) => (
   <div className="text-sm">
-    <h2 className="font-semibold text-base mb-1">{title}</h2>
-    {children}
+    <div>
+      <h2 className="font-semibold text-base">{title}</h2>
+      {description && <p className="text-gray-500 text-xs">{description}</p>}
+    </div>
+    <div className="mt-1">{children}</div>
   </div>
 );
 
@@ -139,7 +139,11 @@ export default function Page() {
               {result.scores.map((score) => (
                 <>
                   <Separator className="my-4" />
-                  <SidebarSection key={score.name} title={score.name}>
+                  <SidebarSection
+                    key={score.name}
+                    title={score.name}
+                    description={score.description}
+                  >
                     <Score
                       isRunning={isRunning}
                       score={score.score ?? 0}
