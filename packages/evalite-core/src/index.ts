@@ -4,6 +4,7 @@ export declare namespace Evalite {
   export type WebsocketEvent =
     | {
         type: "RUN_IN_PROGRESS";
+        runType: "full" | "partial";
         filepaths: string[];
       }
     | {

@@ -1,6 +1,19 @@
-import { appendFile, readFile } from "fs/promises";
+import { readFile } from "fs/promises";
 import type { Evalite } from "./index.js";
 import { average } from "./utils.js";
+import { appendFileSync } from "fs";
+
+export type JsonDBEvent =
+  | {
+      type: "PARTIAL_RUN_BEGIN";
+      startTime: string;
+    }
+  | {
+      type: "FULL_RUN_BEGIN";
+      startTime: string;
+    };
+
+export type JsonDBLine = JsonDBEval | JsonDBEvent;
 
 export type JsonDBEval = {
   filepath: string;
@@ -22,7 +35,16 @@ export type JsonDbResult = {
   traces: Evalite.UserProvidedTrace[];
 };
 
-export const appendToJsonDb = async (opts: {
+export const reportEventToJsonDb = async (opts: {
+  dbLocation: string;
+  event: JsonDBEvent;
+}) => {
+  await appendFileSync(opts.dbLocation, JSON.stringify(opts.event) + "\n", {
+    encoding: "utf-8",
+  });
+};
+
+export const appendEvalsToJsonDb = async (opts: {
   dbLocation: string;
   files: {
     name: string;
@@ -71,7 +93,7 @@ export const appendToJsonDb = async (opts: {
     }
   }
 
-  await appendFile(
+  await appendFileSync(
     opts.dbLocation,
     evals.map((evaluation) => JSON.stringify(evaluation)).join("\n") + "\n",
     {
@@ -98,6 +120,40 @@ export const getJsonDbEvals = async (opts: {
 
       map[evalName]!.unshift(row);
     },
+    shouldStop: () => false,
+  });
+
+  return map;
+};
+
+export const getLastTwoFullRuns = async (opts: {
+  dbLocation: string;
+}): Promise<GetJsonDbEvalsResult> => {
+  const map: GetJsonDbEvalsResult = {};
+
+  let runs = 0;
+
+  await getRows({
+    dbLocation: opts.dbLocation,
+    mapper: (row) => {
+      const evalName = row.name;
+
+      if (!map[evalName]) {
+        map[evalName] = [];
+      }
+
+      map[evalName]!.unshift(row);
+    },
+    shouldStop: (line) => {
+      if (!("type" in line)) {
+        return false;
+      }
+
+      if (line.type === "FULL_RUN_BEGIN") {
+        runs++;
+      }
+      return runs === 2;
+    },
   });
 
   return map;
@@ -106,16 +162,36 @@ export const getJsonDbEvals = async (opts: {
 export const getRows = async <T>(opts: {
   dbLocation: string;
   mapper: (row: JsonDBEval) => T;
+  shouldStop: (row: JsonDBLine) => boolean;
 }): Promise<T[]> => {
   const dbContents = await readFile(opts.dbLocation, { encoding: "utf-8" });
 
-  return dbContents
-    .trim()
-    .split("\n")
-    .filter(Boolean)
-    .map((line) => {
-      const parsed: JsonDBEval = JSON.parse(line);
+  const evals: T[] = [];
 
-      return opts.mapper(parsed);
-    });
+  const lines = dbContents.trim().split("\n").reverse();
+
+  for (const line of lines) {
+    if (!line) continue;
+
+    const parsed: JsonDBLine = JSON.parse(line);
+
+    if (opts.shouldStop(parsed)) {
+      break;
+    }
+
+    if (isJsonDbEval(parsed)) {
+      evals.push(opts.mapper(parsed));
+    }
+  }
+
+  return evals;
+};
+
+export const isJsonDbEval = (input: unknown): input is JsonDBEval => {
+  return (
+    typeof input === "object" &&
+    !!input &&
+    "name" in input &&
+    typeof input.name === "string"
+  );
 };

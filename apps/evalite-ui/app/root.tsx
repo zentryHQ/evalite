@@ -1,6 +1,5 @@
 import type { LinksFunction } from "@remix-run/node";
 import {
-  Link,
   Links,
   Meta,
   NavLink,
@@ -9,35 +8,26 @@ import {
   ScrollRestoration,
   useLoaderData,
 } from "@remix-run/react";
-import {
-  ChevronDownCircleIcon,
-  ChevronRightCircleIcon,
-  ChevronUpCircleIcon,
-  LoaderCircleIcon,
-  ZapIcon,
-} from "lucide-react";
-import { SidebarRight } from "~/components/sidebar-right";
+import { ZapIcon } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupLabel,
   SidebarHeader,
-  SidebarInset,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
 } from "~/components/ui/sidebar";
 
 import { getEvals } from "@evalite/core/sdk";
+import { getScoreState, Score } from "./components/score";
+import { cn } from "./lib/utils";
 import "./tailwind.css";
 import {
   TestServerStateContext,
   useSubscribeToTestServer,
 } from "./use-subscribe-to-socket";
-import { getScoreState, Score, type ScoreState } from "./components/score";
-import { cn } from "./lib/utils";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },

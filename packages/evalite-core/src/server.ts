@@ -1,4 +1,8 @@
-import { getJsonDbEvals, type Evalite } from "@evalite/core";
+import {
+  getJsonDbEvals,
+  getLastTwoFullRuns,
+  type Evalite,
+} from "@evalite/core";
 import { fastifyStatic } from "@fastify/static";
 import { fastifyWebsocket } from "@fastify/websocket";
 import fastify from "fastify";
@@ -25,7 +29,11 @@ export const createServer = (opts: { jsonDbLocation: string }) => {
     return reply
       .code(200)
       .header("access-control-allow-origin", "*")
-      .send(await getJsonDbEvals({ dbLocation: opts.jsonDbLocation }));
+      .send(
+        await getLastTwoFullRuns({
+          dbLocation: opts.jsonDbLocation,
+        })
+      );
   });
 
   server.register(async (fastify) => {
@@ -58,7 +66,7 @@ export const createServer = (opts: { jsonDbLocation: string }) => {
     handler: async (req, res) => {
       const name = req.query.name;
 
-      const fileData = await getJsonDbEvals({
+      const fileData = await getLastTwoFullRuns({
         dbLocation: opts.jsonDbLocation,
       });
 
@@ -93,7 +101,7 @@ export const createServer = (opts: { jsonDbLocation: string }) => {
     handler: async (req, res) => {
       const timestamp = req.query.timestamp;
 
-      const fileData = await getJsonDbEvals({
+      const fileData = await getLastTwoFullRuns({
         dbLocation: opts.jsonDbLocation,
       });
 
@@ -129,7 +137,7 @@ export const createServer = (opts: { jsonDbLocation: string }) => {
     handler: async (req, res) => {
       const index = parseInt(req.query.index, 10);
 
-      const fileData = await getJsonDbEvals({
+      const fileData = await getLastTwoFullRuns({
         dbLocation: opts.jsonDbLocation,
       });
 

@@ -1,7 +1,7 @@
 import type { RunnerTask, RunnerTestFile, TaskResultPack } from "vitest";
 import { BasicReporter } from "vitest/reporters";
 
-import { appendToJsonDb, type Evalite } from "@evalite/core";
+import { appendEvalsToJsonDb, type Evalite } from "@evalite/core";
 import { table } from "table";
 import c from "tinyrainbow";
 import { average, sum } from "./utils.js";
@@ -50,6 +50,7 @@ export default class EvaliteReporter extends BasicReporter {
     this.opts.logEvent({
       type: "RUN_IN_PROGRESS",
       filepaths: this.ctx.state.getFiles().map((f) => f.filepath),
+      runType: "full",
     });
   }
 
@@ -68,6 +69,7 @@ export default class EvaliteReporter extends BasicReporter {
     this.opts.logEvent({
       type: "RUN_IN_PROGRESS",
       filepaths: files,
+      runType: "partial",
     });
     super.onWatcherRerun(files, trigger);
   }
@@ -80,7 +82,7 @@ export default class EvaliteReporter extends BasicReporter {
       type: "RUN_COMPLETE",
     });
 
-    await appendToJsonDb({
+    await appendEvalsToJsonDb({
       dbLocation: this.opts.jsonDbLocation,
       files,
     });
