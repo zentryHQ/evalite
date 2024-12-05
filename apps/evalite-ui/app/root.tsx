@@ -144,10 +144,7 @@ export default function App() {
             </SidebarGroup>
           </SidebarContent>
         </Sidebar>
-        <SidebarInset>
-          <Outlet />
-        </SidebarInset>
-        <SidebarRight />
+        <Outlet />
       </SidebarProvider>
     </TestServerStateContext.Provider>
   );

@@ -27,3 +27,13 @@ export const getEvalRun = async (opts: {
   );
   return res.json() as Promise<JsonDbResult>;
 };
+
+export const getEvalResult = async (opts: {
+  name: string;
+  resultIndex: string;
+}): Promise<JsonDbResult> => {
+  const res = await fetch(
+    `${BASE_URL}/api/eval/result?name=${opts.name}&index=${opts.resultIndex}`
+  );
+  return res.json() as Promise<JsonDbResult>;
+};

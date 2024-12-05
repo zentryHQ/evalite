@@ -109,6 +109,49 @@ export const createServer = (opts: { jsonDbLocation: string }) => {
     },
   });
 
+  server.route<{
+    Querystring: {
+      name: string;
+      index: string;
+    };
+  }>({
+    method: "GET",
+    url: "/api/eval/result",
+    schema: {
+      querystring: {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+          index: { type: "string" },
+        },
+      },
+    },
+    handler: async (req, res) => {
+      const index = parseInt(req.query.index, 10);
+
+      const fileData = await getJsonDbEvals({
+        dbLocation: opts.jsonDbLocation,
+      });
+
+      const run = fileData[req.query.name]?.[0];
+
+      if (!run) {
+        return res.code(404).send();
+      }
+
+      const result = run.results[index];
+
+      if (!result) {
+        return res.code(404).send();
+      }
+
+      return res
+        .code(200)
+        .header("access-control-allow-origin", "*")
+        .send(result);
+    },
+  });
+
   return {
     send: (event: Evalite.WebsocketEvent) => {
       for (const listener of listeners.values()) {
