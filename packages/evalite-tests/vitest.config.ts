@@ -1,5 +1,7 @@
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  server: {},
+  test: {
+    maxConcurrency: process.env.CI ? 2 : 5,
+  },
 });
