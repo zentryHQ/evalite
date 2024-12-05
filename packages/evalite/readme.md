@@ -44,7 +44,7 @@ evalite("My Eval", {
   // A function that returns an array of test data
   // - TODO: Replace with your test data
   data: async () => {
-    return [{ input: "Hello", output: "Hello World!" }];
+    return [{ input: "Hello", expected: "Hello World!" }];
   },
   // The task to perform
   // - TODO: Replace with your LLM call
