@@ -55,8 +55,12 @@ export default function Page() {
   );
 
   return (
-    <InnerPageLayout title={name}>
-      <MyLineChart data={history} />
+    <InnerPageLayout
+      title={name}
+      vscodeUrl={`vscode://file${evaluation.filepath}`}
+      filepath={evaluation.filepath.split(/(\/|\\)/).slice(-1)[0]!}
+    >
+      {history.length > 1 && <MyLineChart data={history} />}
       <Table>
         <TableHeader>
           <TableRow>
