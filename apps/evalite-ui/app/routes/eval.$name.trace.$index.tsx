@@ -118,6 +118,11 @@ export default function Page() {
               ></Trace>
             );
           })}
+          {result.traces.length === 0 && (
+            <span className="text-xs block text-gray-500">
+              No traces captured.
+            </span>
+          )}
         </div>
         <div className="flex-grow border-l pl-4">
           {!searchParams.has("trace") && (
