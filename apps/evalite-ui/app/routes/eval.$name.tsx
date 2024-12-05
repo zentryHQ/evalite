@@ -11,6 +11,7 @@ import { DisplayInput } from "~/components/display-input";
 import { InnerPageLayout } from "~/components/page-layout";
 import { getScoreState, Score } from "~/components/score";
 import { MyLineChart } from "~/components/ui/line-chart";
+import { Sidebar } from "~/components/ui/sidebar";
 import {
   Table,
   TableBody,
@@ -59,6 +60,8 @@ export default function Page() {
     (result) => result.expected !== undefined
   );
 
+  const isTraceRoute = location.pathname.includes("trace");
+
   return (
     <>
       <InnerPageLayout
@@ -91,7 +94,7 @@ export default function Page() {
                 </Link>
               );
               return (
-                <TableRow key={result.input as any}>
+                <TableRow key={JSON.stringify(result.input)}>
                   <TableCell>
                     <DisplayInput
                       input={result.input}
@@ -148,7 +151,15 @@ export default function Page() {
           </TableBody>
         </Table>
       </InnerPageLayout>
-      <Outlet />
+      <div
+        className={cn(
+          "absolute top-0 h-svh w-[700px] border-l p-2 bg-sidebar",
+          "transition-[left,right,width] ease-linear shadow-lg",
+          isTraceRoute ? "right-0" : "right-[-700px]"
+        )}
+      >
+        <Outlet />
+      </div>
     </>
   );
 }

@@ -145,10 +145,14 @@ export const createServer = (opts: { jsonDbLocation: string }) => {
         return res.code(404).send();
       }
 
+      const previousRun = fileData[req.query.name]?.[1];
+
+      const prevResult = previousRun?.results[index];
+
       return res
         .code(200)
         .header("access-control-allow-origin", "*")
-        .send(result);
+        .send({ result, prevResult, filepath: run.filepath });
     },
   });
 

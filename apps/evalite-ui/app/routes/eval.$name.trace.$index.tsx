@@ -5,7 +5,10 @@ import {
   type ClientLoaderFunctionArgs,
 } from "@remix-run/react";
 import { SidebarCloseIcon } from "lucide-react";
+import type React from "react";
+import { useContext } from "react";
 import { DisplayInput } from "~/components/display-input";
+import { getScoreState, Score } from "~/components/score";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -18,17 +21,18 @@ import {
   SidebarContent,
   SidebarHeader,
 } from "~/components/ui/sidebar";
+import { TestServerStateContext } from "~/use-subscribe-to-socket";
 
 const SidebarSection = ({
   title,
-  input,
+  children,
 }: {
   title: string;
-  input: unknown;
+  children: React.ReactNode;
 }) => (
   <div className="text-sm">
     <h2 className="font-semibold text-base mb-1">{title}</h2>
-    <DisplayInput shouldTruncateText={false} input={input}></DisplayInput>
+    {children}
   </div>
 );
 
@@ -38,34 +42,40 @@ export const clientLoader = async (args: ClientLoaderFunctionArgs) => {
     resultIndex: args.params.index!,
   });
 
-  return {
-    result,
-  };
+  return result;
 };
 
 export default function Page() {
-  const { result } = useLoaderData<typeof clientLoader>();
+  const { result, prevResult, filepath } = useLoaderData<typeof clientLoader>();
+
+  const serverState = useContext(TestServerStateContext);
+
+  const isRunning =
+    serverState.state.type === "running" &&
+    serverState.state.filepaths.has(filepath);
 
   return (
-    <Sidebar
-      variant="inset"
-      side="right"
-      className="sticky hidden top-0 h-svh w-[400px] border-l"
-    >
+    <>
       <SidebarHeader>
         <div className="flex items-center gap-3">
           <Button size={"icon"} variant="ghost" asChild>
             <Link to={"../../"} preventScrollReset>
-              <SidebarCloseIcon className="size-5" />
+              <SidebarCloseIcon className="size-5 rotate-180" />
             </Link>
           </Button>
           <div>
             <span className="text-primary block font-semibold mb-1">Trace</span>
             <Breadcrumb>
               <BreadcrumbList>
+                <BreadcrumbItem>
+                  <Score
+                    isRunning={isRunning}
+                    score={result.score}
+                    state={getScoreState(result.score, prevResult?.score)}
+                  />
+                </BreadcrumbItem>
+                <Separator orientation="vertical" className="mx-1 h-4" />
                 <BreadcrumbItem>{result.duration}ms</BreadcrumbItem>
-                {/* <Separator orientation="vertical" className="mx-1 h-4" />
-              <BreadcrumbItem>Hello</BreadcrumbItem> */}
               </BreadcrumbList>
             </Breadcrumb>
           </div>
@@ -73,16 +83,48 @@ export default function Page() {
         <Separator className="mt-2" />
       </SidebarHeader>
       <SidebarContent className="p-2">
-        <SidebarSection title="Input" input={result.input} />
+        <SidebarSection title="Input">
+          <DisplayInput
+            shouldTruncateText={false}
+            input={result.input}
+          ></DisplayInput>
+        </SidebarSection>
         <Separator className="my-2" />
         {result.expected ? (
           <>
-            <SidebarSection title="Expected" input={result.expected} />
+            <SidebarSection title="Expected">
+              <DisplayInput
+                shouldTruncateText={false}
+                input={result.expected}
+              ></DisplayInput>
+            </SidebarSection>
             <Separator className="my-2" />
           </>
         ) : null}
-        <SidebarSection title="Output" input={result.result} />
+        <SidebarSection title="Output">
+          <DisplayInput
+            shouldTruncateText={false}
+            input={result.result}
+          ></DisplayInput>
+        </SidebarSection>
+        {result.scores.map((score) => (
+          <>
+            <Separator className="my-2" />
+            <SidebarSection key={score.name} title={score.name}>
+              <Score
+                isRunning={isRunning}
+                score={score.score ?? 0}
+                state={getScoreState(
+                  score.score ?? 0,
+                  prevResult?.scores.find(
+                    (prevScore) => prevScore.name === score.name
+                  )?.score
+                )}
+              />
+            </SidebarSection>
+          </>
+        ))}
       </SidebarContent>
-    </Sidebar>
+    </>
   );
 }

@@ -39,7 +39,7 @@ evalite("Content generation", {
         Return only the tweet.
         Do not use emojis.
         Do not use hashtags.
-        Use code examples where required.
+        Use code examples if needed.
       `,
     });
 
