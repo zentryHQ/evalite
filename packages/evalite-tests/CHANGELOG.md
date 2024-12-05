@@ -1,5 +1,14 @@
 # evalite-tests
 
+## 0.0.9
+
+### Patch Changes
+
+- a520613: UI tweaks
+- Updated dependencies [a520613]
+  - @evalite/core@0.1.1
+  - evalite@0.2.1
+
 ## 0.0.8
 
 ### Patch Changes
