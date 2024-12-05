@@ -180,7 +180,7 @@ import { reportTrace } from "evalite/evals";
 
 evalite("My Eval", {
   data: async () => {
-    return [{ input: "Hello", output: "Hello World!" }];
+    return [{ input: "Hello", expected: "Hello World!" }];
   },
   task: async (input) => {
     // Track the start time
