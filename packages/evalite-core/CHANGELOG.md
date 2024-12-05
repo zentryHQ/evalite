@@ -1,5 +1,12 @@
 # @evalite/core
 
+## 0.1.0
+
+### Minor Changes
+
+- 099b198: Changed createScorer so that it receives an object instead of multiple parameters.
+- 099b198: Added a description field to createScorer.
+
 ## 0.0.5
 
 ### Patch Changes
