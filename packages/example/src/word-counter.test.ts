@@ -1,6 +1,7 @@
 import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
-import { evalite, numericDifference } from "evalite";
+import { NumericDiff } from "autoevals";
+import { evalite } from "evalite";
 
 evalite("Sentence counter", {
   // Replace with your dataset
@@ -91,5 +92,5 @@ evalite("Sentence counter", {
 
     return Number(wordCountResult.text);
   },
-  scorers: [numericDifference],
+  scorers: [NumericDiff],
 });

@@ -4,6 +4,7 @@ import { createScorer, evalite } from "evalite";
 import { createStorage } from "unstorage";
 import fsDriver from "unstorage/drivers/fs";
 import { cacheModel } from "./cache-model";
+import { traceAISDKModel } from "evalite/ai-sdk";
 
 const storage = createStorage({
   driver: (fsDriver as any)({
@@ -24,17 +25,13 @@ evalite("Content generation", {
         input: 'Write a tweet about "TypeScript is a superset of JavaScript."',
       },
       {
-        input:
-          "Write a short article about whether TypeScript is a linter or not. Use markdown formatting.",
-      },
-      {
         input: `Write an article about TypeScript's basic types, like string and number.`,
       },
     ];
   },
   task: async (input) => {
     const result = await generateText({
-      model: cacheModel(openai("gpt-4o-mini"), storage),
+      model: traceAISDKModel(cacheModel(openai("gpt-4o-mini"), storage)),
       prompt: input,
       system: `
         You are a helpful social media assistant.
