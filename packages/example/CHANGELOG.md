@@ -1,5 +1,11 @@
 # example
 
+## 0.0.9
+
+### Patch Changes
+
+- evalite@0.2.1
+
 ## 0.0.8
 
 ### Patch Changes
