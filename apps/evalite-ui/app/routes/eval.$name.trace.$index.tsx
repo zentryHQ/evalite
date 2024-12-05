@@ -134,7 +134,7 @@ export default function Page() {
               />
               {result.scores.map((score) => (
                 <>
-                  <Separator className="my-2" />
+                  <Separator className="my-4" />
                   <SidebarSection key={score.name} title={score.name}>
                     <Score
                       isRunning={isRunning}
@@ -181,7 +181,7 @@ const DisplayTraceData = (props: {
           input={props.input}
         ></DisplayInput>
       </SidebarSection>
-      <Separator className="my-2" />
+      <Separator className="my-4" />
       {props.expected ? (
         <>
           <SidebarSection title="Expected">
@@ -190,7 +190,7 @@ const DisplayTraceData = (props: {
               input={props.expected}
             ></DisplayInput>
           </SidebarSection>
-          <Separator className="my-2" />
+          <Separator className="my-4" />
         </>
       ) : null}
       <SidebarSection title="Output">
