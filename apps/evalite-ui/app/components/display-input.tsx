@@ -1,4 +1,4 @@
-import { useState, useRef, useLayoutEffect } from "react";
+import React, { useState, useRef, useLayoutEffect, Fragment } from "react";
 import ReactMarkdown from "react-markdown";
 import { Button } from "./ui/button";
 import { ChevronDown } from "lucide-react";
@@ -11,34 +11,49 @@ type DisplayStatus =
   | "showing-show-more-button"
   | "showing-more";
 
-const DisplayText = ({ input }: { input: string }) => {
+const DisplayText = ({
+  input,
+  shouldTruncateText,
+  Wrapper,
+}: {
+  input: string;
+  Wrapper: React.ElementType<{ children: React.ReactNode }>;
+  shouldTruncateText: boolean;
+}) => {
   const [status, setStatus] = useState<DisplayStatus>(
     "no-show-more-button-required"
   );
   const contentRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
-    if (contentRef.current) {
+    if (contentRef.current && shouldTruncateText) {
       if (contentRef.current.scrollHeight > MAX_HEIGHT) {
         setStatus("showing-show-more-button");
       }
     }
-  }, [input]);
+  }, [input, shouldTruncateText]);
 
   return (
     <div>
-      <div
-        ref={contentRef}
-        style={{
-          maxHeight: status === "showing-more" ? "none" : `${MAX_HEIGHT}px`,
-          overflow: "hidden",
-        }}
-      >
-        <ReactMarkdown className="prose prose-sm">{input}</ReactMarkdown>
-      </div>
-      {status === "showing-show-more-button" && (
+      <Wrapper>
+        <div
+          ref={contentRef}
+          style={{
+            maxHeight:
+              status === "showing-show-more-button" && shouldTruncateText
+                ? `${MAX_HEIGHT}px`
+                : "none",
+            overflow: "hidden",
+          }}
+        >
+          <ReactMarkdown className="prose prose-sm">{input}</ReactMarkdown>
+        </div>
+      </Wrapper>
+      {status === "showing-show-more-button" && shouldTruncateText && (
         <Button
-          onClick={() => setStatus("showing-more")}
+          onClick={() => {
+            setStatus("showing-more");
+          }}
           variant="secondary"
           size="sm"
           className="mt-3"
@@ -55,11 +70,10 @@ const DisplayJSON = ({ input }: { input: object }) => {
   return (
     <JSONTree
       data={input}
-      invertTheme
       hideRoot
       theme={{
         scheme: "grayscale",
-        base00: "#101010",
+        base00: "transparent",
         base01: "#252525",
         base02: "#464646",
         base03: "#525252",
@@ -80,14 +94,33 @@ const DisplayJSON = ({ input }: { input: object }) => {
   );
 };
 
-export const DisplayInput = (props: { input: unknown }) => {
-  if (typeof props.input === "string") {
-    return <DisplayText input={props.input} />;
+export const DisplayInput = (props: {
+  input: unknown;
+  shouldTruncateText: boolean;
+  Wrapper?: React.FC<{ children: React.ReactNode }>;
+}) => {
+  const Wrapper = props.Wrapper || Fragment;
+  if (typeof props.input === "string" || typeof props.input === "number") {
+    return (
+      <DisplayText
+        Wrapper={Wrapper}
+        input={props.input.toString()}
+        shouldTruncateText={props.shouldTruncateText}
+      />
+    );
   }
 
   if (typeof props.input === "object" && props.input !== null) {
-    return <DisplayJSON input={props.input} />;
+    return (
+      <Wrapper>
+        <DisplayJSON input={props.input} />
+      </Wrapper>
+    );
   }
 
-  return JSON.stringify(props.input, null, 2);
+  return (
+    <Wrapper>
+      <pre>{JSON.stringify(props.input, null, 2)}</pre>
+    </Wrapper>
+  );
 };

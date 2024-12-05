@@ -1,11 +1,12 @@
 import { getEvalRunsByName } from "@evalite/core/sdk";
 import type { MetaFunction } from "@remix-run/node";
 import {
+  Link,
   Outlet,
   useLoaderData,
   type ClientLoaderFunctionArgs,
 } from "@remix-run/react";
-import { useContext } from "react";
+import React, { useContext } from "react";
 import { DisplayInput } from "~/components/display-input";
 import { InnerPageLayout } from "~/components/page-layout";
 import { getScoreState, Score } from "~/components/score";
@@ -83,18 +84,35 @@ export default function Page() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {evaluation.results.map((result) => {
+            {evaluation.results.map((result, index) => {
+              const Wrapper = (props: { children: React.ReactNode }) => (
+                <Link to={`trace/${index}`} preventScrollReset>
+                  {props.children}
+                </Link>
+              );
               return (
                 <TableRow key={result.input as any}>
                   <TableCell>
-                    <DisplayInput input={result.input} />
+                    <DisplayInput
+                      input={result.input}
+                      shouldTruncateText
+                      Wrapper={Wrapper}
+                    />
                   </TableCell>
                   <TableCell>
-                    <DisplayInput input={result.result} />
+                    <DisplayInput
+                      input={result.result}
+                      shouldTruncateText
+                      Wrapper={Wrapper}
+                    />
                   </TableCell>
                   {showExpectedColumn && (
                     <TableCell>
-                      <DisplayInput input={result.expected} />
+                      <DisplayInput
+                        input={result.expected}
+                        shouldTruncateText
+                        Wrapper={Wrapper}
+                      />
                     </TableCell>
                   )}
                   {result.scores.map((scorer, index) => {
@@ -106,17 +124,21 @@ export default function Page() {
                         key={scorer.name}
                         className={cn(index === 0 && "border-l")}
                       >
-                        <Score
-                          score={scorer.score ?? 0}
-                          isRunning={
-                            serverState.state.type === "running" &&
-                            serverState.state.filepaths.has(evaluation.filepath)
-                          }
-                          state={getScoreState(
-                            scorer.score ?? 0,
-                            scoreInPreviousEvaluation?.score
-                          )}
-                        />
+                        <Wrapper>
+                          <Score
+                            score={scorer.score ?? 0}
+                            isRunning={
+                              serverState.state.type === "running" &&
+                              serverState.state.filepaths.has(
+                                evaluation.filepath
+                              )
+                            }
+                            state={getScoreState(
+                              scorer.score ?? 0,
+                              scoreInPreviousEvaluation?.score
+                            )}
+                          />
+                        </Wrapper>
                       </TableCell>
                     );
                   })}

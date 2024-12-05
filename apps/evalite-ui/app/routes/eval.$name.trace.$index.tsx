@@ -1,24 +1,36 @@
 import { getEvalResult } from "@evalite/core/sdk";
-import { useLoaderData, type ClientLoaderFunctionArgs } from "@remix-run/react";
-import { PlusIcon } from "lucide-react";
-import { SidebarRight } from "~/components/sidebar-right";
+import {
+  Link,
+  useLoaderData,
+  type ClientLoaderFunctionArgs,
+} from "@remix-run/react";
+import { SidebarCloseIcon } from "lucide-react";
+import { DisplayInput } from "~/components/display-input";
 import {
   Breadcrumb,
   BreadcrumbItem,
-  BreadcrumbLink,
   BreadcrumbList,
-  BreadcrumbPage,
 } from "~/components/ui/breadcrumb";
+import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
 } from "~/components/ui/sidebar";
+
+const SidebarSection = ({
+  title,
+  input,
+}: {
+  title: string;
+  input: unknown;
+}) => (
+  <div className="text-sm">
+    <h2 className="font-semibold text-base mb-1">{title}</h2>
+    <DisplayInput shouldTruncateText={false} input={input}></DisplayInput>
+  </div>
+);
 
 export const clientLoader = async (args: ClientLoaderFunctionArgs) => {
   const result = await getEvalResult({
@@ -40,31 +52,37 @@ export default function Page() {
       side="right"
       className="sticky hidden top-0 h-svh w-[400px] border-l"
     >
-      <SidebarHeader className="">
-        <div>
-          <span className="text-sm text-primary block font-semibold">
-            Trace
-          </span>
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>Hello</BreadcrumbItem>
-              <Separator orientation="vertical" className="mx-1 h-4" />
-              <BreadcrumbItem>Hello</BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
+      <SidebarHeader>
+        <div className="flex items-center gap-3">
+          <Button size={"icon"} variant="ghost" asChild>
+            <Link to={"../../"} preventScrollReset>
+              <SidebarCloseIcon className="size-5" />
+            </Link>
+          </Button>
+          <div>
+            <span className="text-primary block font-semibold mb-1">Trace</span>
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>{result.duration}ms</BreadcrumbItem>
+                {/* <Separator orientation="vertical" className="mx-1 h-4" />
+              <BreadcrumbItem>Hello</BreadcrumbItem> */}
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
         </div>
+        <Separator className="mt-2" />
       </SidebarHeader>
-      <SidebarContent></SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton>
-              <PlusIcon />
-              <span>New Calendar</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
+      <SidebarContent className="p-2">
+        <SidebarSection title="Input" input={result.input} />
+        <Separator className="my-2" />
+        {result.expected ? (
+          <>
+            <SidebarSection title="Expected" input={result.expected} />
+            <Separator className="my-2" />
+          </>
+        ) : null}
+        <SidebarSection title="Output" input={result.result} />
+      </SidebarContent>
     </Sidebar>
   );
 }
