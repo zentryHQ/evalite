@@ -46,8 +46,11 @@ evalite("Content generation", {
     return result.text;
   },
   scorers: [
-    createScorer("No Hashtags", ({ output }) => {
-      return output.includes("#") ? 0 : 1;
+    createScorer({
+      name: "No Hashtags",
+      scorer: ({ output }) => {
+        return output.includes("#") ? 0 : 1;
+      },
     }),
   ],
 });

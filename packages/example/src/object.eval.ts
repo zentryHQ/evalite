@@ -24,8 +24,12 @@ evalite("Test Objects", {
     return immutableInput;
   },
   scorers: [
-    createScorer<object>("Deep Equals Object", ({ output, expected }) => {
-      return JSON.stringify(output) === JSON.stringify(expected) ? 1 : 0;
+    createScorer<object>({
+      name: "Is Same",
+      description: "Checks if the object passed is the same as expected.",
+      scorer: ({ output, expected }) => {
+        return JSON.stringify(output) === JSON.stringify(expected) ? 1 : 0;
+      },
     }),
   ],
 });

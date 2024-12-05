@@ -30,6 +30,7 @@ export declare namespace Evalite {
      */
     score: number | null;
     name: string;
+    description?: string;
   };
 
   export type ScoreInput<TInput, TExpected> = {

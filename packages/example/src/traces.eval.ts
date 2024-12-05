@@ -1,5 +1,5 @@
 import { Levenshtein } from "autoevals";
-import { evalite } from "evalite";
+import { createScorer, evalite } from "evalite";
 import { reportTrace } from "evalite/traces";
 import { setTimeout } from "node:timers/promises";
 
@@ -36,5 +36,12 @@ evalite("Traces", {
 
     return "abcdef";
   },
-  scorers: [Levenshtein],
+  scorers: [
+    createScorer({
+      name: "Exact Match",
+      scorer: ({ output, expected }) => (output === expected ? 1 : 0),
+      description: "Checks if the output is the same as the expected value.",
+    }),
+    Levenshtein,
+  ],
 });

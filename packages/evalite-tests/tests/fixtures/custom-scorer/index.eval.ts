@@ -16,8 +16,11 @@ evalite("Index", {
     return input + "def";
   },
   scorers: [
-    createScorer("Is Same", ({ output, expected }) => {
-      return output === expected ? 1 : 0;
+    createScorer({
+      name: "Is Same",
+      scorer: ({ output, expected }) => {
+        return output === expected ? 1 : 0;
+      },
     }),
   ],
 });

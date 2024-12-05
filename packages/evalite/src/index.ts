@@ -74,20 +74,22 @@ export const evalite = <TInput, TExpected>(
   });
 };
 
-export const createScorer = <TInput, TExpected = TInput>(
-  name: string,
+export const createScorer = <TInput, TExpected = TInput>(opts: {
+  name: string;
+  description?: string;
   scorer: (
     input: Evalite.ScoreInput<TInput, TExpected>
-  ) => Evalite.MaybePromise<number>
-): Evalite.Scorer<TInput, TExpected> => {
+  ) => Evalite.MaybePromise<number>;
+}): Evalite.Scorer<TInput, TExpected> => {
   return async (input: Evalite.ScoreInput<TInput, TExpected>) => {
-    const score = await scorer(input);
+    const score = await opts.scorer(input);
 
     if (typeof score !== "number") {
-      throw new Error(`The scorer '${name}' must return a number.`);
+      throw new Error(`The scorer '${opts.name}' must return a number.`);
     }
     return {
-      name,
+      description: opts.description,
+      name: opts.name,
       score,
     };
   };

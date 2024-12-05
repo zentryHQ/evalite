@@ -149,8 +149,12 @@ You can create your own using `createScorer`:
 ```ts
 import { createScorer } from "evalite";
 
-const containsParis = createScorer<string>("Contains Paris", ({ output }) => {
-  return output.includes("Paris") ? 1 : 0;
+const containsParis = createScorer<string>({
+  name: "Contains Paris",
+  description: "Checks if the output contains the word 'Paris'.",
+  score: (output) => {
+    return output.includes("Paris") ? 1 : 0;
+  },
 });
 
 evalite("My Eval", {
@@ -190,7 +194,7 @@ evalite("My Eval", {
       start,
       end: performance.now(),
       output: result.output,
-      prompt: [
+      input: [
         {
           role: "user",
           content: input,
