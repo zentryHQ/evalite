@@ -13,7 +13,7 @@ export const traceAISDKModel = (model: LanguageModelV1): LanguageModelV1 => {
 
         reportTrace({
           output: generated.text ?? "",
-          prompt: opts.params.prompt.map((prompt) => {
+          input: opts.params.prompt.map((prompt) => {
             if (!Array.isArray(prompt.content)) {
               return {
                 role: prompt.role,

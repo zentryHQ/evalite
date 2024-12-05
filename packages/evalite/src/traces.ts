@@ -6,7 +6,7 @@ export const reportTraceLocalStorage = new AsyncLocalStorage<
 >();
 
 export const shouldReportTrace = (): boolean => {
-  return process.env.NODE_ENV === "test";
+  return !!process.env.EVALITE_REPORT_TRACES;
 };
 
 export const reportTrace = (trace: Evalite.UserProvidedTrace): void => {

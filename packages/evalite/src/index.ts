@@ -41,16 +41,14 @@ export const evalite = <TInput, TExpected>(
   opts: Evalite.RunnerOpts<TInput, TExpected>
 ) => {
   return it(testName, async ({ task }) => {
-    const traces: Evalite.StoredTrace[] = [];
-
-    reportTraceLocalStorage.enterWith((trace) => traces.push(trace));
-
     const sourceCodeHash = inject("evaliteInputHash");
 
     const data = await opts.data();
     const start = performance.now();
     const results = await Promise.all(
       data.map(async ({ input, expected }): Promise<Evalite.Result> => {
+        const traces: Evalite.StoredTrace[] = [];
+        reportTraceLocalStorage.enterWith((trace) => traces.push(trace));
         const { result, scores, duration } = await runTask({
           expected,
           input,
@@ -64,6 +62,7 @@ export const evalite = <TInput, TExpected>(
           scores,
           duration,
           expected,
+          traces,
         };
       })
     );
@@ -71,7 +70,6 @@ export const evalite = <TInput, TExpected>(
       results,
       duration: Math.round(performance.now() - start),
       sourceCodeHash,
-      traces,
     };
   });
 };

@@ -18,6 +18,7 @@ export declare namespace Evalite {
     expected: unknown | undefined;
     scores: Score[];
     duration: number;
+    traces: StoredTrace[];
   };
 
   export type Score = {
@@ -41,7 +42,6 @@ export declare namespace Evalite {
     results: Result[];
     duration: number | undefined;
     sourceCodeHash: string;
-    traces: StoredTrace[];
   };
 
   export type Scorer<TInput, TExpected> = (
@@ -55,14 +55,12 @@ export declare namespace Evalite {
   };
 
   export interface UserProvidedTrace {
-    prompt: TracePrompt[];
-    usage:
-      | {
-          promptTokens: number;
-          completionTokens: number;
-        }
-      | undefined;
-    output: string;
+    input: unknown;
+    usage?: {
+      promptTokens: number;
+      completionTokens: number;
+    };
+    output: unknown;
     start: number;
     end: number;
   }

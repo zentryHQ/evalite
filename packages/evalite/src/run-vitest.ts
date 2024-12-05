@@ -13,6 +13,9 @@ export const runVitest = async (opts: {
   mode: "watch-for-file-changes" | "run-once-and-exit";
 }) => {
   const jsonDbLocation = path.join(opts.cwd ?? "", "./evalite-report.jsonl");
+
+  process.env.EVALITE_REPORT_TRACES = "true";
+
   const server = createServer({
     jsonDbLocation,
   });
