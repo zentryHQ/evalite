@@ -82,7 +82,7 @@ export default function Page() {
         </div>
         <Separator className="mt-2" />
       </SidebarHeader>
-      <SidebarContent className="p-2">
+      <SidebarContent className="p-2 pb-8">
         <SidebarSection title="Input">
           <DisplayInput
             shouldTruncateText={false}

@@ -153,7 +153,7 @@ export default function Page() {
       </InnerPageLayout>
       <div
         className={cn(
-          "absolute top-0 h-svh w-[700px] border-l p-2 bg-sidebar",
+          "fixed top-0 h-svh w-[700px] border-l p-2 bg-sidebar overflow-auto",
           "transition-[left,right,width] ease-linear shadow-lg",
           isTraceRoute ? "right-0" : "right-[-700px]"
         )}
