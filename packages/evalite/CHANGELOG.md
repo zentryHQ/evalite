@@ -1,5 +1,13 @@
 # evalite
 
+## 0.1.4
+
+### Patch Changes
+
+- eb294a7: Added a link to the eval page to view the filepath in VSCode
+- Updated dependencies [eb294a7]
+  - @evalite/core@0.0.5
+
 ## 0.1.3
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # example
 
+## 0.0.7
+
+### Patch Changes
+
+- Updated dependencies [eb294a7]
+  - evalite@0.1.4
+
 ## 0.0.6
 
 ### Patch Changes
