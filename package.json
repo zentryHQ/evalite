@@ -9,7 +9,8 @@
   },
   "private": true,
   "scripts": {
-    "dev": "pnpm run -r --parallel dev",
+    "dev": "turbo watch dev",
+    "wsl:dev": "pnpm run -r --parallel dev",
     "ci": "turbo build test lint after-build",
     "build": "turbo build after-build",
     "release": "pnpm run ci && changeset publish",
