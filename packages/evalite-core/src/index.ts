@@ -47,13 +47,17 @@ export declare namespace Evalite {
     sourceCodeHash: string;
   };
 
+  export type Task<TInput, TExpected> = (
+    input: TInput
+  ) => MaybePromise<TExpected | ReadableStream<TExpected>>;
+
   export type Scorer<TInput, TExpected> = (
     opts: ScoreInput<TInput, TExpected>
   ) => MaybePromise<Score>;
 
   export type RunnerOpts<TInput, TExpected> = {
     data: () => MaybePromise<{ input: TInput; expected?: TExpected }[]>;
-    task: (input: TInput) => MaybePromise<TExpected>;
+    task: Task<TInput, TExpected>;
     scorers: Scorer<TInput, TExpected>[];
   };
 

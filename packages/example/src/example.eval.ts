@@ -1,5 +1,5 @@
 import { openai } from "@ai-sdk/openai";
-import { generateText } from "ai";
+import { generateText, streamText } from "ai";
 import { evalite } from "evalite";
 import { createStorage } from "unstorage";
 import fsDriver from "unstorage/drivers/fs";
@@ -53,7 +53,7 @@ evalite("Test Capitals", {
     },
   ],
   task: async (input) => {
-    const result = await generateText({
+    const result = await streamText({
       model: traceAISDKModel(cacheModel(openai("gpt-3.5-turbo"), storage)),
       system: `
         Answer the question concisely. Answer in as few words as possible.
