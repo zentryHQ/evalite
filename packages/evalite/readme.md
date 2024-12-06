@@ -80,6 +80,18 @@ It then:
 
 Open http://localhost:3006 in your browser to view the results of the eval.
 
+## Evalite Is Experimental
+
+Evalite is still an experimental project. I'm actively working on it, and for now am pushing breaking changes.
+
+If you run into any unexpected behavior:
+
+1. Delete the `evalite-report.jsonl` file.
+2. Update `evalite` to the latest version.
+3. Rerun your evals.
+
+If, after that, you run into unexpected behavior, [report an issue](https://github.com/mattpocock/evalite/issues).
+
 ## Guides
 
 ### Watch Mode
