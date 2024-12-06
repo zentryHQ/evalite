@@ -1,5 +1,16 @@
 # evalite
 
+## 0.3.0
+
+### Minor Changes
+
+- 9769ab8: Added the ability to handle streams via returning a ReadableStream from an evalite task.
+
+### Patch Changes
+
+- Updated dependencies [9769ab8]
+  - @evalite/core@0.2.0
+
 ## 0.2.1
 
 ### Patch Changes
