@@ -254,7 +254,7 @@ const result = await generateText({
 
 ### Streams
 
-You can handle streams in Evalite by returning a `ReadableStream` from your task. This means you can test functions like the AI SDK `streamText` function easily:
+You can handle streams in Evalite by returning any async iterable (including a `ReadableStream`) from your task. This means you can test functions like the AI SDK `streamText` function easily:
 
 ```ts
 import { evalite } from "evalite";
