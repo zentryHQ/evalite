@@ -18,14 +18,14 @@ Install `evalite`, `vitest`, and a scoring library like `autoevals`:
 pnpm add -D evalite vitest autoevals
 ```
 
-### 2. Add an `eval` script:
+### 2. Add an `eval:dev` script:
 
 Add an `eval` script to your package.json:
 
 ```json
 {
   "scripts": {
-    "eval": "evalite"
+    "eval:dev": "evalite watch"
   }
 }
 ```
@@ -62,7 +62,7 @@ evalite("My Eval", {
 
 ### 4. Run Your Eval
 
-Run `pnpm run eval`.
+Run `pnpm run eval:dev`.
 
 This runs `evalite`, which runs the evals:
 

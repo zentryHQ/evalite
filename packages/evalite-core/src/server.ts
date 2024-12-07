@@ -1,8 +1,4 @@
-import {
-  getJsonDbEvals,
-  getLastTwoFullRuns,
-  type Evalite,
-} from "@evalite/core";
+import { getLastTwoFullRuns, type Evalite } from "@evalite/core";
 import { fastifyStatic } from "@fastify/static";
 import { fastifyWebsocket } from "@fastify/websocket";
 import fastify from "fastify";
