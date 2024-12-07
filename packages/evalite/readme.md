@@ -108,6 +108,20 @@ This will watch for changes to your `.eval.ts` files and re-run the evals when t
 >
 > I strongly recommend implementing a caching layer in your LLM calls when using watch mode. This will keep your evals running fast and avoid burning through your API credits.
 
+### Running Specific Files
+
+You can run specific files by passing them as arguments:
+
+```bash
+evalite my-eval.eval.ts
+```
+
+This also works for `watch` mode:
+
+```bash
+evalite watch my-eval.eval.ts
+```
+
 ### Environment Variables
 
 To call your LLM from a third-party service, you'll likely need some environment variables to keep your API keys safe.
