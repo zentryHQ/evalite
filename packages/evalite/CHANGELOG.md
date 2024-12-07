@@ -1,5 +1,11 @@
 # evalite
 
+## 0.4.0
+
+### Minor Changes
+
+- 66e8dac: Made all evalite tests run simultaneously by default.
+
 ## 0.3.0
 
 ### Minor Changes
