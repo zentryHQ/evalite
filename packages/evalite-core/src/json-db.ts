@@ -1,8 +1,7 @@
 import { readFile } from "fs/promises";
-import type { Evalite } from "./index.js";
 import { average } from "./utils.js";
 import { appendFileSync } from "fs";
-import { db } from "./db/db.js";
+import type { Evalite } from "./types.js";
 
 export type JsonDBEvent =
   | {
@@ -76,8 +75,14 @@ export const appendEvalsToJsonDb = async (opts: {
       };
 
       if (task.meta.evalite) {
-        for (const { input, result, scores, duration, expected, traces } of task
-          .meta.evalite.results) {
+        for (const {
+          input,
+          output: result,
+          scores,
+          duration,
+          expected,
+          traces,
+        } of task.meta.evalite.results) {
           jsonDbTask.results.push({
             input,
             result,
