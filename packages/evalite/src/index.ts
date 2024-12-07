@@ -29,7 +29,11 @@ const executeTask = async <TInput, TExpected>(
 ): Promise<TExpected> => {
   const taskResultOrStream = await task(input);
 
-  if (taskResultOrStream instanceof ReadableStream) {
+  if (
+    typeof taskResultOrStream === "object" &&
+    taskResultOrStream &&
+    Symbol.asyncIterator in taskResultOrStream
+  ) {
     const chunks: TExpected[] = [];
 
     for await (const chunk of taskResultOrStream) {

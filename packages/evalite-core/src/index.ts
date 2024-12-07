@@ -49,7 +49,7 @@ export declare namespace Evalite {
 
   export type Task<TInput, TExpected> = (
     input: TInput
-  ) => MaybePromise<TExpected | ReadableStream<TExpected>>;
+  ) => MaybePromise<TExpected | AsyncIterable<TExpected>>;
 
   export type Scorer<TInput, TExpected> = (
     opts: ScoreInput<TInput, TExpected>
