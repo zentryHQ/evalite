@@ -18,6 +18,8 @@ export const runVitest = async (opts: {
 }) => {
   const jsonDbLocation = path.join(opts.cwd ?? "", "./evalite-report.jsonl");
 
+  const filters = opts.path ? [opts.path] : undefined;
+
   process.env.EVALITE_REPORT_TRACES = "true";
 
   const server = createServer({
@@ -73,7 +75,7 @@ export const runVitest = async (opts: {
     }
   );
 
-  await vitest.collect();
+  await vitest.collect(filters);
 
   const allFileResults = Array.from(vitest.vitenode.fetchCache);
 
@@ -89,7 +91,7 @@ export const runVitest = async (opts: {
 
   vitest.provide("evaliteInputHash", hash);
 
-  await vitest.start();
+  await vitest.start(filters);
 
   if (!vitest.shouldKeepServer()) {
     return await vitest.exit();

@@ -29,8 +29,19 @@ program
   });
 
 program
-  .command("<glob>")
-  .description("Run evals at specified glob once and exit")
+  .command("<path>")
+  .description("Run evals at specified path once and exit")
   .action((path) => {
     runVitest({ path, cwd: undefined, mode: "run-once-and-exit" });
+  });
+
+program
+  .command("watch <path>")
+  .description("Watch evals at specified path for file changes")
+  .action((path) => {
+    runVitest({
+      path: path,
+      cwd: undefined,
+      mode: "watch-for-file-changes",
+    });
   });
