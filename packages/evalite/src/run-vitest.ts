@@ -34,6 +34,9 @@ export const runVitest = async (opts: {
       root: opts.cwd,
       include: ["**/*.eval.{js,ts}"],
       watch: opts.mode === "watch-for-file-changes",
+      sequence: {
+        concurrent: true,
+      },
       reporters: [
         new EvaliteReporter({
           jsonDbLocation,
