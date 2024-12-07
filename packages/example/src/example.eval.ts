@@ -62,7 +62,7 @@ evalite("Test Capitals", {
       prompt: input,
     });
 
-    return result.text;
+    return result.textStream;
   },
   scorers: [Factuality, Levenshtein],
 });
