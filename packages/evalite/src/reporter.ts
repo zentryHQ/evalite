@@ -237,6 +237,7 @@ export default class EvaliteReporter extends BasicReporter {
                   colors: true,
                   depth: null,
                   breakLength: colWidth,
+                  numericSeparator: true,
                   compact: true,
                 })
               : p.input,
@@ -245,6 +246,7 @@ export default class EvaliteReporter extends BasicReporter {
                   colors: true,
                   depth: null,
                   breakLength: colWidth,
+                  numericSeparator: true,
                   compact: true,
                 })
               : p.output,
