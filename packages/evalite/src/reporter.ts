@@ -5,6 +5,7 @@ import { appendEvalsToJsonDb, type Evalite } from "@evalite/core";
 import { table } from "table";
 import c from "tinyrainbow";
 import { average, sum } from "./utils.js";
+import { inspect } from "util";
 
 export interface EvaliteReporterOptions {
   jsonDbLocation: string;
@@ -230,12 +231,26 @@ export default class EvaliteReporter extends BasicReporter {
             c.cyan(c.bold("Output")),
             c.cyan(c.bold("Score")),
           ],
-          ...props.map((p) => [p.input, p.output, displayScore(p.score)]),
+          ...props.map((p) => [
+            inspect(p.input, {
+              colors: true,
+              depth: null,
+              breakLength: colWidth,
+              compact: true,
+            }),
+            inspect(p.output, {
+              colors: true,
+              depth: null,
+              breakLength: colWidth,
+              compact: true,
+            }),
+            displayScore(p.score),
+          ]),
         ],
         {
           columns: [
-            { width: colWidth, wrapWord: true },
-            { width: colWidth, wrapWord: true },
+            { width: colWidth, wrapWord: false },
+            { width: colWidth, wrapWord: false },
             { width: scoreWidth },
           ],
         }
