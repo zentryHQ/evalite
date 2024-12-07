@@ -1,5 +1,14 @@
 # evalite
 
+## 0.4.1
+
+### Patch Changes
+
+- 5abbeab: Made it possible to return any async iterable from a task - more permissive than a ReadableStream.
+- 74172d6: Improved report table formatting for objects.
+- Updated dependencies [5abbeab]
+  - @evalite/core@0.2.1
+
 ## 0.4.0
 
 ### Minor Changes

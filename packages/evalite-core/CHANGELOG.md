@@ -1,5 +1,11 @@
 # @evalite/core
 
+## 0.2.1
+
+### Patch Changes
+
+- 5abbeab: Made it possible to return any async iterable from a task - more permissive than a ReadableStream.
+
 ## 0.2.0
 
 ### Minor Changes
