@@ -232,25 +232,29 @@ export default class EvaliteReporter extends BasicReporter {
             c.cyan(c.bold("Score")),
           ],
           ...props.map((p) => [
-            inspect(p.input, {
-              colors: true,
-              depth: null,
-              breakLength: colWidth,
-              compact: true,
-            }),
-            inspect(p.output, {
-              colors: true,
-              depth: null,
-              breakLength: colWidth,
-              compact: true,
-            }),
+            typeof p.input === "object"
+              ? inspect(p.input, {
+                  colors: true,
+                  depth: null,
+                  breakLength: colWidth,
+                  compact: true,
+                })
+              : p.input,
+            typeof p.output === "object"
+              ? inspect(p.output, {
+                  colors: true,
+                  depth: null,
+                  breakLength: colWidth,
+                  compact: true,
+                })
+              : p.output,
             displayScore(p.score),
           ]),
         ],
         {
           columns: [
-            { width: colWidth, wrapWord: false },
-            { width: colWidth, wrapWord: false },
+            { width: colWidth, wrapWord: typeof props[0]?.input === "string" },
+            { width: colWidth, wrapWord: typeof props[0]?.output === "string" },
             { width: scoreWidth },
           ],
         }
