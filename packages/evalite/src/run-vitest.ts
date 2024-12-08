@@ -1,6 +1,6 @@
 import path from "path";
 import { Writable } from "stream";
-import { createVitest } from "vitest/node";
+import { createVitest, registerConsoleShortcuts } from "vitest/node";
 import EvaliteReporter from "./reporter.js";
 import { createHash } from "crypto";
 import {
@@ -93,7 +93,14 @@ export const runVitest = async (opts: {
 
   await vitest.start(filters);
 
+  const dispose = registerConsoleShortcuts(
+    vitest,
+    process.stdin,
+    process.stdout
+  );
+
   if (!vitest.shouldKeepServer()) {
+    dispose();
     return await vitest.exit();
   }
 };
