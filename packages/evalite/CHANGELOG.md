@@ -1,5 +1,11 @@
 # evalite
 
+## 0.4.3
+
+### Patch Changes
+
+- 0961721: Fixed bug with running watch command
+
 ## 0.4.2
 
 ### Patch Changes
