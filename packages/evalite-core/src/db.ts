@@ -1,6 +1,7 @@
 import type * as BetterSqlite3 from "better-sqlite3";
 import Database from "better-sqlite3";
 import type { Evalite } from "./index.js";
+import type { GetMenuItemsResult } from "./sdk.js";
 
 export type SQLiteDatabase = BetterSqlite3.Database;
 
@@ -82,8 +83,8 @@ export declare namespace Db {
     id: number;
     eval_id: number;
     duration: number;
-    input: string;
-    output: string;
+    input: unknown;
+    output: unknown;
     expected?: string;
     created_at: string;
   };
@@ -94,15 +95,15 @@ export declare namespace Db {
     name: string;
     score: number;
     description?: string;
-    metadata?: string;
+    metadata?: unknown;
     created_at: string;
   };
 
   export type Trace = {
     id: number;
     result_id: number;
-    input: string;
-    output: string;
+    input: unknown;
+    output: unknown;
     start_time: number;
     end_time: number;
     prompt_tokens?: number;
@@ -269,17 +270,6 @@ export const getEvalsAsRecord = async (
   return recordOfEvals;
 };
 
-export const getRun = (db: BetterSqlite3.Database, runId: number) => {
-  return db
-    .prepare<{ runId: number }, Db.Run>(
-      `
-    SELECT * FROM runs
-    WHERE id = @runId
-  `
-    )
-    .get({ runId });
-};
-
 export const getEvals = (db: BetterSqlite3.Database, runId: number) => {
   return db
     .prepare<{ runId: number }, Db.Eval>(
@@ -343,6 +333,66 @@ export const getMostRecentRun = (
     .get({ runType });
 
   return run;
+};
+
+export const getPreviousEvalRun = (
+  db: BetterSqlite3.Database,
+  name: string,
+  startTime: string
+) => {
+  const evaluation = db
+    .prepare<{ name: string; startTime: string }, Pick<Db.Eval, "id">>(
+      `
+    SELECT id FROM evals
+    WHERE name = @name AND created_at < @startTime
+    ORDER BY created_at DESC
+    LIMIT 1
+  `
+    )
+    .get({ name, startTime });
+
+  return evaluation;
+};
+
+export const getAverageScoresFromResults = (
+  db: BetterSqlite3.Database,
+  resultIds: number[]
+): {
+  result_id: number;
+  average: number;
+}[] => {
+  return db
+    .prepare<unknown[], { result_id: number; average: number }>(
+      `
+    SELECT result_id, AVG(score) as average
+    FROM scores
+    WHERE result_id IN (${resultIds.join(",")})
+    GROUP BY result_id
+  `
+    )
+    .all();
+};
+
+export const getEvalsAverageScores = (
+  db: BetterSqlite3.Database,
+  evalIds: number[]
+): {
+  eval_id: number;
+  average: number;
+}[] => {
+  const result = db
+    .prepare<unknown[], { eval_id: number; average: number }>(
+      `
+    SELECT r.eval_id, AVG(s.score) as average
+    FROM scores s
+    JOIN results r ON s.result_id = r.id
+    WHERE r.eval_id IN (${evalIds.join(",")})
+    GROUP BY r.eval_id
+  `
+    )
+    .all();
+
+  return result;
 };
 
 type Prettify<T> = {

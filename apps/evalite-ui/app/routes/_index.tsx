@@ -1,4 +1,4 @@
-import { getEvals } from "@evalite/core/sdk";
+import { getMenuItems } from "@evalite/core/sdk";
 import { redirect, type MetaFunction } from "@remix-run/react";
 
 export const meta: MetaFunction = () => {
@@ -6,7 +6,7 @@ export const meta: MetaFunction = () => {
 };
 
 export const clientLoader = async () => {
-  const evals = await getEvals();
+  const evals = await getMenuItems();
 
   const firstName = Object.keys(evals)[0];
 

@@ -20,7 +20,7 @@ import {
   SidebarProvider,
 } from "~/components/ui/sidebar";
 
-import { getEvals } from "@evalite/core/sdk";
+import { getMenuItems } from "@evalite/core/sdk";
 import { getScoreState, Score } from "./components/score";
 import { cn } from "./lib/utils";
 import "./tailwind.css";
@@ -61,22 +61,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export const clientLoader = async () => {
-  const evals = await getEvals();
+  const { evals } = await getMenuItems();
 
   return {
-    menu: Object.entries(evals).map(([key, value]) => {
-      const mostRecentEval = value[0]!;
-
-      const secondMostRecentEval = value[1];
-
-      const score = mostRecentEval.score;
-
-      const state = getScoreState(score, secondMostRecentEval?.score);
+    menu: evals.map((e) => {
+      const state = getScoreState(e.score, e.prevScore);
       return {
-        name: key,
+        ...e,
         state,
-        score,
-        filepath: mostRecentEval.filepath,
       };
     }),
   };

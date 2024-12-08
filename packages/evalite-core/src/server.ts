@@ -1,9 +1,17 @@
-import { getLastTwoFullRuns, type Evalite } from "@evalite/core";
 import { fastifyStatic } from "@fastify/static";
 import { fastifyWebsocket } from "@fastify/websocket";
 import fastify from "fastify";
 import path from "path";
-import type { SQLiteDatabase } from "./db.js";
+import {
+  getEvals,
+  getEvalsAsRecord,
+  getEvalsAverageScores,
+  getMostRecentRun,
+  getPreviousEvalRun,
+  type SQLiteDatabase,
+} from "./db.js";
+import type { GetMenuItemsResult } from "./sdk.js";
+import type { Evalite } from "./types.js";
 
 export type Server = ReturnType<typeof createServer>;
 
@@ -22,17 +30,6 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
 
   const listeners = new Map<string, (event: Evalite.WebsocketEvent) => void>();
 
-  server.get("/api/evals", async (req, reply) => {
-    return reply
-      .code(200)
-      .header("access-control-allow-origin", "*")
-      .send(
-        await getLastTwoFullRuns({
-          db: opts.db,
-        })
-      );
-  });
-
   server.register(async (fastify) => {
     fastify.get("/api/socket", { websocket: true }, (socket, req) => {
       listeners.set(req.id, (event) => {
@@ -43,6 +40,57 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
         listeners.delete(req.id);
       });
     });
+  });
+
+  server.get("/api/menu-items", async (req, reply) => {
+    let lastRun = getMostRecentRun(opts.db, "full");
+
+    let evalsToSend: GetMenuItemsResult["evals"] = [];
+
+    if (!lastRun) {
+      lastRun = getMostRecentRun(opts.db, "partial");
+    }
+
+    if (lastRun) {
+      const evals = getEvals(opts.db, lastRun.id).map((e) => ({
+        ...e,
+        prevEval: getPreviousEvalRun(opts.db, e.name, e.created_at),
+      }));
+
+      const evalsAverageScores = getEvalsAverageScores(
+        opts.db,
+        evals.flatMap((e) => {
+          if (e.prevEval) {
+            return [e.id, e.prevEval.id];
+          }
+          return [e.id];
+        })
+      );
+
+      evalsToSend = evals.map((e) => {
+        const score =
+          evalsAverageScores.find((s) => s.eval_id === e.id)?.average ?? 0;
+        const prevScore =
+          evalsAverageScores.find((s) => s.eval_id === e.prevEval?.id)
+            ?.average ?? 0;
+
+        return {
+          filepath: e.filepath,
+          name: e.name,
+          score,
+          prevScore,
+        };
+      });
+    }
+
+    const result: GetMenuItemsResult = {
+      evals: evalsToSend,
+    };
+
+    return reply
+      .code(200)
+      .header("access-control-allow-origin", "*")
+      .send(result);
   });
 
   server.route<{
@@ -63,9 +111,7 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
     handler: async (req, res) => {
       const name = req.query.name;
 
-      const fileData = await getLastTwoFullRuns({
-        db: opts.db,
-      });
+      const fileData = await getEvalsAsRecord(opts.db);
 
       if (!fileData) {
         return res.code(404).send();
@@ -98,12 +144,10 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
     handler: async (req, res) => {
       const timestamp = req.query.timestamp;
 
-      const fileData = await getLastTwoFullRuns({
-        db: opts.db,
-      });
+      const fileData = await getEvalsAsRecord(opts.db);
 
       const run = fileData[req.query.name]?.find(
-        (item) => item.startTime === timestamp
+        (item) => item.created_at === timestamp
       );
 
       if (!run) {
@@ -134,9 +178,7 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
     handler: async (req, res) => {
       const index = parseInt(req.query.index, 10);
 
-      const fileData = await getLastTwoFullRuns({
-        db: opts.db,
-      });
+      const fileData = await getEvalsAsRecord(opts.db);
 
       const run = fileData[req.query.name]?.[0];
 

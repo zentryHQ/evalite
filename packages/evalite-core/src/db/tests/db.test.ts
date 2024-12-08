@@ -1,91 +1,72 @@
-import { expect, it } from "vitest";
-import { createDatabase, getMostRecentRun, saveRun } from "../../db.js";
+import { assert, describe, expect, it } from "vitest";
+import {
+  createDatabase,
+  getEvals,
+  getEvalsAverageScores,
+  getMostRecentRun,
+  saveRun,
+} from "../../db.js";
 
-it("Should let you save an eval", async () => {
-  const db = createDatabase(":memory:");
+describe("getEvalsAverageScores", () => {
+  it("Should calculate the average score for evals", async () => {
+    const db = createDatabase(":memory:");
 
-  saveRun(db, {
-    runType: "full",
-    files: [
-      {
-        filepath: "/path/to/file",
-        name: "file",
-        tasks: [
-          {
-            name: "task",
-            meta: {
-              evalite: {
-                duration: 100,
-                sourceCodeHash: "abc",
-                results: [
-                  {
-                    input: "input",
-                    duration: 100,
-                    output: "result",
-                    expected: "expected",
-                    scores: [
-                      {
-                        name: "score",
-                        score: 100,
-                      },
-                    ],
-                    traces: [
-                      {
-                        end: 100,
-                        input: "input",
-                        output: "output",
-                        start: 0,
-                        usage: {
-                          completionTokens: 100,
-                          promptTokens: 100,
+    saveRun(db, {
+      runType: "full",
+      files: [
+        {
+          filepath: "/path/to/file",
+          name: "file",
+          tasks: [
+            {
+              name: "task",
+              meta: {
+                evalite: {
+                  duration: 100,
+                  sourceCodeHash: "abc",
+                  results: [
+                    {
+                      input: "input",
+                      duration: 100,
+                      output: "result",
+                      expected: "expected",
+                      scores: [
+                        {
+                          name: "score",
+                          score: 1,
                         },
-                      },
-                    ],
-                  },
-                ],
+                        {
+                          name: "Other Score",
+                          score: 0,
+                        },
+                      ],
+                      traces: [],
+                    },
+                  ],
+                },
               },
             },
-          },
-        ],
-      },
-    ],
-  });
+          ],
+        },
+      ],
+    });
 
-  const run = getMostRecentRun(db, "full");
+    const run = getMostRecentRun(db, "full");
 
-  expect(run).toMatchObject({
-    run: {
-      runType: "full",
-    },
-    evals: [
+    assert(run);
+
+    const evals = getEvals(db, run.id);
+
+    const averageScore = getEvalsAverageScores(
+      db,
+      evals.map((e) => e.id)
+    );
+
+    expect(averageScore).toEqual([
       {
-        duration: 100,
-        filepath: "/path/to/file",
+        eval_id: evals[0]!.id,
+        average: 0.5,
       },
-    ],
-    results: [
-      {
-        duration: 100,
-        input: "input",
-        output: "result",
-        expected: "expected",
-      },
-    ],
-    traces: [
-      {
-        end_time: 100,
-        input: "input",
-        output: "output",
-        start_time: 0,
-        prompt_tokens: 100,
-        completion_tokens: 100,
-      },
-    ],
-    scores: [
-      {
-        name: "score",
-        score: 100,
-      },
-    ],
+    ]);
   });
 });

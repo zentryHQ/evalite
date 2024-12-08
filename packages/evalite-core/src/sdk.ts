@@ -1,13 +1,18 @@
-import type {
-  GetJsonDbEvalsResult,
-  JsonDBEval,
-  JsonDbResult,
-} from "./json-db.js";
+import type { Db } from "./db.js";
 
 const BASE_URL = "http://localhost:3006";
 
-export const getEvals = async (): Promise<GetJsonDbEvalsResult> => {
-  const res = await fetch(`${BASE_URL}/api/evals`);
+export type GetMenuItemsResult = {
+  evals: {
+    filepath: string;
+    score: number;
+    name: string;
+    prevScore: number | undefined;
+  }[];
+};
+
+export const getMenuItems = async (): Promise<GetMenuItemsResult> => {
+  const res = await fetch(`${BASE_URL}/api/menu-items`);
   return res.json() as any;
 };
 
