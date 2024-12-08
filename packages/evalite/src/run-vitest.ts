@@ -1,7 +1,7 @@
 import path from "path";
 import { mkdir } from "fs/promises";
 import { Writable } from "stream";
-import { createVitest } from "vitest/node";
+import { createVitest, registerConsoleShortcuts } from "vitest/node";
 import EvaliteReporter from "./reporter.js";
 import { createHash } from "crypto";
 import { DB_LOCATION, DEFAULT_SERVER_PORT } from "@evalite/core";
@@ -78,7 +78,14 @@ export const runVitest = async (opts: {
 
   await vitest.start(filters);
 
+  const dispose = registerConsoleShortcuts(
+    vitest,
+    process.stdin,
+    process.stdout
+  );
+
   if (!vitest.shouldKeepServer()) {
+    dispose();
     return await vitest.exit();
   }
 };
