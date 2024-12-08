@@ -215,6 +215,65 @@ export const saveRun = (
   })();
 };
 
+export interface ResultWithInlineScoresAndTraces extends Db.Result {
+  scores: Db.Score[];
+  traces: Db.Trace[];
+}
+
+interface EvalWithInlineResults extends Db.Eval {
+  results: ResultWithInlineScoresAndTraces[];
+}
+
+/**
+ * @deprecated
+ */
+export const getEvalsAsRecord = async (opts: {
+  dbLocation: string;
+}): Promise<Record<string, EvalWithInlineResults[]>> => {
+  const db = createDatabase(opts.dbLocation);
+
+  const evals = db.prepare<unknown[], Db.Eval>(`SELECT * FROM evals`).all();
+
+  const allResults = getResults(
+    db,
+    evals.map((e) => e.id)
+  );
+
+  const allScores = getScores(
+    db,
+    allResults.map((r) => r.id)
+  );
+
+  const allTraces = getTraces(
+    db,
+    allResults.map((r) => r.id)
+  );
+
+  const recordOfEvals: Record<string, EvalWithInlineResults[]> = {};
+
+  for (const evaluation of evals) {
+    const key = evaluation.name;
+    if (!recordOfEvals[key]) {
+      recordOfEvals[key] = [];
+    }
+
+    const results = allResults.filter((r) => r.eval_id === evaluation.id);
+    const resultsWithScores = results.map((r) => {
+      const scores = allScores.filter((s) => s.result_id === r.id);
+      const traces = allTraces.filter((t) => t.result_id === r.id);
+
+      return { ...r, scores, traces };
+    });
+
+    recordOfEvals[key].push({
+      ...evaluation,
+      results: resultsWithScores,
+    });
+  }
+
+  return recordOfEvals;
+};
+
 export const getRun = (
   db: BetterSqlite3.Database,
   runId: number

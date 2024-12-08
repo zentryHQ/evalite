@@ -44,6 +44,9 @@ export const reportEventToJsonDb = async (opts: {
   });
 };
 
+/**
+ * @deprecated
+ */
 export const appendEvalsToJsonDb = async (opts: {
   dbLocation: string;
   files: {
@@ -102,6 +105,9 @@ export const appendEvalsToJsonDb = async (opts: {
 
 export type GetJsonDbEvalsResult = Record<string, JsonDBEval[]>;
 
+/**
+ * @deprecated
+ */
 export const getJsonDbEvals = async (opts: {
   dbLocation: string;
 }): Promise<GetJsonDbEvalsResult> => {
