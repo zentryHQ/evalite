@@ -24,8 +24,7 @@ it("Should report traces from reportTrace", async () => {
       {
         traces: [
           {
-            duration: 100,
-            end: 100,
+            end_time: 100,
             output: "abcdef",
             input: [
               {
@@ -33,11 +32,9 @@ it("Should report traces from reportTrace", async () => {
                 role: "input",
               },
             ],
-            start: 0,
-            usage: {
-              completionTokens: 1,
-              promptTokens: 1,
-            },
+            start_time: 0,
+            completion_tokens: 1,
+            prompt_tokens: 1,
           },
         ],
       },

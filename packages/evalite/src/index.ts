@@ -74,7 +74,7 @@ const runTask = async <TInput, TExpected>(opts: {
   };
 };
 
-export const evalite = <TInput, TExpected>(
+export const evalite = <TInput, TExpected = TInput>(
   testName: string,
   opts: Evalite.RunnerOpts<TInput, TExpected>
 ) => {

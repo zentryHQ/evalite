@@ -28,9 +28,9 @@ export const createDatabase = (url: string): BetterSqlite3.Database => {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       eval_id INTEGER NOT NULL,
       duration INTEGER NOT NULL,
-      input JSON NOT NULL,
-      output JSON NOT NULL,
-      expected JSON,
+      input TEXT NOT NULL, -- JSON
+      output TEXT NOT NULL, -- JSON
+      expected TEXT, -- JSON
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (eval_id) REFERENCES evals(id)
     );
@@ -41,7 +41,7 @@ export const createDatabase = (url: string): BetterSqlite3.Database => {
       name TEXT NOT NULL,
       score FLOAT NOT NULL,
       description TEXT,
-      metadata JSON,
+      metadata TEXT, -- JSON
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (result_id) REFERENCES results(id)
     );
@@ -49,8 +49,8 @@ export const createDatabase = (url: string): BetterSqlite3.Database => {
     CREATE TABLE IF NOT EXISTS traces (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       result_id INTEGER NOT NULL,
-      input JSON NOT NULL,
-      output JSON NOT NULL,
+      input TEXT NOT NULL, -- JSON
+      output TEXT NOT NULL, -- JSON
       start_time INTEGER NOT NULL,
       end_time INTEGER NOT NULL,
       prompt_tokens INTEGER,
@@ -82,9 +82,9 @@ export declare namespace Db {
     id: number;
     eval_id: number;
     duration: number;
-    input: unknown;
-    output: unknown;
-    expected?: unknown;
+    input: string;
+    output: string;
+    expected?: string;
     created_at: string;
   };
 
@@ -94,15 +94,15 @@ export declare namespace Db {
     name: string;
     score: number;
     description?: string;
-    metadata?: unknown;
+    metadata?: string;
     created_at: string;
   };
 
   export type Trace = {
     id: number;
     result_id: number;
-    input: unknown;
-    output: unknown;
+    input: string;
+    output: string;
     start_time: number;
     end_time: number;
     prompt_tokens?: number;
@@ -155,14 +155,8 @@ export const saveRun = (
         }).lastInsertRowid;
 
       if (task.meta.evalite) {
-        for (const {
-          input,
-          output: result,
-          scores,
-          duration,
-          expected,
-          traces,
-        } of task.meta.evalite.results) {
+        for (const { input, output, scores, duration, expected, traces } of task
+          .meta.evalite.results) {
           const resultId = db
             .prepare(
               `
@@ -173,9 +167,9 @@ export const saveRun = (
             .run({
               evalId,
               duration,
-              input,
-              output: result,
-              expected,
+              input: JSON.stringify(input),
+              output: JSON.stringify(output),
+              expected: JSON.stringify(expected),
             }).lastInsertRowid;
 
           for (const score of scores) {
@@ -189,7 +183,7 @@ export const saveRun = (
               name: score.name,
               score: score.score ?? 0,
               description: score.description,
-              metadata: score.metadata,
+              metadata: JSON.stringify(score.metadata),
             });
           }
 
@@ -201,8 +195,8 @@ export const saveRun = (
               `
             ).run({
               resultId,
-              input: trace.input,
-              output: trace.output,
+              input: JSON.stringify(trace.input),
+              output: JSON.stringify(trace.output),
               start_time: Math.round(trace.start),
               end_time: Math.round(trace.end),
               prompt_tokens: trace.usage?.promptTokens ?? null,
@@ -216,8 +210,8 @@ export const saveRun = (
 };
 
 export interface ResultWithInlineScoresAndTraces extends Db.Result {
-  scores: Db.Score[];
-  traces: Db.Trace[];
+  scores: Db.Score;
+  traces: Db.Trace;
 }
 
 interface EvalWithInlineResults extends Db.Eval {
@@ -275,10 +269,7 @@ export const getEvalsAsRecord = async (
   return recordOfEvals;
 };
 
-export const getRun = (
-  db: BetterSqlite3.Database,
-  runId: number
-): Db.Run | undefined => {
+export const getRun = (db: BetterSqlite3.Database, runId: number) => {
   return db
     .prepare<{ runId: number }, Db.Run>(
       `
@@ -289,10 +280,7 @@ export const getRun = (
     .get({ runId });
 };
 
-export const getEvals = (
-  db: BetterSqlite3.Database,
-  runId: number
-): Db.Eval[] => {
+export const getEvals = (db: BetterSqlite3.Database, runId: number) => {
   return db
     .prepare<{ runId: number }, Db.Eval>(
       `
@@ -303,10 +291,7 @@ export const getEvals = (
     .all({ runId });
 };
 
-export const getResults = (
-  db: BetterSqlite3.Database,
-  evalIds: number[]
-): Db.Result[] => {
+export const getResults = (db: BetterSqlite3.Database, evalIds: number[]) => {
   return db
     .prepare<unknown[], Db.Result>(
       `
@@ -314,13 +299,11 @@ export const getResults = (
     WHERE eval_id IN (${evalIds.join(",")})
   `
     )
-    .all();
+    .all()
+    .map((r) => jsonParseFields(r, ["input", "output"]));
 };
 
-export const getScores = (
-  db: BetterSqlite3.Database,
-  resultIds: number[]
-): Db.Score[] => {
+export const getScores = (db: BetterSqlite3.Database, resultIds: number[]) => {
   return db
     .prepare<unknown[], Db.Score>(
       `
@@ -328,13 +311,11 @@ export const getScores = (
     WHERE result_id IN (${resultIds.join(",")})
   `
     )
-    .all();
+    .all()
+    .map((r) => jsonParseFields(r, ["metadata"]));
 };
 
-export const getTraces = (
-  db: BetterSqlite3.Database,
-  resultIds: number[]
-): Db.Trace[] => {
+export const getTraces = (db: BetterSqlite3.Database, resultIds: number[]) => {
   return db
     .prepare<unknown[], Db.Trace>(
       `
@@ -342,21 +323,14 @@ export const getTraces = (
     WHERE result_id IN (${resultIds.join(",")})
   `
     )
-    .all();
+    .all()
+    .map((t) => jsonParseFields(t, ["input", "output"]));
 };
 
 export const getMostRecentRun = (
   db: BetterSqlite3.Database,
   runType: "full" | "partial"
-):
-  | {
-      run: Db.Run;
-      evals: Db.Eval[];
-      results: Db.Result[];
-      scores: Db.Score[];
-      traces: Db.Trace[];
-    }
-  | undefined => {
+) => {
   const run = db
     .prepare<{ runType: string }, Db.Run>(
       `
@@ -368,23 +342,27 @@ export const getMostRecentRun = (
     )
     .get({ runType });
 
-  if (!run) {
-    return;
+  return run;
+};
+
+type Prettify<T> = {
+  [K in keyof T]: T[K];
+} & {};
+
+export const jsonParseFields = <T extends object, K extends keyof T>(
+  obj: T,
+  fields: K[]
+): Prettify<Omit<T, K> & Record<K, unknown>> => {
+  const objToReturn: any = {};
+
+  for (const key of Object.keys(obj)) {
+    const value = (obj as any)[key];
+    if ((fields as any).includes(key)) {
+      objToReturn[key] = JSON.parse(value);
+    } else {
+      objToReturn[key] = value;
+    }
   }
 
-  const evals = getEvals(db, run.id);
-  const results = getResults(
-    db,
-    evals.map((e) => e.id)
-  );
-  const scores = getScores(
-    db,
-    results.map((r) => r.id)
-  );
-  const traces = getTraces(
-    db,
-    results.map((r) => r.id)
-  );
-
-  return { run, evals, results, scores, traces };
+  return objToReturn;
 };
