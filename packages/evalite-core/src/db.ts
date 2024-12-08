@@ -1,6 +1,8 @@
 import type * as BetterSqlite3 from "better-sqlite3";
 import Database from "better-sqlite3";
-import type { Evalite } from "../index.js";
+import type { Evalite } from "./index.js";
+
+export type SQLiteDatabase = BetterSqlite3.Database;
 
 export const createDatabase = (url: string): BetterSqlite3.Database => {
   const db: BetterSqlite3.Database = new Database(url);
@@ -127,92 +129,90 @@ export const saveRun = (
     }[];
   }
 ) => {
-  db.transaction(() => {
-    const runId = db
-      .prepare(
-        `
+  const runId = db
+    .prepare(
+      `
         INSERT INTO runs (runType)
         VALUES (@runType)
       `
-      )
-      .run({ runType }).lastInsertRowid;
+    )
+    .run({ runType }).lastInsertRowid;
 
-    for (const file of files) {
-      for (const task of file.tasks) {
-        const evalId = db
-          .prepare(
-            `
+  for (const file of files) {
+    for (const task of file.tasks) {
+      const evalId = db
+        .prepare(
+          `
           INSERT INTO evals (run_id, name, filepath, duration)
           VALUES (@runId, @name, @filepath, @duration)
         `
-          )
-          .run({
-            runId,
-            name: task.name,
-            filepath: file.filepath,
-            duration: task.meta.evalite?.duration,
-          }).lastInsertRowid;
+        )
+        .run({
+          runId,
+          name: task.name,
+          filepath: file.filepath,
+          duration: task.meta.evalite?.duration ?? 0,
+        }).lastInsertRowid;
 
-        if (task.meta.evalite) {
-          for (const {
-            input,
-            output: result,
-            scores,
-            duration,
-            expected,
-            traces,
-          } of task.meta.evalite.results) {
-            const resultId = db
-              .prepare(
-                `
+      if (task.meta.evalite) {
+        for (const {
+          input,
+          output: result,
+          scores,
+          duration,
+          expected,
+          traces,
+        } of task.meta.evalite.results) {
+          const resultId = db
+            .prepare(
+              `
               INSERT INTO results (eval_id, duration, input, output, expected)
               VALUES (@evalId, @duration, @input, @output, @expected)
             `
-              )
-              .run({
-                evalId,
-                duration,
-                input,
-                output: result,
-                expected,
-              }).lastInsertRowid;
+            )
+            .run({
+              evalId,
+              duration,
+              input,
+              output: result,
+              expected,
+            }).lastInsertRowid;
 
-            for (const score of scores) {
-              db.prepare(
-                `
+          for (const score of scores) {
+            db.prepare(
+              `
                 INSERT INTO scores (result_id, name, score, description, metadata)
                 VALUES (@resultId, @name, @score, @description, @metadata)
               `
-              ).run({
-                resultId,
-                name: score.name,
-                score: score.score ?? 0,
-                description: score.description,
-                metadata: score.metadata,
-              });
-            }
+            ).run({
+              resultId,
+              name: score.name,
+              score: score.score ?? 0,
+              description: score.description,
+              metadata: score.metadata,
+            });
+          }
 
-            for (const trace of traces) {
-              db.prepare(
-                `
+          for (const trace of traces) {
+            db.prepare(
+              `
                 INSERT INTO traces (result_id, input, output, start_time, end_time, prompt_tokens, completion_tokens)
                 VALUES (@resultId, @input, @output, @start_time, @end_time, @prompt_tokens, @completion_tokens)
               `
-              ).run({
-                resultId,
-                input: trace.input,
-                output: trace.output,
-                start_time: trace.start,
-                end_time: trace.end,
-                prompt_tokens: trace.usage?.promptTokens,
-                completion_tokens: trace.usage?.completionTokens,
-              });
-            }
+            ).run({
+              resultId,
+              input: trace.input,
+              output: trace.output,
+              start_time: Math.round(trace.start),
+              end_time: Math.round(trace.end),
+              prompt_tokens: trace.usage?.promptTokens ?? null,
+              completion_tokens: trace.usage?.completionTokens ?? null,
+            });
           }
         }
       }
     }
-  })();
+  }
 };
 
 export interface ResultWithInlineScoresAndTraces extends Db.Result {
@@ -226,12 +226,13 @@ interface EvalWithInlineResults extends Db.Eval {
 
 /**
  * @deprecated
+ *
+ * Used in existing tests, but in future code should be replaced
+ * by more specific queries.
  */
-export const getEvalsAsRecord = async (opts: {
-  dbLocation: string;
-}): Promise<Record<string, EvalWithInlineResults[]>> => {
-  const db = createDatabase(opts.dbLocation);
-
+export const getEvalsAsRecord = async (
+  db: SQLiteDatabase
+): Promise<Record<string, EvalWithInlineResults[]>> => {
   const evals = db.prepare<unknown[], Db.Eval>(`SELECT * FROM evals`).all();
 
   const allResults = getResults(

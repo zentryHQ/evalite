@@ -1,32 +1,35 @@
 import path from "path";
+import { mkdir } from "fs/promises";
 import { Writable } from "stream";
 import { createVitest } from "vitest/node";
 import EvaliteReporter from "./reporter.js";
 import { createHash } from "crypto";
 import {
+  DB_LOCATION,
   DEFAULT_SERVER_PORT,
-  reportEventToJsonDb,
   type JsonDBEvent,
 } from "@evalite/core";
 import { createServer } from "@evalite/core/server";
+import { createDatabase, saveRun, type SQLiteDatabase } from "@evalite/core/db";
 
 export const runVitest = async (opts: {
   path: string | undefined;
   cwd: string | undefined;
   testOutputWritable?: Writable;
   mode: "watch-for-file-changes" | "run-once-and-exit";
+  db: SQLiteDatabase;
+  testTimeout?: number;
 }) => {
-  const jsonDbLocation = path.join(opts.cwd ?? "", "./evalite-report.jsonl");
-
   const filters = opts.path ? [opts.path] : undefined;
 
   process.env.EVALITE_REPORT_TRACES = "true";
 
-  const server = createServer({
-    jsonDbLocation,
-  });
+  let server: ReturnType<typeof createServer> | undefined = undefined;
 
   if (opts.mode === "watch-for-file-changes") {
+    server = createServer({
+      db: opts.db,
+    });
     server.start(DEFAULT_SERVER_PORT);
   }
 
@@ -41,32 +44,15 @@ export const runVitest = async (opts: {
       },
       reporters: [
         new EvaliteReporter({
-          jsonDbLocation,
           logEvent: (event) => {
-            server.send(event);
-            if (event.type === "RUN_IN_PROGRESS") {
-              const startTime: string = new Date().toISOString();
-
-              reportEventToJsonDb({
-                dbLocation: jsonDbLocation,
-                event:
-                  event.runType === "full"
-                    ? {
-                        startTime,
-                        type: "FULL_RUN_BEGIN",
-                      }
-                    : {
-                        startTime,
-                        type: "PARTIAL_RUN_BEGIN",
-                      },
-              });
-            }
+            server?.send(event);
           },
           port: DEFAULT_SERVER_PORT,
           isWatching: opts.mode === "watch-for-file-changes",
+          db: opts.db,
         }),
       ],
-      testTimeout: 30_000,
+      testTimeout: opts.testTimeout ?? 30_000,
     },
     {},
     {

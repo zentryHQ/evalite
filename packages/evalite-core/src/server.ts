@@ -3,10 +3,11 @@ import { fastifyStatic } from "@fastify/static";
 import { fastifyWebsocket } from "@fastify/websocket";
 import fastify from "fastify";
 import path from "path";
+import type { SQLiteDatabase } from "./db.js";
 
 export type Server = ReturnType<typeof createServer>;
 
-export const createServer = (opts: { jsonDbLocation: string }) => {
+export const createServer = (opts: { db: SQLiteDatabase }) => {
   const UI_ROOT = path.join(import.meta.dirname, "./ui");
   const server = fastify();
 
@@ -27,7 +28,7 @@ export const createServer = (opts: { jsonDbLocation: string }) => {
       .header("access-control-allow-origin", "*")
       .send(
         await getLastTwoFullRuns({
-          dbLocation: opts.jsonDbLocation,
+          db: opts.db,
         })
       );
   });
@@ -63,7 +64,7 @@ export const createServer = (opts: { jsonDbLocation: string }) => {
       const name = req.query.name;
 
       const fileData = await getLastTwoFullRuns({
-        dbLocation: opts.jsonDbLocation,
+        db: opts.db,
       });
 
       if (!fileData) {
@@ -98,7 +99,7 @@ export const createServer = (opts: { jsonDbLocation: string }) => {
       const timestamp = req.query.timestamp;
 
       const fileData = await getLastTwoFullRuns({
-        dbLocation: opts.jsonDbLocation,
+        db: opts.db,
       });
 
       const run = fileData[req.query.name]?.find(
@@ -134,7 +135,7 @@ export const createServer = (opts: { jsonDbLocation: string }) => {
       const index = parseInt(req.query.index, 10);
 
       const fileData = await getLastTwoFullRuns({
-        dbLocation: opts.jsonDbLocation,
+        db: opts.db,
       });
 
       const run = fileData[req.query.name]?.[0];

@@ -14,7 +14,8 @@
     "./constants": "./dist/constants.js",
     "./utils": "./dist/utils.js",
     "./server": "./dist/server.js",
-    "./sdk": "./dist/sdk.js"
+    "./sdk": "./dist/sdk.js",
+    "./db": "./dist/db.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.6.0",

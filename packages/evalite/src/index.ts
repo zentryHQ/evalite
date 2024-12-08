@@ -85,7 +85,7 @@ export const evalite = <TInput, TExpected>(
     const start = performance.now();
     const results = await Promise.all(
       data.map(async ({ input, expected }): Promise<Evalite.Result> => {
-        const traces: Evalite.StoredTrace[] = [];
+        const traces: Evalite.Trace[] = [];
         reportTraceLocalStorage.enterWith((trace) => traces.push(trace));
         const { output, scores, duration } = await runTask({
           expected,

@@ -14,10 +14,10 @@ export declare namespace Evalite {
   export type Result = {
     input: unknown;
     output: unknown;
-    expected: unknown | undefined;
+    expected: unknown;
     scores: Score[];
     duration: number;
-    traces: StoredTrace[];
+    traces: Trace[];
   };
 
   export type Score = {
@@ -59,7 +59,7 @@ export declare namespace Evalite {
     scorers: Scorer<TInput, TExpected>[];
   };
 
-  export interface UserProvidedTrace {
+  export interface Trace {
     input: unknown;
     usage?: {
       promptTokens: number;
@@ -68,10 +68,6 @@ export declare namespace Evalite {
     output: unknown;
     start: number;
     end: number;
-  }
-
-  export interface StoredTrace extends UserProvidedTrace {
-    duration: number;
   }
 
   export type TracePrompt = {

@@ -1,17 +1,18 @@
 import type { RunnerTask, RunnerTestFile, TaskResultPack } from "vitest";
 import { BasicReporter } from "vitest/reporters";
 
-import { appendEvalsToJsonDb, type Evalite } from "@evalite/core";
+import { type Evalite } from "@evalite/core";
 import { table } from "table";
 import c from "tinyrainbow";
 import { average, sum } from "./utils.js";
 import { inspect } from "util";
+import { saveRun, type SQLiteDatabase } from "@evalite/core/db";
 
 export interface EvaliteReporterOptions {
-  jsonDbLocation: string;
   isWatching: boolean;
   port: number;
   logEvent: (event: Evalite.WebsocketEvent) => void;
+  db: SQLiteDatabase;
 }
 
 const renderers = {
@@ -55,13 +56,6 @@ export default class EvaliteReporter extends BasicReporter {
     });
   }
 
-  // override onTaskUpdate(packs: TaskResultPack[]): void {
-  //   this.opts.logEvent({
-  //     type: "RUN_IN_PROGRESS",
-  //   });
-  //   super.onTaskUpdate(packs);
-  // }
-
   override onWatcherStart(files?: RunnerTestFile[], errors?: unknown[]): void {
     super.onWatcherStart(files, errors);
   }
@@ -83,10 +77,7 @@ export default class EvaliteReporter extends BasicReporter {
       type: "RUN_COMPLETE",
     });
 
-    await appendEvalsToJsonDb({
-      dbLocation: this.opts.jsonDbLocation,
-      files,
-    });
+    saveRun(this.opts.db, { files, runType: "full" });
 
     super.onFinished(files, errors);
   };

@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { createDatabase, getMostRecentRun, saveRun } from "../create-db.js";
+import { createDatabase, getMostRecentRun, saveRun } from "../../db.js";
 
 it("Should let you save an eval", async () => {
   const db = createDatabase(":memory:");
@@ -31,7 +31,6 @@ it("Should let you save an eval", async () => {
                     ],
                     traces: [
                       {
-                        duration: 100,
                         end: 100,
                         input: "input",
                         output: "output",

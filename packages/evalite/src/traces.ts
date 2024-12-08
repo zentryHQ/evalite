@@ -2,14 +2,14 @@ import type { Evalite } from "@evalite/core";
 import { AsyncLocalStorage } from "async_hooks";
 
 export const reportTraceLocalStorage = new AsyncLocalStorage<
-  (trace: Evalite.StoredTrace) => void
+  (trace: Evalite.Trace) => void
 >();
 
 export const shouldReportTrace = (): boolean => {
   return !!process.env.EVALITE_REPORT_TRACES;
 };
 
-export const reportTrace = (trace: Evalite.UserProvidedTrace): void => {
+export const reportTrace = (trace: Evalite.Trace): void => {
   if (!shouldReportTrace()) {
     return;
   }
@@ -22,8 +22,5 @@ export const reportTrace = (trace: Evalite.UserProvidedTrace): void => {
     );
   }
 
-  _reportTrace({
-    ...trace,
-    duration: trace.end - trace.start,
-  });
+  _reportTrace(trace);
 };

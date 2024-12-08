@@ -1,17 +1,20 @@
 import { expect, it } from "vitest";
 import { runVitest } from "evalite/runner";
 import { captureStdout, loadFixture } from "./test-utils.js";
+import { createDatabase } from "@evalite/core/db";
 
 it("Should report multiple evals correctly", async () => {
   using fixture = loadFixture("multi");
 
   const captured = captureStdout();
+  const db = createDatabase(":memory:");
 
   await runVitest({
     cwd: fixture.dir,
     path: undefined,
     testOutputWritable: captured.writable,
     mode: "run-once-and-exit",
+    db,
   });
 
   expect(captured.getOutput()).toContain("Duration");
@@ -27,12 +30,14 @@ it("Should not show a table when running multiple evals", async () => {
   using fixture = loadFixture("multi");
 
   const captured = captureStdout();
+  const db = createDatabase(":memory:");
 
   await runVitest({
     cwd: fixture.dir,
     path: undefined,
     testOutputWritable: captured.writable,
     mode: "run-once-and-exit",
+    db,
   });
 
   expect(captured.getOutput()).not.toContain("ONLY ONE EVAL");
