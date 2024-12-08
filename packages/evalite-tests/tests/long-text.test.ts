@@ -1,6 +1,7 @@
 import { runVitest } from "evalite/runner";
 import { expect, it } from "vitest";
 import { captureStdout, loadFixture } from "./test-utils.js";
+import { createDatabase } from "@evalite/core/db";
 
 it("Should report long text correctly", async () => {
   using fixture = loadFixture("long-text");
@@ -12,6 +13,7 @@ it("Should report long text correctly", async () => {
     path: undefined,
     testOutputWritable: captured.writable,
     mode: "run-once-and-exit",
+    db: createDatabase(":memory:"),
   });
 
   expect(captured.getOutput()).toContain("Input");

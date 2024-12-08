@@ -7,12 +7,14 @@ it("Should report the basics correctly", async () => {
   using fixture = loadFixture("basics");
 
   const captured = captureStdout();
+  const db = createDatabase(":memory:");
 
   await runVitest({
     cwd: fixture.dir,
     path: undefined,
     testOutputWritable: captured.writable,
     mode: "run-once-and-exit",
+    db,
   });
 
   expect(captured.getOutput()).toContain("Duration");
@@ -26,12 +28,14 @@ it("Should create a evalite-report.jsonl", async () => {
   using fixture = loadFixture("basics");
 
   const captured = captureStdout();
+  const db = createDatabase(":memory:");
 
   await runVitest({
     cwd: fixture.dir,
     path: undefined,
     testOutputWritable: captured.writable,
     mode: "run-once-and-exit",
+    db,
   });
 
   const db = createDatabase(fixture.dbLocation);
@@ -61,12 +65,14 @@ it("Should capture the duration as being more than 0", async () => {
   using fixture = loadFixture("basics");
 
   const captured = captureStdout();
+  const db = createDatabase(":memory:");
 
   await runVitest({
     cwd: fixture.dir,
     path: undefined,
     testOutputWritable: captured.writable,
     mode: "run-once-and-exit",
+    db,
   });
 
   const db = createDatabase(fixture.dbLocation);
@@ -81,12 +87,14 @@ it("Should display a table when there is only one eval", async () => {
   using fixture = loadFixture("basics");
 
   const captured = captureStdout();
+  const db = createDatabase(":memory:");
 
   await runVitest({
     cwd: fixture.dir,
     path: undefined,
     testOutputWritable: captured.writable,
     mode: "run-once-and-exit",
+    db,
   });
 
   expect(captured.getOutput()).toContain("Input");
@@ -100,12 +108,14 @@ it("Should capture the filepath of the eval", async () => {
   using fixture = loadFixture("basics");
 
   const captured = captureStdout();
+  const db = createDatabase(":memory:");
 
   await runVitest({
     cwd: fixture.dir,
     path: undefined,
     testOutputWritable: captured.writable,
     mode: "run-once-and-exit",
+    db,
   });
 
   const db = createDatabase(fixture.dbLocation);

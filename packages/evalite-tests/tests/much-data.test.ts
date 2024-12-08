@@ -7,12 +7,14 @@ it("Should report long datasets consistently in the same order", async () => {
   using fixture = loadFixture("much-data");
 
   const captured = captureStdout();
+  const db = createDatabase(":memory:");
 
   await runVitest({
     cwd: fixture.dir,
     path: undefined,
     testOutputWritable: captured.writable,
     mode: "run-once-and-exit",
+    db,
   });
 
   const db = createDatabase(fixture.dbLocation);
