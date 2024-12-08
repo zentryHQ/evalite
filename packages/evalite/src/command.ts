@@ -18,11 +18,11 @@ program.description("Run evals once and exit").action(() => {
 });
 
 program
-  .command("watch")
+  .command("watch [path]")
   .description("Watch evals for file changes")
-  .action(() => {
+  .action((path: string | undefined) => {
     runVitest({
-      path: undefined,
+      path,
       cwd: undefined,
       mode: "watch-for-file-changes",
     });
@@ -33,15 +33,4 @@ program
   .description("Run evals at specified path once and exit")
   .action((path) => {
     runVitest({ path, cwd: undefined, mode: "run-once-and-exit" });
-  });
-
-program
-  .command("watch <path>")
-  .description("Watch evals at specified path for file changes")
-  .action((path) => {
-    runVitest({
-      path: path,
-      cwd: undefined,
-      mode: "watch-for-file-changes",
-    });
   });
