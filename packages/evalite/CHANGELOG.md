@@ -1,5 +1,11 @@
 # evalite
 
+## 0.4.4
+
+### Patch Changes
+
+- 3aab797: Fixed console shortcuts during watch mode.
+
 ## 0.4.3
 
 ### Patch Changes
