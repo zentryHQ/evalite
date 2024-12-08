@@ -8,7 +8,6 @@ it("Should let users create custom scorers", async () => {
   using fixture = loadFixture("custom-scorer");
 
   const captured = captureStdout();
-  const db = createDatabase(":memory:");
 
   await runVitest({
     cwd: fixture.dir,
@@ -16,8 +15,9 @@ it("Should let users create custom scorers", async () => {
     path: undefined,
     testOutputWritable: captured.writable,
     mode: "run-once-and-exit",
-    db,
   });
+
+  const db = createDatabase(fixture.dbLocation);
 
   const evals = await getEvalsAsRecord(db);
 

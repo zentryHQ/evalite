@@ -1,3 +1,4 @@
+import { DB_LOCATION } from "@evalite/core";
 import { randomUUID } from "crypto";
 import { cpSync, rmSync } from "fs";
 import path from "path";
@@ -29,6 +30,7 @@ export const loadFixture = (
         force: true,
       });
     },
+    dbLocation: path.join(dirPath, DB_LOCATION),
   };
 };
 

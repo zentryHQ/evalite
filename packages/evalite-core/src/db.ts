@@ -210,8 +210,8 @@ export const saveRun = (
 };
 
 export interface ResultWithInlineScoresAndTraces extends Db.Result {
-  scores: Db.Score;
-  traces: Db.Trace;
+  scores: Db.Score[];
+  traces: Db.Trace[];
 }
 
 interface EvalWithInlineResults extends Db.Eval {

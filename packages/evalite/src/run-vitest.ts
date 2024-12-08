@@ -17,9 +17,12 @@ export const runVitest = async (opts: {
   cwd: string | undefined;
   testOutputWritable?: Writable;
   mode: "watch-for-file-changes" | "run-once-and-exit";
-  db: SQLiteDatabase;
   testTimeout?: number;
 }) => {
+  const dbLocation = path.join(opts.cwd ?? "", DB_LOCATION);
+  await mkdir(path.dirname(dbLocation), { recursive: true });
+
+  const db = createDatabase(dbLocation);
   const filters = opts.path ? [opts.path] : undefined;
 
   process.env.EVALITE_REPORT_TRACES = "true";
@@ -28,7 +31,7 @@ export const runVitest = async (opts: {
 
   if (opts.mode === "watch-for-file-changes") {
     server = createServer({
-      db: opts.db,
+      db: db,
     });
     server.start(DEFAULT_SERVER_PORT);
   }
@@ -49,7 +52,7 @@ export const runVitest = async (opts: {
           },
           port: DEFAULT_SERVER_PORT,
           isWatching: opts.mode === "watch-for-file-changes",
-          db: opts.db,
+          db: db,
         }),
       ],
       testTimeout: opts.testTimeout ?? 30_000,

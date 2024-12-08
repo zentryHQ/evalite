@@ -1,31 +1,25 @@
-import { assert, expect, it } from "vitest";
+import { createDatabase, getEvals, getMostRecentRun } from "@evalite/core/db";
 import { runVitest } from "evalite/runner";
+import { assert, expect, it } from "vitest";
 import { captureStdout, loadFixture } from "./test-utils.js";
-import {
-  createDatabase,
-  getEvals,
-  getEvalsAsRecord,
-  getMostRecentRun,
-  getRun,
-} from "@evalite/core/db";
 
 it("Should handle objects as inputs and outputs", async () => {
   using fixture = loadFixture("objects");
 
   const captured = captureStdout();
-  const db = createDatabase(":memory:");
 
   await runVitest({
     cwd: fixture.dir,
     path: undefined,
     testOutputWritable: captured.writable,
     mode: "run-once-and-exit",
-    db,
   });
+
+  const db = createDatabase(fixture.dbLocation);
 
   const run = getMostRecentRun(db, "full");
 
-  assert(run);
+  assert(run, "Run not found");
 
   const evals = getEvals(db, run.id);
 
