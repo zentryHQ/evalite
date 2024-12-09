@@ -55,7 +55,7 @@ describe("getEvalsAverageScores", () => {
 
     assert(run);
 
-    const evals = getEvals(db, run.id);
+    const evals = getEvals(db, [run.id]);
 
     const averageScore = getEvalsAverageScores(
       db,

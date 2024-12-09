@@ -21,7 +21,7 @@ it("Should handle objects as inputs and outputs", async () => {
 
   assert(run, "Run not found");
 
-  const evals = getEvals(db, run.id);
+  const evals = getEvals(db, [run.id]);
 
-  expect(evals).toMatchObject([{}]);
+  expect(evals).toMatchObject([{}]); // TODO
 });

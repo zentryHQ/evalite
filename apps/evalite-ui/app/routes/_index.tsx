@@ -6,9 +6,9 @@ export const meta: MetaFunction = () => {
 };
 
 export const clientLoader = async () => {
-  const { evals } = await getMenuItems();
+  const { currentEvals } = await getMenuItems();
 
-  const firstName = evals[0]?.name;
+  const firstName = currentEvals[0]?.name;
 
   if (firstName) {
     return redirect(`/eval/${firstName}`);

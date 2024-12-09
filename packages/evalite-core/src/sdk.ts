@@ -2,13 +2,16 @@ import type { Db } from "./db.js";
 
 const BASE_URL = "http://localhost:3006";
 
+type GetMenuItemsResultEval = {
+  filepath: string;
+  score: number;
+  name: string;
+  prevScore: number | undefined;
+};
+
 export type GetMenuItemsResult = {
-  evals: {
-    filepath: string;
-    score: number;
-    name: string;
-    prevScore: number | undefined;
-  }[];
+  currentEvals: GetMenuItemsResultEval[];
+  archivedEvals: GetMenuItemsResultEval[];
 };
 
 export const getMenuItems = async (): Promise<GetMenuItemsResult> => {

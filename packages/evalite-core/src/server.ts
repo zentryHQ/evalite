@@ -40,6 +40,12 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
     return reply.status(200).sendFile("index.html");
   });
 
+  // Add CORS headers
+  server.addHook("onSend", (req, reply, payload, done) => {
+    reply.header("access-control-allow-origin", "*");
+    done(null, payload);
+  });
+
   const listeners = new Map<string, (event: Evalite.WebsocketEvent) => void>();
 
   server.register(async (fastify) => {
@@ -57,54 +63,81 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
   server.get<{
     Reply: GetMenuItemsResult;
   }>("/api/menu-items", async (req, reply) => {
-    let lastRun = getMostRecentRun(opts.db, "full");
+    const latestFullRun = getMostRecentRun(opts.db, "full");
 
-    let evalsToSend: GetMenuItemsResult["evals"] = [];
+    let latestPartialRun = getMostRecentRun(opts.db, "partial");
 
-    if (!lastRun) {
-      lastRun = getMostRecentRun(opts.db, "partial");
+    if (!latestFullRun) {
+      return reply.code(200).send({ currentEvals: [], archivedEvals: [] });
     }
 
-    if (lastRun) {
-      const evals = getEvals(opts.db, lastRun.id).map((e) => ({
-        ...e,
-        prevEval: getPreviousEvalRun(opts.db, e.name, e.created_at),
-      }));
+    /**
+     * Ignore latestPartialRun if the latestFullRun is more
+     * up to date
+     */
+    if (
+      latestPartialRun &&
+      new Date(latestPartialRun.created_at).getTime() <
+        new Date(latestFullRun.created_at).getTime()
+    ) {
+      latestPartialRun = undefined;
+    }
 
-      const evalsAverageScores = getEvalsAverageScores(
-        opts.db,
-        evals.flatMap((e) => {
-          if (e.prevEval) {
-            return [e.id, e.prevEval.id];
-          }
-          return [e.id];
-        })
-      );
+    const evals = getEvals(
+      opts.db,
+      [latestFullRun.id, latestPartialRun?.id].filter(
+        (id) => typeof id === "number"
+      )
+    ).map((e) => ({
+      ...e,
+      prevEval: getPreviousEvalRun(opts.db, e.name, e.created_at),
+    }));
 
-      evalsToSend = evals.map((e) => {
-        const score =
-          evalsAverageScores.find((s) => s.eval_id === e.id)?.average ?? 0;
-        const prevScore =
-          evalsAverageScores.find((s) => s.eval_id === e.prevEval?.id)
-            ?.average ?? 0;
+    const evalsAverageScores = getEvalsAverageScores(
+      opts.db,
+      evals.flatMap((e) => {
+        if (e.prevEval) {
+          return [e.id, e.prevEval.id];
+        }
+        return [e.id];
+      })
+    );
 
-        return {
-          filepath: e.filepath,
-          name: e.name,
-          score,
-          prevScore,
-        };
+    const createEvalMenuItem = (e: (typeof evals)[number]) => {
+      const score =
+        evalsAverageScores.find((s) => s.eval_id === e.id)?.average ?? 0;
+      const prevScore =
+        evalsAverageScores.find((s) => s.eval_id === e.prevEval?.id)?.average ??
+        0;
+
+      return {
+        filepath: e.filepath,
+        name: e.name,
+        score,
+        prevScore,
+      };
+    };
+
+    if (latestPartialRun) {
+      const currentEvals = evals
+        .filter((e) => e.run_id === latestPartialRun.id)
+        .map(createEvalMenuItem);
+
+      const nameSet = new Set(currentEvals.map((e) => e.name));
+
+      return reply.code(200).send({
+        currentEvals: currentEvals,
+        archivedEvals: evals
+          .filter((e) => e.run_id === latestFullRun.id)
+          .filter((e) => !nameSet.has(e.name))
+          .map(createEvalMenuItem),
       });
     }
 
-    const result: GetMenuItemsResult = {
-      evals: evalsToSend,
-    };
-
-    return reply
-      .code(200)
-      .header("access-control-allow-origin", "*")
-      .send(result);
+    return reply.code(200).send({
+      currentEvals: evals.map(createEvalMenuItem),
+      archivedEvals: [],
+    });
   });
 
   server.route<{
@@ -148,32 +181,29 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
         results.map((r) => r.id)
       );
 
-      return res
-        .code(200)
-        .header("access-control-allow-origin", "*")
-        .send({
-          history: [], // TODO when we enable chart
-          evaluation: {
-            ...evaluation,
-            results: results
-              .filter((r) => r.eval_id === evaluation.id)
-              .map((r) => ({
-                ...r,
-                scores: scores.filter((s) => s.result_id === r.id),
-              })),
-          },
-          prevEvaluation: prevEvaluation
-            ? {
-                ...prevEvaluation,
-                results: results
-                  .filter((r) => r.eval_id === prevEvaluation.id)
-                  .map((r) => ({
-                    ...r,
-                    scores: scores.filter((s) => s.result_id === r.id),
-                  })),
-              }
-            : undefined,
-        });
+      return res.code(200).send({
+        history: [], // TODO when we enable chart
+        evaluation: {
+          ...evaluation,
+          results: results
+            .filter((r) => r.eval_id === evaluation.id)
+            .map((r) => ({
+              ...r,
+              scores: scores.filter((s) => s.result_id === r.id),
+            })),
+        },
+        prevEvaluation: prevEvaluation
+          ? {
+              ...prevEvaluation,
+              results: results
+                .filter((r) => r.eval_id === prevEvaluation.id)
+                .map((r) => ({
+                  ...r,
+                  scores: scores.filter((s) => s.result_id === r.id),
+                })),
+            }
+          : undefined,
+      });
     },
   });
 
@@ -265,7 +295,6 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
 
       return res
         .code(200)
-        .header("access-control-allow-origin", "*")
         .send({ result, prevResult, filepath: evaluation.filepath });
     },
   });

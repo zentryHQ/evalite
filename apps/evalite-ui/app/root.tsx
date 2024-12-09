@@ -21,13 +21,14 @@ import {
 } from "~/components/ui/sidebar";
 
 import { getMenuItems } from "@evalite/core/sdk";
-import { getScoreState, Score } from "./components/score";
+import { getScoreState, Score, type ScoreState } from "./components/score";
 import { cn } from "./lib/utils";
 import "./tailwind.css";
 import {
   TestServerStateContext,
   useSubscribeToTestServer,
 } from "./use-subscribe-to-socket";
+import { useContext } from "react";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -61,10 +62,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export const clientLoader = async () => {
-  const { evals } = await getMenuItems();
+  const { archivedEvals, currentEvals } = await getMenuItems();
 
   return {
-    menu: evals.map((e) => {
+    archivedEvals: archivedEvals.map((e) => {
+      const state = getScoreState(e.score, e.prevScore);
+      return {
+        ...e,
+        state,
+      };
+    }),
+    currentEvals: currentEvals.map((e) => {
       const state = getScoreState(e.score, e.prevScore);
       return {
         ...e,
@@ -97,40 +105,39 @@ export default function App() {
           </SidebarHeader>
           <SidebarContent>
             <SidebarGroup>
-              <SidebarGroupLabel>Evals</SidebarGroupLabel>
+              <SidebarGroupLabel>Current Run</SidebarGroupLabel>
               <SidebarMenu>
-                {evals.menu.map((item) => {
-                  let isRunning = false;
-
-                  if (testServer.state.type === "running") {
-                    isRunning = testServer.state.filepaths.has(item.filepath);
-                  }
+                {evals.currentEvals.map((e) => {
                   return (
-                    <SidebarMenuItem key={item.name}>
-                      <NavLink
-                        prefetch="intent"
-                        to={`/eval/${item.name}`}
-                        className={({ isActive }) =>
-                          cn(
-                            "flex justify-between text-sm px-2 py-1 rounded hover:bg-gray-100 transition-colors",
-                            isActive &&
-                              "bg-gray-200 text-gray-800 hover:bg-gray-200"
-                          )
-                        }
-                      >
-                        <span>{item.name}</span>
-
-                        <Score
-                          score={item.score}
-                          state={item.state}
-                          isRunning={isRunning}
-                        />
-                      </NavLink>
-                    </SidebarMenuItem>
+                    <SidebarItem
+                      key={`current-${e.name}`}
+                      filepath={e.filepath}
+                      name={e.name}
+                      score={e.score}
+                      state={e.state}
+                    />
                   );
                 })}
               </SidebarMenu>
             </SidebarGroup>
+            {evals.archivedEvals.length > 0 && (
+              <SidebarGroup>
+                <SidebarGroupLabel>Previous Runs</SidebarGroupLabel>
+                <SidebarMenu>
+                  {evals.archivedEvals.map((e) => {
+                    return (
+                      <SidebarItem
+                        key={`archived-${e.name}`}
+                        filepath={e.filepath}
+                        name={e.name}
+                        score={e.score}
+                        state={e.state}
+                      />
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroup>
+            )}
           </SidebarContent>
         </Sidebar>
         <Outlet />
@@ -138,3 +145,36 @@ export default function App() {
     </TestServerStateContext.Provider>
   );
 }
+
+const SidebarItem = (props: {
+  filepath: string;
+  name: string;
+  state: ScoreState;
+  score: number;
+}) => {
+  let isRunning = false;
+
+  const testServer = useContext(TestServerStateContext);
+
+  if (testServer.state.type === "running") {
+    isRunning = testServer.state.filepaths.has(props.filepath);
+  }
+  return (
+    <SidebarMenuItem key={props.name}>
+      <NavLink
+        prefetch="intent"
+        to={`/eval/${props.name}`}
+        className={({ isActive }) =>
+          cn(
+            "flex justify-between text-sm px-2 py-1 rounded hover:bg-gray-100 transition-colors",
+            isActive && "bg-gray-200 text-gray-800 hover:bg-gray-200"
+          )
+        }
+      >
+        <span>{props.name}</span>
+
+        <Score score={props.score} state={props.state} isRunning={isRunning} />
+      </NavLink>
+    </SidebarMenuItem>
+  );
+};

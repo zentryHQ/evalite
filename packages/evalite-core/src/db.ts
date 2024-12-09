@@ -280,15 +280,15 @@ export const getEvalsAsRecord = async (
   return recordOfEvals;
 };
 
-export const getEvals = (db: BetterSqlite3.Database, runId: number) => {
+export const getEvals = (db: BetterSqlite3.Database, runIds: number[]) => {
   return db
-    .prepare<{ runId: number }, Db.Eval>(
+    .prepare<unknown[], Db.Eval>(
       `
     SELECT * FROM evals
-    WHERE run_id = @runId
+    WHERE run_id IN (${runIds.join(",")})
   `
     )
-    .all({ runId });
+    .all();
 };
 
 export const getResults = (db: BetterSqlite3.Database, evalIds: number[]) => {
