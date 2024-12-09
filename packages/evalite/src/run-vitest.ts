@@ -1,17 +1,12 @@
-import path from "path";
+import { DB_LOCATION, DEFAULT_SERVER_PORT } from "@evalite/core";
+import { createDatabase } from "@evalite/core/db";
+import { createServer } from "@evalite/core/server";
+import { createHash } from "crypto";
 import { mkdir } from "fs/promises";
+import path from "path";
 import { Writable } from "stream";
 import { createVitest, registerConsoleShortcuts } from "vitest/node";
 import EvaliteReporter from "./reporter.js";
-import { createHash } from "crypto";
-import { DB_LOCATION, DEFAULT_SERVER_PORT } from "@evalite/core";
-import {
-  DB_LOCATION,
-  DEFAULT_SERVER_PORT,
-  type JsonDBEvent,
-} from "@evalite/core";
-import { createServer } from "@evalite/core/server";
-import { createDatabase, saveRun, type SQLiteDatabase } from "@evalite/core/db";
 
 export const runVitest = async (opts: {
   path: string | undefined;
