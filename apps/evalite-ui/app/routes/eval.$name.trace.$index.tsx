@@ -73,7 +73,7 @@ export default function Page() {
       <SidebarHeader>
         <div className="flex items-center gap-3">
           <Button size={"icon"} variant="ghost" asChild>
-            <Link to={`/eval/${name}`} preventScrollReset>
+            <Link to={`/eval/${name}`} prefetch="intent" preventScrollReset>
               <SidebarCloseIcon className="size-5 rotate-180" />
             </Link>
           </Button>
@@ -233,6 +233,7 @@ const Trace = (props: {
         "px-2 py-2 hover:bg-gray-100 transition-colors",
         props.isActive && "bg-gray-200 hover:bg-gray-200"
       )}
+      prefetch="intent"
       end
     >
       <span className="block text-sm mb-1">{props.title}</span>

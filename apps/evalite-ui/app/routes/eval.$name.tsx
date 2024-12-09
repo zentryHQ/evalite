@@ -78,6 +78,7 @@ export default function Page() {
             {evaluation.results.map((result, index) => {
               const Wrapper = (props: { children: React.ReactNode }) => (
                 <NavLink
+                  prefetch="intent"
                   to={`trace/${index}`}
                   preventScrollReset
                   className={({ isActive }) => {

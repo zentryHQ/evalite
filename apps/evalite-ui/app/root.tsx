@@ -108,6 +108,7 @@ export default function App() {
                   return (
                     <SidebarMenuItem key={item.name}>
                       <NavLink
+                        prefetch="intent"
                         to={`/eval/${item.name}`}
                         className={({ isActive }) =>
                           cn(
