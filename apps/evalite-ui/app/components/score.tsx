@@ -4,6 +4,7 @@ import {
   ChevronUpCircleIcon,
   LoaderCircleIcon,
 } from "lucide-react";
+import { cn } from "~/lib/utils";
 
 export type ScoreState = "up" | "down" | "same" | "first";
 
@@ -11,35 +12,41 @@ export const Score = (props: {
   score: number;
   state: ScoreState;
   isRunning: boolean;
+  iconClassName?: string;
 }) => {
   return (
     <span className="flex items-center space-x-2">
       <span>{Math.round(props.score * 100)}%</span>
       {props.isRunning ? (
         <span className="text-gray-500">
-          <LoaderCircleIcon className="size-3 animate-spin" />
+          <LoaderCircleIcon
+            className={cn(
+              "size-3 text-blue-500 animate-spin",
+              props.iconClassName
+            )}
+          />
         </span>
       ) : (
         <>
           {props.state === "up" && (
-            <span className="text-primary">
-              <ChevronUpCircleIcon className="size-3 text-green-600" />
-            </span>
+            <ChevronUpCircleIcon
+              className={cn("size-3 text-green-600", props.iconClassName)}
+            />
           )}
           {props.state === "down" && (
-            <span className="text-destructive">
-              <ChevronDownCircleIcon className="size-3 text-red-600" />
-            </span>
+            <ChevronDownCircleIcon
+              className={cn("size-3 text-red-600", props.iconClassName)}
+            />
           )}
           {props.state === "same" && (
-            <span className="text-gray-600">
-              <ChevronRightCircleIcon className="size-3" />
-            </span>
+            <ChevronRightCircleIcon
+              className={cn("size-3 text-blue-500", props.iconClassName)}
+            />
           )}
           {props.state === "first" && (
-            <span className="text-gray-600">
-              <ChevronRightCircleIcon className="size-3" />
-            </span>
+            <ChevronRightCircleIcon
+              className={cn("size-3 text-blue-500", props.iconClassName)}
+            />
           )}
         </>
       )}

@@ -117,6 +117,7 @@ export default function App() {
                     isRunning={testServer.state.type === "running"}
                     score={data.score}
                     state={getScoreState(data.score, data.prevScore)}
+                    iconClassName="size-4"
                   />
                 </div>
               </div>
