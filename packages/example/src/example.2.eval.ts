@@ -46,7 +46,7 @@ evalite("Test Capitals 2", {
   ],
   task: async (input) => {
     const result = await generateText({
-      model: traceAISDKModel(cacheModel(openai("gpt-3.5-turbo"), storage)),
+      model: traceAISDKModel(cacheModel(openai("gpt-4o-mini"), storage)),
       system: `
         Answer the question concisely, in as few words as possible.
       `,

@@ -280,7 +280,7 @@ import { generateText } from "ai";
 import { openai } from "@ai-sdk/openai";
 
 // All calls to this model will be recorded in evalite!
-const tracedModel = traceAISDKModel(openai("gpt-3.5-turbo"));
+const tracedModel = traceAISDKModel(openai("gpt-4o-mini"));
 
 const result = await generateText({
   model: tracedModel,

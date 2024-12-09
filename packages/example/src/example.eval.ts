@@ -58,7 +58,7 @@ evalite("Test Capitals", {
   ],
   task: async (input) => {
     const result = await streamText({
-      model: traceAISDKModel(cacheModel(openai("gpt-3.5-turbo"), storage)),
+      model: traceAISDKModel(cacheModel(openai("gpt-4o-mini"), storage)),
       system: `
         Answer the question concisely. Answer in as few words as possible.
         Remove full stops from the end of the output.
