@@ -4,11 +4,7 @@ import { Writable } from "stream";
 import { createVitest } from "vitest/node";
 import EvaliteReporter from "./reporter.js";
 import { createHash } from "crypto";
-import {
-  DB_LOCATION,
-  DEFAULT_SERVER_PORT,
-  type JsonDBEvent,
-} from "@evalite/core";
+import { DB_LOCATION, DEFAULT_SERVER_PORT } from "@evalite/core";
 import { createServer } from "@evalite/core/server";
 import { createDatabase, saveRun, type SQLiteDatabase } from "@evalite/core/db";
 

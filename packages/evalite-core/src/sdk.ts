@@ -34,26 +34,18 @@ export const getEvalByName = async (
   return res.json() as any;
 };
 
-export const getEvalRun = async (opts: {
-  name: string;
-  timestamp: string;
-}): Promise<JsonDbResult> => {
-  const res = await fetch(
-    `${BASE_URL}/api/eval/run?name=${opts.name}&timestamp=${opts.timestamp}`
-  );
-  return res.json() as any;
+export type GetResultResult = {
+  result: Db.Result & { traces: Db.Trace[]; score: number; scores: Db.Score[] };
+  prevResult: (Db.Result & { score: number; scores: Db.Score[] }) | undefined;
+  filepath: string;
 };
 
-export const getEvalResult = async (opts: {
-  name: string;
+export const getResult = async (opts: {
+  evalName: string;
   resultIndex: string;
-}): Promise<{
-  filepath: string;
-  result: JsonDbResult;
-  prevResult: JsonDbResult | undefined;
-}> => {
+}): Promise<GetResultResult> => {
   const res = await fetch(
-    `${BASE_URL}/api/eval/result?name=${opts.name}&index=${opts.resultIndex}`
+    `${BASE_URL}/api/eval/result?name=${opts.evalName}&index=${opts.resultIndex}`
   );
   return res.json() as any;
 };

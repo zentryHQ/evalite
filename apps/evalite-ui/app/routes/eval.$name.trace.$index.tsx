@@ -1,4 +1,4 @@
-import { getEvalResult } from "@evalite/core/sdk";
+import { getResult } from "@evalite/core/sdk";
 import {
   Link,
   NavLink,
@@ -41,8 +41,8 @@ const SidebarSection = ({
 );
 
 export const clientLoader = async (args: ClientLoaderFunctionArgs) => {
-  const data = await getEvalResult({
-    name: args.params.name!,
+  const data = await getResult({
+    evalName: args.params.name!,
     resultIndex: args.params.index!,
   });
 
@@ -64,8 +64,8 @@ export default function Page() {
 
   const [searchParams] = useSearchParams();
 
-  const startTime = result.traces[0]?.start ?? 0;
-  const endTime = result.traces[result.traces.length - 1]?.end ?? 0;
+  const startTime = result.traces[0]?.start_time ?? 0;
+  const endTime = result.traces[result.traces.length - 1]?.end_time ?? 0;
   const totalTraceDuration = endTime - startTime;
 
   return (
@@ -106,8 +106,8 @@ export default function Page() {
             isActive={!searchParams.get("trace")}
           />
           {result.traces.map((trace, traceIndex) => {
-            const startTimeWithinTrace = trace.start - startTime;
-            const endTimeWithinTrace = trace.end - startTime;
+            const startTimeWithinTrace = trace.start_time - startTime;
+            const endTimeWithinTrace = trace.end_time - startTime;
 
             const startPercent =
               (startTimeWithinTrace / totalTraceDuration) * 100;
@@ -134,7 +134,7 @@ export default function Page() {
               <DisplayTraceData
                 input={result.input}
                 expected={result.expected}
-                result={result.result}
+                result={result.output}
               />
               {result.scores.map((score) => (
                 <>

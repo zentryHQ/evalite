@@ -32,6 +32,7 @@ export const createDatabase = (url: string): BetterSqlite3.Database => {
       input TEXT NOT NULL, -- JSON
       output TEXT NOT NULL, -- JSON
       expected TEXT, -- JSON
+      col_order INTEGER NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (eval_id) REFERENCES evals(id)
     );
@@ -56,6 +57,7 @@ export const createDatabase = (url: string): BetterSqlite3.Database => {
       end_time INTEGER NOT NULL,
       prompt_tokens INTEGER,
       completion_tokens INTEGER,
+      col_order INTEGER NOT NULL,
       FOREIGN KEY (result_id) REFERENCES results(id)
     );
   `);
@@ -87,6 +89,7 @@ export declare namespace Db {
     output: unknown;
     expected?: unknown;
     created_at: string;
+    col_order: number;
   };
 
   export type Score = {
@@ -108,6 +111,7 @@ export declare namespace Db {
     end_time: number;
     prompt_tokens?: number;
     completion_tokens?: number;
+    col_order: number;
   };
 }
 
@@ -156,13 +160,15 @@ export const saveRun = (
         }).lastInsertRowid;
 
       if (task.meta.evalite) {
+        let order = 0;
         for (const { input, output, scores, duration, expected, traces } of task
           .meta.evalite.results) {
+          order += 1;
           const resultId = db
             .prepare(
               `
-              INSERT INTO results (eval_id, duration, input, output, expected)
-              VALUES (@evalId, @duration, @input, @output, @expected)
+              INSERT INTO results (eval_id, duration, input, output, expected, col_order)
+              VALUES (@evalId, @duration, @input, @output, @expected, @col_order)
             `
             )
             .run({
@@ -171,6 +177,7 @@ export const saveRun = (
               input: JSON.stringify(input),
               output: JSON.stringify(output),
               expected: JSON.stringify(expected),
+              col_order: order,
             }).lastInsertRowid;
 
           for (const score of scores) {
@@ -188,11 +195,13 @@ export const saveRun = (
             });
           }
 
+          let traceOrder = 0;
           for (const trace of traces) {
+            traceOrder += 1;
             db.prepare(
               `
-                INSERT INTO traces (result_id, input, output, start_time, end_time, prompt_tokens, completion_tokens)
-                VALUES (@resultId, @input, @output, @start_time, @end_time, @prompt_tokens, @completion_tokens)
+                INSERT INTO traces (result_id, input, output, start_time, end_time, prompt_tokens, completion_tokens, col_order)
+                VALUES (@resultId, @input, @output, @start_time, @end_time, @prompt_tokens, @completion_tokens, @col_order)
               `
             ).run({
               resultId,
@@ -202,6 +211,7 @@ export const saveRun = (
               end_time: Math.round(trace.end),
               prompt_tokens: trace.usage?.promptTokens ?? null,
               completion_tokens: trace.usage?.completionTokens ?? null,
+              col_order: traceOrder,
             });
           }
         }
@@ -287,6 +297,7 @@ export const getResults = (db: BetterSqlite3.Database, evalIds: number[]) => {
       `
     SELECT * FROM results
     WHERE eval_id IN (${evalIds.join(",")})
+    ORDER BY col_order ASC
   `
     )
     .all()
@@ -311,6 +322,7 @@ export const getTraces = (db: BetterSqlite3.Database, resultIds: number[]) => {
       `
     SELECT * FROM traces
     WHERE result_id IN (${resultIds.join(",")})
+    ORDER BY col_order ASC
   `
     )
     .all()
