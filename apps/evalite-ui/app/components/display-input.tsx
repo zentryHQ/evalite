@@ -70,7 +70,7 @@ const DisplayJSON = ({ input }: { input: object }) => {
   return (
     <JSONTree
       data={input}
-      hideRoot
+      shouldExpandNodeInitially={(_, __, level) => level < 4}
       theme={{
         scheme: "grayscale",
         base00: "transparent",
