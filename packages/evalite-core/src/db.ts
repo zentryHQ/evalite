@@ -68,7 +68,7 @@ export const createDatabase = (url: string): BetterSqlite3.Database => {
 export declare namespace Db {
   export type Run = {
     id: number;
-    runType: "full" | "partial";
+    runType: Evalite.RunType;
     created_at: string;
   };
 
@@ -121,7 +121,7 @@ export const saveRun = (
     files,
     runType,
   }: {
-    runType: "full" | "partial";
+    runType: Evalite.RunType;
     files: {
       name: string;
       filepath: string;
@@ -331,7 +331,7 @@ export const getTraces = (db: BetterSqlite3.Database, resultIds: number[]) => {
 
 export const getMostRecentRun = (
   db: BetterSqlite3.Database,
-  runType: "full" | "partial"
+  runType: Evalite.RunType
 ) => {
   const run = db
     .prepare<{ runType: string }, Db.Run>(

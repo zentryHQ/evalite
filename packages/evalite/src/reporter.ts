@@ -33,6 +33,7 @@ const renderers = {
 
 export default class EvaliteReporter extends BasicReporter {
   private opts: EvaliteReporterOptions;
+  private lastRunTypeLogged: Evalite.RunType = "full";
 
   // private server: Server;
   constructor(opts: EvaliteReporterOptions) {
@@ -54,6 +55,7 @@ export default class EvaliteReporter extends BasicReporter {
       filepaths: this.ctx.state.getFiles().map((f) => f.filepath),
       runType: "full",
     });
+    this.lastRunTypeLogged = "full";
   }
 
   override onWatcherStart(files?: RunnerTestFile[], errors?: unknown[]): void {
@@ -66,6 +68,7 @@ export default class EvaliteReporter extends BasicReporter {
       filepaths: files,
       runType: "partial",
     });
+    this.lastRunTypeLogged = "partial";
     super.onWatcherRerun(files, trigger);
   }
 
@@ -77,7 +80,7 @@ export default class EvaliteReporter extends BasicReporter {
       type: "RUN_COMPLETE",
     });
 
-    saveRun(this.opts.db, { files, runType: "full" });
+    saveRun(this.opts.db, { files, runType: this.lastRunTypeLogged });
 
     super.onFinished(files, errors);
   };
