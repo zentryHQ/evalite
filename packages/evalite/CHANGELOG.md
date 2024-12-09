@@ -1,5 +1,21 @@
 # evalite
 
+## 0.5.0
+
+### Minor Changes
+
+- 32cb0e5: Adopted sqlite as the database instead of jsonl.
+
+  The db will now be saved to `./node_modules/.evalite` by default instead of `evalite-report.jsonl`.
+
+### Patch Changes
+
+- ad28d0b: Made it possible to return any async iterable from a task - more permissive than a ReadableStream.
+- Updated dependencies [ad28d0b]
+- Updated dependencies [32cb0e5]
+- Updated dependencies [a13be9e]
+  - @evalite/core@0.3.0
+
 ## 0.4.4
 
 ### Patch Changes
