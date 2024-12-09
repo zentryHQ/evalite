@@ -225,6 +225,14 @@ export default function Page() {
                       )}
                     />
                   </MainBodySection>
+                  {score.metadata && (
+                    <>
+                      <DisplayInput
+                        shouldTruncateText={false}
+                        input={score.metadata}
+                      ></DisplayInput>
+                    </>
+                  )}
                 </>
               ))}
             </>
