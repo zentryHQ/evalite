@@ -1,5 +1,13 @@
 # evalite
 
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies [8b23607]
+- Updated dependencies [8130cc9]
+  - @evalite/core@0.3.1
+
 ## 0.5.0
 
 ### Minor Changes
