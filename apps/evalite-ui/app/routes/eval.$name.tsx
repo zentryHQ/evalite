@@ -1,4 +1,4 @@
-import { getEvalRunsByName } from "@evalite/core/sdk";
+import { getEvalByName } from "@evalite/core/sdk";
 import type { MetaFunction } from "@remix-run/node";
 import {
   NavLink,
@@ -28,20 +28,11 @@ export const meta: MetaFunction<typeof clientLoader> = (args) => {
 };
 
 export const clientLoader = async (args: ClientLoaderFunctionArgs) => {
-  const evaluations = await getEvalRunsByName(args.params.name!);
-
-  const history = evaluations
-    .map((e) => ({
-      score: Math.round(e.score * 100),
-      date: e.startTime,
-    }))
-    .reverse();
+  const result = await getEvalByName(args.params.name!);
 
   return {
-    evaluation: evaluations[0]!,
-    prevEvaluation: evaluations[1],
+    ...result,
     name: args.params.name!,
-    history,
   };
 };
 
@@ -110,7 +101,7 @@ export default function Page() {
                   </td>
                   <td>
                     <DisplayInput
-                      input={result.result}
+                      input={result.output}
                       shouldTruncateText
                       Wrapper={Wrapper}
                     />
@@ -135,7 +126,7 @@ export default function Page() {
                       >
                         <Wrapper>
                           <Score
-                            score={scorer.score ?? 0}
+                            score={scorer.score}
                             isRunning={
                               serverState.state.type === "running" &&
                               serverState.state.filepaths.has(
@@ -143,7 +134,7 @@ export default function Page() {
                               )
                             }
                             state={getScoreState(
-                              scorer.score ?? 0,
+                              scorer.score,
                               scoreInPreviousEvaluation?.score
                             )}
                           />

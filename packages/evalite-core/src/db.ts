@@ -85,7 +85,7 @@ export declare namespace Db {
     duration: number;
     input: unknown;
     output: unknown;
-    expected?: string;
+    expected?: unknown;
     created_at: string;
   };
 
@@ -290,7 +290,7 @@ export const getResults = (db: BetterSqlite3.Database, evalIds: number[]) => {
   `
     )
     .all()
-    .map((r) => jsonParseFields(r, ["input", "output"]));
+    .map((r) => jsonParseFields(r, ["input", "output", "expected"]));
 };
 
 export const getScores = (db: BetterSqlite3.Database, resultIds: number[]) => {
@@ -341,9 +341,9 @@ export const getPreviousEvalRun = (
   startTime: string
 ) => {
   const evaluation = db
-    .prepare<{ name: string; startTime: string }, Pick<Db.Eval, "id">>(
+    .prepare<{ name: string; startTime: string }, Db.Eval>(
       `
-    SELECT id FROM evals
+    SELECT * FROM evals
     WHERE name = @name AND created_at < @startTime
     ORDER BY created_at DESC
     LIMIT 1
@@ -415,4 +415,20 @@ export const jsonParseFields = <T extends object, K extends keyof T>(
   }
 
   return objToReturn;
+};
+
+export const getMostRecentEvalByName = (
+  db: BetterSqlite3.Database,
+  name: string
+) => {
+  return db
+    .prepare<{ name: string }, Db.Eval>(
+      `
+    SELECT * FROM evals
+    WHERE name = @name
+    ORDER BY created_at DESC
+    LIMIT 1
+  `
+    )
+    .get({ name });
 };

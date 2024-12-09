@@ -6,11 +6,14 @@ import {
   getEvals,
   getEvalsAsRecord,
   getEvalsAverageScores,
+  getMostRecentEvalByName,
   getMostRecentRun,
   getPreviousEvalRun,
+  getResults,
+  getScores,
   type SQLiteDatabase,
 } from "./db.js";
-import type { GetMenuItemsResult } from "./sdk.js";
+import type { GetEvalByNameResult, GetMenuItemsResult } from "./sdk.js";
 import type { Evalite } from "./types.js";
 
 export type Server = ReturnType<typeof createServer>;
@@ -97,6 +100,7 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
     Querystring: {
       name: string;
     };
+    Reply: GetEvalByNameResult;
   }>({
     method: "GET",
     url: "/api/eval",
@@ -111,16 +115,54 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
     handler: async (req, res) => {
       const name = req.query.name;
 
-      const fileData = await getEvalsAsRecord(opts.db);
+      const evaluation = getMostRecentEvalByName(opts.db, name);
 
-      if (!fileData) {
+      if (!evaluation) {
         return res.code(404).send();
       }
+
+      const prevEvaluation = getPreviousEvalRun(
+        opts.db,
+        name,
+        evaluation.created_at
+      );
+
+      const results = getResults(
+        opts.db,
+        [evaluation.id, prevEvaluation?.id].filter((i) => typeof i === "number")
+      );
+
+      const scores = getScores(
+        opts.db,
+        results.map((r) => r.id)
+      );
 
       return res
         .code(200)
         .header("access-control-allow-origin", "*")
-        .send(fileData[name] ?? []);
+        .send({
+          history: [], // TODO when we enable chart
+          evaluation: {
+            ...evaluation,
+            results: results
+              .filter((r) => r.eval_id === evaluation.id)
+              .map((r) => ({
+                ...r,
+                scores: scores.filter((s) => s.result_id === r.id),
+              })),
+          },
+          prevEvaluation: prevEvaluation
+            ? {
+                ...prevEvaluation,
+                results: results
+                  .filter((r) => r.eval_id === prevEvaluation.id)
+                  .map((r) => ({
+                    ...r,
+                    scores: scores.filter((s) => s.result_id === r.id),
+                  })),
+              }
+            : undefined,
+        });
     },
   });
 

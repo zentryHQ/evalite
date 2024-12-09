@@ -16,9 +16,20 @@ export const getMenuItems = async (): Promise<GetMenuItemsResult> => {
   return res.json() as any;
 };
 
-export const getEvalRunsByName = async (
+export type GetEvalByNameResult = {
+  history: {
+    score: number;
+    date: string;
+  }[];
+  evaluation: Db.Eval & { results: (Db.Result & { scores: Db.Score[] })[] };
+  prevEvaluation:
+    | (Db.Eval & { results: (Db.Result & { scores: Db.Score[] })[] })
+    | undefined;
+};
+
+export const getEvalByName = async (
   name: string
-): Promise<JsonDBEval[]> => {
+): Promise<GetEvalByNameResult> => {
   const res = await fetch(`${BASE_URL}/api/eval?name=${name}`);
   return res.json() as any;
 };
