@@ -1,7 +1,7 @@
-import { getJsonDbEvals } from "@evalite/core";
 import { assert, expect, it } from "vitest";
 import { runVitest } from "evalite/runner";
 import { captureStdout, loadFixture } from "./test-utils.js";
+import { createDatabase, getEvals, getEvalsAsRecord } from "@evalite/core/db";
 
 it("Should report the basics correctly", async () => {
   using fixture = loadFixture("basics");
@@ -34,7 +34,9 @@ it("Should create a evalite-report.jsonl", async () => {
     mode: "run-once-and-exit",
   });
 
-  const evals = await getJsonDbEvals({ dbLocation: fixture.jsonDbLocation });
+  const db = createDatabase(fixture.dbLocation);
+
+  const evals = await getEvalsAsRecord(db);
 
   expect(evals).toMatchObject({
     Basics: [
@@ -67,32 +69,12 @@ it("Should capture the duration as being more than 0", async () => {
     mode: "run-once-and-exit",
   });
 
-  const evals = await getJsonDbEvals({ dbLocation: fixture.jsonDbLocation });
+  const db = createDatabase(fixture.dbLocation);
+
+  const evals = await getEvalsAsRecord(db);
 
   assert(typeof evals.Basics?.[0]?.duration === "number", "Duration exists");
   expect(evals.Basics?.[0]?.duration).toBeGreaterThan(0);
-});
-
-it("Should capture a hash of the source code", async () => {
-  using fixture = loadFixture("basics");
-
-  const captured = captureStdout();
-
-  await runVitest({
-    cwd: fixture.dir,
-    path: undefined,
-    testOutputWritable: captured.writable,
-    mode: "run-once-and-exit",
-  });
-
-  const evals = await getJsonDbEvals({ dbLocation: fixture.jsonDbLocation });
-
-  assert(
-    typeof evals.Basics?.[0]?.sourceCodeHash === "string",
-    "Source code hash exists"
-  );
-
-  expect(evals.Basics[0].sourceCodeHash.length).toEqual(64);
 });
 
 it("Should display a table when there is only one eval", async () => {
@@ -126,7 +108,9 @@ it("Should capture the filepath of the eval", async () => {
     mode: "run-once-and-exit",
   });
 
-  const evals = await getJsonDbEvals({ dbLocation: fixture.jsonDbLocation });
+  const db = createDatabase(fixture.dbLocation);
+
+  const evals = await getEvalsAsRecord(db);
 
   expect(evals.Basics?.[0]?.filepath).toContain("basics.eval.ts");
 });

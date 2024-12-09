@@ -1,6 +1,6 @@
-import { getJsonDbEvals } from "@evalite/core";
-import { expect, it } from "vitest";
+import { createDatabase, getEvalsAsRecord } from "@evalite/core/db";
 import { runVitest } from "evalite/runner";
+import { expect, it } from "vitest";
 import { captureStdout, loadFixture } from "./test-utils.js";
 
 it("Should report traces from traceAISDKModel", async () => {
@@ -15,7 +15,9 @@ it("Should report traces from traceAISDKModel", async () => {
     mode: "run-once-and-exit",
   });
 
-  const evals = await getJsonDbEvals({ dbLocation: fixture.jsonDbLocation });
+  const db = createDatabase(fixture.dbLocation);
+
+  const evals = await getEvalsAsRecord(db);
 
   expect(evals["AI SDK Traces"]![0]?.results[0]?.traces).toHaveLength(1);
 });

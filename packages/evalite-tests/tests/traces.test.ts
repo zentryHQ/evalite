@@ -1,7 +1,7 @@
-import { getJsonDbEvals } from "@evalite/core";
 import { expect, it } from "vitest";
 import { runVitest } from "evalite/runner";
 import { captureStdout, loadFixture } from "./test-utils.js";
+import { createDatabase, getEvalsAsRecord } from "@evalite/core/db";
 
 it("Should report traces from reportTrace", async () => {
   using fixture = loadFixture("traces");
@@ -15,27 +15,26 @@ it("Should report traces from reportTrace", async () => {
     mode: "run-once-and-exit",
   });
 
-  const evals = await getJsonDbEvals({ dbLocation: fixture.jsonDbLocation });
+  const db = createDatabase(fixture.dbLocation);
+
+  const evals = await getEvalsAsRecord(db);
 
   expect(evals.Traces![0]).toMatchObject({
     results: [
       {
         traces: [
           {
-            duration: 100,
-            end: 100,
+            end_time: 100,
             output: "abcdef",
-            prompt: [
+            input: [
               {
                 content: "abc",
                 role: "input",
               },
             ],
-            start: 0,
-            usage: {
-              completionTokens: 1,
-              promptTokens: 1,
-            },
+            start_time: 0,
+            completion_tokens: 1,
+            prompt_tokens: 1,
           },
         ],
       },

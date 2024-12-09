@@ -1,7 +1,7 @@
-import { getJsonDbEvals } from "@evalite/core";
-import { assert, expect, it } from "vitest";
 import { runVitest } from "evalite/runner";
+import { expect, it } from "vitest";
 import { captureStdout, loadFixture } from "./test-utils.js";
+import { createDatabase } from "@evalite/core/db";
 
 it("Should report long text correctly", async () => {
   using fixture = loadFixture("long-text");

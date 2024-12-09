@@ -1,9 +1,7 @@
-import { readFileSync } from "fs";
-import path from "path";
-import { assert, expect, it } from "vitest";
+import { createDatabase, getEvalsAsRecord } from "@evalite/core/db";
 import { runVitest } from "evalite/runner";
+import { expect, it } from "vitest";
 import { captureStdout, loadFixture } from "./test-utils.js";
-import { getJsonDbEvals, getRows } from "@evalite/core";
 
 it("Should report long datasets consistently in the same order", async () => {
   using fixture = loadFixture("much-data");
@@ -17,9 +15,9 @@ it("Should report long datasets consistently in the same order", async () => {
     mode: "run-once-and-exit",
   });
 
-  const jsonDbEvals = await getJsonDbEvals({
-    dbLocation: fixture.jsonDbLocation,
-  });
+  const db = createDatabase(fixture.dbLocation);
+
+  const jsonDbEvals = await getEvalsAsRecord(db);
 
   expect(jsonDbEvals["Much Data"]![0]!.results).toMatchObject([
     {

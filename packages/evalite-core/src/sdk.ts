@@ -1,43 +1,51 @@
-import type {
-  GetJsonDbEvalsResult,
-  JsonDBEval,
-  JsonDbResult,
-} from "./json-db.js";
+import type { Db } from "./db.js";
 
 const BASE_URL = "http://localhost:3006";
 
-export const getEvals = async (): Promise<GetJsonDbEvalsResult> => {
-  const res = await fetch(`${BASE_URL}/api/evals`);
+export type GetMenuItemsResult = {
+  evals: {
+    filepath: string;
+    score: number;
+    name: string;
+    prevScore: number | undefined;
+  }[];
+};
+
+export const getMenuItems = async (): Promise<GetMenuItemsResult> => {
+  const res = await fetch(`${BASE_URL}/api/menu-items`);
   return res.json() as any;
 };
 
-export const getEvalRunsByName = async (
+export type GetEvalByNameResult = {
+  history: {
+    score: number;
+    date: string;
+  }[];
+  evaluation: Db.Eval & { results: (Db.Result & { scores: Db.Score[] })[] };
+  prevEvaluation:
+    | (Db.Eval & { results: (Db.Result & { scores: Db.Score[] })[] })
+    | undefined;
+};
+
+export const getEvalByName = async (
   name: string
-): Promise<JsonDBEval[]> => {
+): Promise<GetEvalByNameResult> => {
   const res = await fetch(`${BASE_URL}/api/eval?name=${name}`);
   return res.json() as any;
 };
 
-export const getEvalRun = async (opts: {
-  name: string;
-  timestamp: string;
-}): Promise<JsonDbResult> => {
-  const res = await fetch(
-    `${BASE_URL}/api/eval/run?name=${opts.name}&timestamp=${opts.timestamp}`
-  );
-  return res.json() as any;
+export type GetResultResult = {
+  result: Db.Result & { traces: Db.Trace[]; score: number; scores: Db.Score[] };
+  prevResult: (Db.Result & { score: number; scores: Db.Score[] }) | undefined;
+  filepath: string;
 };
 
-export const getEvalResult = async (opts: {
-  name: string;
+export const getResult = async (opts: {
+  evalName: string;
   resultIndex: string;
-}): Promise<{
-  filepath: string;
-  result: JsonDbResult;
-  prevResult: JsonDbResult | undefined;
-}> => {
+}): Promise<GetResultResult> => {
   const res = await fetch(
-    `${BASE_URL}/api/eval/result?name=${opts.name}&index=${opts.resultIndex}`
+    `${BASE_URL}/api/eval/result?name=${opts.evalName}&index=${opts.resultIndex}`
   );
   return res.json() as any;
 };

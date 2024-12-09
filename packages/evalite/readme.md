@@ -69,7 +69,7 @@ This runs `evalite`, which runs the evals:
 - Runs the `data` function to get the test data
 - Runs the `task` function on each test data
 - Scores the output of the `task` function using the `scorers`
-- Appends the result of the eval to a `evalite-report.jsonl` file
+- Saves the results to a sqlite database in `node_modules/.evalite`
 
 It then:
 
@@ -86,7 +86,7 @@ Evalite is still an experimental project. I'm actively working on it, and for no
 
 If you run into any unexpected behavior:
 
-1. Delete the `evalite-report.jsonl` file.
+1. Delete the `node_modules/.evalite` folder.
 2. Update `evalite` to the latest version.
 3. Rerun your evals.
 

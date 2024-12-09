@@ -1,17 +1,18 @@
 import type { RunnerTask, RunnerTestFile, TaskResultPack } from "vitest";
 import { BasicReporter } from "vitest/reporters";
 
-import { appendEvalsToJsonDb, type Evalite } from "@evalite/core";
+import { type Evalite } from "@evalite/core";
 import { table } from "table";
 import c from "tinyrainbow";
 import { average, sum } from "./utils.js";
 import { inspect } from "util";
+import { saveRun, type SQLiteDatabase } from "@evalite/core/db";
 
 export interface EvaliteReporterOptions {
-  jsonDbLocation: string;
   isWatching: boolean;
   port: number;
   logEvent: (event: Evalite.WebsocketEvent) => void;
+  db: SQLiteDatabase;
 }
 
 const renderers = {
@@ -32,6 +33,7 @@ const renderers = {
 
 export default class EvaliteReporter extends BasicReporter {
   private opts: EvaliteReporterOptions;
+  private lastRunTypeLogged: Evalite.RunType = "full";
 
   // private server: Server;
   constructor(opts: EvaliteReporterOptions) {
@@ -53,14 +55,8 @@ export default class EvaliteReporter extends BasicReporter {
       filepaths: this.ctx.state.getFiles().map((f) => f.filepath),
       runType: "full",
     });
+    this.lastRunTypeLogged = "full";
   }
-
-  // override onTaskUpdate(packs: TaskResultPack[]): void {
-  //   this.opts.logEvent({
-  //     type: "RUN_IN_PROGRESS",
-  //   });
-  //   super.onTaskUpdate(packs);
-  // }
 
   override onWatcherStart(files?: RunnerTestFile[], errors?: unknown[]): void {
     super.onWatcherStart(files, errors);
@@ -72,6 +68,7 @@ export default class EvaliteReporter extends BasicReporter {
       filepaths: files,
       runType: "partial",
     });
+    this.lastRunTypeLogged = "partial";
     super.onWatcherRerun(files, trigger);
   }
 
@@ -83,10 +80,7 @@ export default class EvaliteReporter extends BasicReporter {
       type: "RUN_COMPLETE",
     });
 
-    await appendEvalsToJsonDb({
-      dbLocation: this.opts.jsonDbLocation,
-      files,
-    });
+    saveRun(this.opts.db, { files, runType: this.lastRunTypeLogged });
 
     super.onFinished(files, errors);
   };
@@ -198,7 +192,7 @@ export default class EvaliteReporter extends BasicReporter {
       this.renderTable(
         evals[0].meta.evalite!.results.map((result) => ({
           input: result.input,
-          output: result.result,
+          output: result.output,
           score: average(result.scores, (s) => s.score ?? 0),
         }))
       );

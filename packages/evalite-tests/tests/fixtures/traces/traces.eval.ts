@@ -16,7 +16,7 @@ evalite("Traces", {
       start: 0,
       end: 100,
       output: "abcdef",
-      prompt: [
+      input: [
         {
           role: "input",
           content: "abc",
