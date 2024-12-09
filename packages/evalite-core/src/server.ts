@@ -25,7 +25,10 @@ import { fileURLToPath } from "url";
 export type Server = ReturnType<typeof createServer>;
 
 export const createServer = (opts: { db: SQLiteDatabase }) => {
-  const UI_ROOT = path.join(fileURLToPath(import.meta.url), "./ui");
+  const UI_ROOT = path.join(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "./ui"
+  );
   const server = fastify();
 
   server.register(fastifyWebsocket);
