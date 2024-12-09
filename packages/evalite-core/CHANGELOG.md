@@ -1,5 +1,12 @@
 # @evalite/core
 
+## 0.3.1
+
+### Patch Changes
+
+- 8b23607: Added a top-level summary of all runs
+- 8130cc9: Made the left-hand nav differentiate between files in the current run and those of previous runs.
+
 ## 0.3.0
 
 ### Minor Changes
