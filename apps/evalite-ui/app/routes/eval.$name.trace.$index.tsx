@@ -92,7 +92,7 @@ export default function Page() {
                   />
                 </BreadcrumbItem>
                 <Separator orientation="vertical" className="mx-1 h-4" />
-                <BreadcrumbItem>{result.duration}ms</BreadcrumbItem>
+                <BreadcrumbItem>{formatTime(result.duration)}</BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
           </div>
