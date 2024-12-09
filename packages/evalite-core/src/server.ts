@@ -20,11 +20,12 @@ import {
   type GetResultResult,
 } from "./sdk.js";
 import type { Evalite } from "./types.js";
+import { fileURLToPath } from "url";
 
 export type Server = ReturnType<typeof createServer>;
 
 export const createServer = (opts: { db: SQLiteDatabase }) => {
-  const UI_ROOT = path.join(import.meta.dirname, "./ui");
+  const UI_ROOT = path.join(fileURLToPath(import.meta.url), "./ui");
   const server = fastify();
 
   server.register(fastifyWebsocket);
