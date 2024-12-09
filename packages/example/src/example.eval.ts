@@ -29,7 +29,7 @@ evalite("Test Capitals", {
     },
     {
       input: `What's the capital of the United States?`,
-      expected: `Washington DC`,
+      expected: `Washington, D.C`,
     },
     {
       input: `What's the capital of Canada?`,
@@ -49,7 +49,11 @@ evalite("Test Capitals", {
     },
     {
       input: `What's the capital of Antarctica?`,
-      expected: `Antarctica has no capital.`,
+      expected: `Antarctica has no capital`,
+    },
+    {
+      input: `What's the capital of Bonkersville?`,
+      expected: "Unknown",
     },
   ],
   task: async (input) => {
@@ -58,6 +62,8 @@ evalite("Test Capitals", {
       system: `
         Answer the question concisely. Answer in as few words as possible.
         Remove full stops from the end of the output.
+        If the country has no capital, return '<country> has no capital'.
+        If the country does not exist, return 'Unknown'.
       `,
       prompt: input,
     });
