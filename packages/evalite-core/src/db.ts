@@ -1,7 +1,6 @@
 import type * as BetterSqlite3 from "better-sqlite3";
 import Database from "better-sqlite3";
 import type { Evalite } from "./index.js";
-import type { GetMenuItemsResult } from "./sdk.js";
 
 export type SQLiteDatabase = BetterSqlite3.Database;
 
