@@ -1,5 +1,13 @@
 # @evalite/core
 
+## 0.3.2
+
+### Patch Changes
+
+- 101179c: Added a section in the traces view to view the prompt and completion tokens
+- fef1c4f: Allowed for viewing metadata along with each score
+- 4d006a1: Added a view in the traces to show how long each trace took.
+
 ## 0.3.1
 
 ### Patch Changes
