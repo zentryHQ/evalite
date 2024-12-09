@@ -13,7 +13,6 @@ it("Should report long text correctly", async () => {
     path: undefined,
     testOutputWritable: captured.writable,
     mode: "run-once-and-exit",
-    db: createDatabase(":memory:"),
   });
 
   expect(captured.getOutput()).toContain("Input");

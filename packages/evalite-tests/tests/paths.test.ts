@@ -7,14 +7,12 @@ it("Should allow you to pass a specific filename to run", async () => {
   using fixture = loadFixture("paths");
 
   const captured = captureStdout();
-  const db = createDatabase(":memory:");
 
   await runVitest({
     cwd: fixture.dir,
     path: "should-run.eval.ts",
     testOutputWritable: captured.writable,
     mode: "run-once-and-exit",
-    db,
   });
   const db = createDatabase(fixture.dbLocation);
 
@@ -28,14 +26,12 @@ it("Should allow you to pass a filename filter", async () => {
   using fixture = loadFixture("paths");
 
   const captured = captureStdout();
-  const db = createDatabase(":memory:");
 
   await runVitest({
     cwd: fixture.dir,
     path: "should-run",
     testOutputWritable: captured.writable,
     mode: "run-once-and-exit",
-    db,
   });
   const db = createDatabase(fixture.dbLocation);
 
