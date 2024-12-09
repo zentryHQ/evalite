@@ -93,14 +93,14 @@ export default function Page() {
                   key={JSON.stringify(result.input)}
                   className="has-[.active]:bg-gray-100"
                 >
-                  <td>
+                  <td className="align-top">
                     <DisplayInput
                       input={result.input}
                       shouldTruncateText
                       Wrapper={Wrapper}
                     />
                   </td>
-                  <td>
+                  <td className="align-top">
                     <DisplayInput
                       input={result.output}
                       shouldTruncateText
@@ -108,7 +108,7 @@ export default function Page() {
                     />
                   </td>
                   {showExpectedColumn && (
-                    <td>
+                    <td className="align-top">
                       <DisplayInput
                         input={result.expected}
                         shouldTruncateText
@@ -123,7 +123,7 @@ export default function Page() {
                     return (
                       <td
                         key={scorer.name}
-                        className={cn(index === 0 && "border-l")}
+                        className={cn(index === 0 && "border-l", "align-top")}
                       >
                         <Wrapper>
                           <Score

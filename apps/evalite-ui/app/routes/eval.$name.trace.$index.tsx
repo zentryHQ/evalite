@@ -1,4 +1,5 @@
 import { getResult } from "@evalite/core/sdk";
+import { sum } from "@evalite/core/utils";
 import {
   Link,
   NavLink,
@@ -23,7 +24,7 @@ import { cn } from "~/lib/utils";
 import { TestServerStateContext } from "~/use-subscribe-to-socket";
 import { formatTime } from "~/utils";
 
-const SidebarSection = ({
+const MainBodySection = ({
   title,
   description,
   children,
@@ -33,13 +34,13 @@ const SidebarSection = ({
   children: React.ReactNode;
 }) => (
   <div className="text-sm">
-    <div>
-      <h2 className="font-medium text-sm text-gray-500 mb-1">{title}</h2>
+    <div className="mb-3">
+      <h2 className="font-medium text-base text-gray-600">{title}</h2>
       {description && (
-        <p className="text-gray-500 text-xs mb-2">{description}</p>
+        <p className="text-gray-500 text-xs mt-1">{description}</p>
       )}
     </div>
-    <div className="mt-1">{children}</div>
+    <div className="mt-1 text-gray-600">{children}</div>
   </div>
 );
 
@@ -71,6 +72,24 @@ export default function Page() {
   const endTime = result.traces[result.traces.length - 1]?.end_time ?? 0;
   const totalTraceDuration = endTime - startTime;
 
+  const traceIndex = searchParams.get("trace");
+
+  const traceBeingViewed = traceIndex
+    ? result.traces[Number(traceIndex)]
+    : null;
+
+  const wholeEvalUsage =
+    result.traces.length > 0 &&
+    result.traces.every(
+      (t) =>
+        typeof t.completion_tokens === "number" &&
+        typeof t.prompt_tokens === "number"
+    )
+      ? {
+          prompt_tokens: sum(result.traces, (t) => t.prompt_tokens),
+          completion_tokens: sum(result.traces, (t) => t.completion_tokens),
+        }
+      : undefined;
   return (
     <>
       <SidebarHeader>
@@ -93,6 +112,16 @@ export default function Page() {
                 </BreadcrumbItem>
                 <Separator orientation="vertical" className="mx-1 h-4" />
                 <BreadcrumbItem>{formatTime(result.duration)}</BreadcrumbItem>
+                {wholeEvalUsage && (
+                  <>
+                    <Separator orientation="vertical" className="mx-1 h-4" />
+                    <BreadcrumbItem>
+                      {wholeEvalUsage.prompt_tokens +
+                        wholeEvalUsage.completion_tokens}{" "}
+                      Tokens
+                    </BreadcrumbItem>
+                  </>
+                )}
               </BreadcrumbList>
             </Breadcrumb>
           </div>
@@ -136,15 +165,51 @@ export default function Page() {
         <div className="flex-grow border-l pl-4">
           {!searchParams.get("trace") && (
             <>
-              <DisplayTraceData
-                input={result.input}
-                expected={result.expected}
-                result={result.output}
-              />
+              {wholeEvalUsage && (
+                <>
+                  <MainBodySection
+                    title="Token Usage"
+                    description="How many tokens the entire evaluation used."
+                  >
+                    <span className="block mb-1 text-sm">
+                      Prompt Tokens: {wholeEvalUsage.prompt_tokens}
+                    </span>
+                    <span className="block">
+                      Completion Tokens: {wholeEvalUsage.completion_tokens}
+                    </span>
+                  </MainBodySection>
+                  <MainBodySeparator />
+                </>
+              )}
+              <MainBodySection title="Input">
+                <DisplayInput
+                  shouldTruncateText={false}
+                  input={result.input}
+                ></DisplayInput>
+              </MainBodySection>
+              <MainBodySeparator />
+              {result.expected ? (
+                <>
+                  <MainBodySection title="Expected">
+                    <DisplayInput
+                      shouldTruncateText={false}
+                      input={result.expected}
+                    ></DisplayInput>
+                  </MainBodySection>
+                  <MainBodySeparator />
+                </>
+              ) : null}
+              <MainBodySection title="Output">
+                <DisplayInput
+                  shouldTruncateText={false}
+                  input={result.output}
+                ></DisplayInput>
+              </MainBodySection>
+
               {result.scores.map((score) => (
                 <>
-                  <Separator className="my-4" />
-                  <SidebarSection
+                  <MainBodySeparator />
+                  <MainBodySection
                     key={score.name}
                     title={score.name}
                     description={score.description}
@@ -159,20 +224,43 @@ export default function Page() {
                         )?.score
                       )}
                     />
-                  </SidebarSection>
+                  </MainBodySection>
                 </>
               ))}
             </>
           )}
-          {searchParams.get("trace") && (
+          {traceBeingViewed && (
             <>
-              <DisplayTraceData
-                input={result.traces[Number(searchParams.get("trace"))]?.input}
-                expected={undefined}
-                result={
-                  result.traces[Number(searchParams.get("trace"))]?.output
-                }
-              />
+              {typeof traceBeingViewed.completion_tokens === "number" &&
+                typeof traceBeingViewed.prompt_tokens === "number" && (
+                  <>
+                    <MainBodySection
+                      title="Token Usage"
+                      description="How many tokens were used by this trace."
+                    >
+                      <span className="block mb-1 text-sm">
+                        Prompt Tokens: {traceBeingViewed.prompt_tokens}
+                      </span>
+                      <span className="block">
+                        Completion Tokens: {traceBeingViewed.completion_tokens}
+                      </span>
+                    </MainBodySection>
+                    <MainBodySeparator />
+                  </>
+                )}
+              <MainBodySection title="Input">
+                <DisplayInput
+                  shouldTruncateText={false}
+                  input={traceBeingViewed.input}
+                ></DisplayInput>
+              </MainBodySection>
+              <MainBodySeparator />
+              <MainBodySection title="Output">
+                <DisplayInput
+                  shouldTruncateText={false}
+                  input={traceBeingViewed.output}
+                ></DisplayInput>
+              </MainBodySection>
             </>
           )}
         </div>
@@ -181,40 +269,9 @@ export default function Page() {
   );
 }
 
-const DisplayTraceData = (props: {
-  input: unknown;
-  expected: unknown | undefined;
-  result: unknown;
-}) => {
-  return (
-    <>
-      <SidebarSection title="Input">
-        <DisplayInput
-          shouldTruncateText={false}
-          input={props.input}
-        ></DisplayInput>
-      </SidebarSection>
-      <Separator className="my-4" />
-      {props.expected ? (
-        <>
-          <SidebarSection title="Expected">
-            <DisplayInput
-              shouldTruncateText={false}
-              input={props.expected}
-            ></DisplayInput>
-          </SidebarSection>
-          <Separator className="my-4" />
-        </>
-      ) : null}
-      <SidebarSection title="Output">
-        <DisplayInput
-          shouldTruncateText={false}
-          input={props.result}
-        ></DisplayInput>
-      </SidebarSection>
-    </>
-  );
-};
+const MainBodySeparator = () => (
+  <Separator className="mt-6 mb-4" orientation="horizontal" />
+);
 
 const TraceMenuItem = (props: {
   title: string;

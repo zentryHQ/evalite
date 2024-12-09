@@ -35,7 +35,14 @@ export const cacheModel = (model: LanguageModelV1, storage: CacheStore) => {
         const resultFromCache = await storage.get(key);
 
         if (resultFromCache && typeof resultFromCache === "object") {
-          return createResultFromCachedObject(resultFromCache);
+          const result = createResultFromCachedObject(resultFromCache);
+
+          // Reset the tokens to 0 to show in the UI
+          // that they were cached.
+          result.usage.promptTokens = 0;
+          result.usage.completionTokens = 0;
+
+          return result;
         }
         const generated = await opts.doGenerate();
 
