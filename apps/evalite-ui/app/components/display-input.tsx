@@ -56,7 +56,7 @@ const DisplayText = ({
           }}
           variant="secondary"
           size="sm"
-          className="mt-3"
+          className="mt-3 mb-5"
         >
           <ChevronDown />
           Show more
