@@ -12,6 +12,8 @@ type GetMenuItemsResultEval = {
 export type GetMenuItemsResult = {
   currentEvals: GetMenuItemsResultEval[];
   archivedEvals: GetMenuItemsResultEval[];
+  score: number;
+  prevScore: number | undefined;
 };
 
 export const getMenuItems = async (): Promise<GetMenuItemsResult> => {

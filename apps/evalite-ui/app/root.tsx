@@ -62,9 +62,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export const clientLoader = async () => {
-  const { archivedEvals, currentEvals } = await getMenuItems();
+  const { archivedEvals, currentEvals, prevScore, score } =
+    await getMenuItems();
 
   return {
+    prevScore,
+    score,
     archivedEvals: archivedEvals.map((e) => {
       const state = getScoreState(e.score, e.prevScore);
       return {
@@ -83,7 +86,7 @@ export const clientLoader = async () => {
 };
 
 export default function App() {
-  const evals = useLoaderData<typeof clientLoader>();
+  const data = useLoaderData<typeof clientLoader>();
 
   const testServer = useSubscribeToTestServer();
 
@@ -105,9 +108,23 @@ export default function App() {
           </SidebarHeader>
           <SidebarContent>
             <SidebarGroup>
+              <div className="px-2">
+                <p className="text-xs font-medium text-sidebar-foreground/70 mb-2">
+                  Summary
+                </p>
+                <div className="text-gray-600 font-medium text-2xl">
+                  <Score
+                    isRunning={testServer.state.type === "running"}
+                    score={data.score}
+                    state={getScoreState(data.score, data.prevScore)}
+                  />
+                </div>
+              </div>
+            </SidebarGroup>
+            <SidebarGroup>
               <SidebarGroupLabel>Current Run</SidebarGroupLabel>
               <SidebarMenu>
-                {evals.currentEvals.map((e) => {
+                {data.currentEvals.map((e) => {
                   return (
                     <SidebarItem
                       key={`current-${e.name}`}
@@ -120,11 +137,11 @@ export default function App() {
                 })}
               </SidebarMenu>
             </SidebarGroup>
-            {evals.archivedEvals.length > 0 && (
+            {data.archivedEvals.length > 0 && (
               <SidebarGroup>
                 <SidebarGroupLabel>Previous Runs</SidebarGroupLabel>
                 <SidebarMenu>
-                  {evals.archivedEvals.map((e) => {
+                  {data.archivedEvals.map((e) => {
                     return (
                       <SidebarItem
                         key={`archived-${e.name}`}

@@ -45,7 +45,7 @@ export default function Page() {
   const serverState = useContext(TestServerStateContext);
 
   const showExpectedColumn = evaluation.results.every(
-    (result) => result.expected !== undefined
+    (result) => result.expected !== null
   );
 
   const isTraceRoute = location.pathname.includes("trace");

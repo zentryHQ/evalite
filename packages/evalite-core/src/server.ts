@@ -21,6 +21,7 @@ import {
 } from "./sdk.js";
 import type { Evalite } from "./types.js";
 import { fileURLToPath } from "url";
+import { average } from "./utils.js";
 
 export type Server = ReturnType<typeof createServer>;
 
@@ -68,7 +69,12 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
     let latestPartialRun = getMostRecentRun(opts.db, "partial");
 
     if (!latestFullRun) {
-      return reply.code(200).send({ currentEvals: [], archivedEvals: [] });
+      return reply.code(200).send({
+        currentEvals: [],
+        archivedEvals: [],
+        prevScore: undefined,
+        score: 0,
+      });
     }
 
     /**
@@ -106,9 +112,9 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
     const createEvalMenuItem = (e: (typeof evals)[number]) => {
       const score =
         evalsAverageScores.find((s) => s.eval_id === e.id)?.average ?? 0;
-      const prevScore =
-        evalsAverageScores.find((s) => s.eval_id === e.prevEval?.id)?.average ??
-        0;
+      const prevScore = evalsAverageScores.find(
+        (s) => s.eval_id === e.prevEval?.id
+      )?.average;
 
       return {
         filepath: e.filepath,
@@ -125,18 +131,34 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
 
       const nameSet = new Set(currentEvals.map((e) => e.name));
 
+      const archivedEvals = evals
+        .filter((e) => e.run_id === latestFullRun.id)
+        .filter((e) => !nameSet.has(e.name))
+        .map(createEvalMenuItem);
+
+      const allEvals = [...currentEvals, ...archivedEvals];
+
       return reply.code(200).send({
-        currentEvals: currentEvals,
-        archivedEvals: evals
-          .filter((e) => e.run_id === latestFullRun.id)
-          .filter((e) => !nameSet.has(e.name))
-          .map(createEvalMenuItem),
+        currentEvals,
+        archivedEvals,
+        score: average(allEvals, (e) => e.score),
+        prevScore: average(
+          allEvals,
+          (e) =>
+            e.prevScore ??
+            // Default to the latest score if no prevScore is found
+            e.score
+        ),
       });
     }
 
+    const menuItems = evals.map(createEvalMenuItem);
+
     return reply.code(200).send({
-      currentEvals: evals.map(createEvalMenuItem),
+      currentEvals: menuItems,
       archivedEvals: [],
+      score: average(menuItems, (e) => e.score),
+      prevScore: average(menuItems, (e) => e.prevScore ?? e.score),
     });
   });
 

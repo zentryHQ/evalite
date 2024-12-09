@@ -39,6 +39,10 @@ evalite("Test Capitals 2", {
       input: `What's the capital of Japan?`,
       expected: `Tokyo`,
     },
+    {
+      input: 'What\'s the capital of "South Korea"?',
+      expected: `Seoul`,
+    },
   ],
   task: async (input) => {
     const result = await generateText({
