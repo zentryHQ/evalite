@@ -34,6 +34,11 @@ export declare namespace Evalite {
     metadata?: unknown;
   };
 
+  export type UserProvidedScoreWithMetadata = {
+    score: number;
+    metadata?: unknown;
+  };
+
   export type ScoreInput<TInput, TExpected> = {
     input: TInput;
     output: TExpected;

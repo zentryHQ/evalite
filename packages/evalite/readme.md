@@ -194,6 +194,33 @@ evalite("My Eval", {
 });
 ```
 
+#### Metadata
+
+You can provide metadata along with your custom scorer:
+
+```ts
+import { createScorer } from "evalite";
+
+const containsParis = createScorer<string>({
+  name: "Contains Paris",
+  description: "Checks if the output contains the word 'Paris'.",
+  score: (output) => {
+    return {
+      score: output.includes("Paris") ? 1 : 0,
+      metadata: {
+        // Can be anything!
+      },
+    };
+  },
+});
+```
+
+This will be visible along with the score in the Evalite UI.
+
+> [!TIP]
+>
+> This is especially useful for debugging LLM-as-a-judge evals. In autoevals `Factuality` scorer, the metadata will include a rationale for why the scorer gave the score it did.
+
 ### Traces
 
 Traces are used to track the behaviour of each individual call to an LLM inside your task.
