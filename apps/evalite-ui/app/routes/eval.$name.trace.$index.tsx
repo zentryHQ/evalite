@@ -21,6 +21,7 @@ import { Separator } from "~/components/ui/separator";
 import { SidebarContent, SidebarHeader } from "~/components/ui/sidebar";
 import { cn } from "~/lib/utils";
 import { TestServerStateContext } from "~/use-subscribe-to-socket";
+import { formatTime } from "~/utils";
 
 const SidebarSection = ({
   title,
@@ -33,8 +34,10 @@ const SidebarSection = ({
 }) => (
   <div className="text-sm">
     <div>
-      <h2 className="font-semibold text-base">{title}</h2>
-      {description && <p className="text-gray-500 text-xs">{description}</p>}
+      <h2 className="font-medium text-sm text-gray-500 mb-1">{title}</h2>
+      {description && (
+        <p className="text-gray-500 text-xs mb-2">{description}</p>
+      )}
     </div>
     <div className="mt-1">{children}</div>
   </div>
@@ -98,7 +101,8 @@ export default function Page() {
       </SidebarHeader>
       <SidebarContent className="p-2 pb-8 flex flex-row h-full">
         <div className="w-44 flex flex-col gap-3 flex-shrink-0">
-          <Trace
+          <TraceMenuItem
+            duration={endTime - startTime}
             title="Eval"
             startPercent={0}
             endPercent={100}
@@ -113,13 +117,14 @@ export default function Page() {
               (startTimeWithinTrace / totalTraceDuration) * 100;
             const endPercent = (endTimeWithinTrace / totalTraceDuration) * 100;
             return (
-              <Trace
+              <TraceMenuItem
+                duration={trace.end_time - trace.start_time}
                 title={`Trace ${traceIndex + 1}`}
                 href={`/eval/${name}/trace/${resultIndex}?trace=${traceIndex}`}
                 endPercent={endPercent}
                 startPercent={startPercent}
                 isActive={searchParams.get("trace") === String(traceIndex)}
-              ></Trace>
+              ></TraceMenuItem>
             );
           })}
           {result.traces.length === 0 && (
@@ -211,8 +216,9 @@ const DisplayTraceData = (props: {
   );
 };
 
-const Trace = (props: {
+const TraceMenuItem = (props: {
   title: string;
+  duration: number;
   /**
    * Number between 0 and 100
    */
@@ -236,7 +242,14 @@ const Trace = (props: {
       prefetch="intent"
       end
     >
-      <span className="block text-sm mb-1">{props.title}</span>
+      <div className="mb-1 flex items-center justify-between space-x-3">
+        <span className="block text-sm font-medium text-gray-600">
+          {props.title}
+        </span>
+        <span className="text-xs text-gray-600">
+          {formatTime(props.duration)}
+        </span>
+      </div>
       <div className="relative w-full">
         <div
           className={cn(
