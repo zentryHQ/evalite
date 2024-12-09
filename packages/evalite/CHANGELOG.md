@@ -1,5 +1,13 @@
 # evalite
 
+## 0.5.3
+
+### Patch Changes
+
+- 7150bbe: Allowed custom scorers to return metadata
+- Updated dependencies [7150bbe]
+  - @evalite/core@0.3.3
+
 ## 0.5.2
 
 ### Patch Changes

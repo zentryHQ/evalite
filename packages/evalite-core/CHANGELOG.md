@@ -1,5 +1,11 @@
 # @evalite/core
 
+## 0.3.3
+
+### Patch Changes
+
+- 7150bbe: Allowed custom scorers to return metadata
+
 ## 0.3.2
 
 ### Patch Changes
