@@ -61,6 +61,13 @@ export const createDatabase = (url: string): BetterSqlite3.Database => {
     );
   `);
 
+  // Add status key
+  try {
+    db.exec(
+      `ALTER TABLE evals ADD COLUMN status TEXT NOT NULL DEFAULT 'success';`
+    );
+  } catch (e) {}
+
   return db;
 };
 
@@ -75,6 +82,7 @@ export declare namespace Db {
     id: number;
     run_id: number;
     name: string;
+    status: "fail" | "success";
     filepath: string;
     duration: number;
     created_at: string;
@@ -126,6 +134,11 @@ export const saveRun = (
       filepath: string;
       tasks: {
         name: string;
+        result:
+          | {
+              state: "fail" | "pass" | "run" | "skip";
+            }
+          | undefined;
         meta: {
           evalite?: Evalite.TaskMeta;
         };
