@@ -23,7 +23,6 @@ describe("getEvalsAverageScores", () => {
               meta: {
                 evalite: {
                   duration: 100,
-                  sourceCodeHash: "abc",
                   results: [
                     {
                       input: "input",

@@ -79,8 +79,6 @@ export const evalite = <TInput, TExpected = TInput>(
   opts: Evalite.RunnerOpts<TInput, TExpected>
 ) => {
   return it(testName, async ({ task }) => {
-    const sourceCodeHash = inject("evaliteInputHash");
-
     const data = await opts.data();
     const start = performance.now();
     const results = await Promise.all(
@@ -107,7 +105,6 @@ export const evalite = <TInput, TExpected = TInput>(
     task.meta.evalite = {
       results,
       duration: Math.round(performance.now() - start),
-      sourceCodeHash,
     };
   });
 };

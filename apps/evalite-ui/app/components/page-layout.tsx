@@ -10,11 +10,9 @@ import { SidebarTrigger } from "./ui/sidebar";
 
 export const InnerPageLayout = ({
   children,
-  title,
   filepath,
   vscodeUrl,
 }: {
-  title: string;
   vscodeUrl: string;
   filepath: string;
   children: React.ReactNode;
@@ -28,12 +26,6 @@ export const InnerPageLayout = ({
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbPage className="line-clamp-1">
-                  {title}
-                </BreadcrumbPage>
-              </BreadcrumbItem>
-              <Separator orientation="vertical" className="mx-1 h-4" />
-              <BreadcrumbItem>
                 <BreadcrumbLink className="line-clamp-1" asChild>
                   <a href={vscodeUrl}>{filepath}</a>
                 </BreadcrumbLink>
@@ -42,7 +34,7 @@ export const InnerPageLayout = ({
           </Breadcrumb>
         </div>
       </header>
-      <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
+      <div className="flex-1 p-4">{children}</div>
     </div>
   );
 };

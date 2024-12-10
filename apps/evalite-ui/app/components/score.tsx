@@ -18,7 +18,9 @@ export const Score = (props: {
 }) => {
   return (
     <span className="flex items-center space-x-2">
-      <span>{Math.round(props.score * 100)}%</span>
+      <span>
+        {Math.round((Number.isNaN(props.score) ? 0 : props.score) * 100)}%
+      </span>
       {(() => {
         switch (true) {
           case props.isRunning:

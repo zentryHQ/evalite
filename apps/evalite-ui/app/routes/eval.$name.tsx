@@ -1,4 +1,5 @@
 import { getEvalByName } from "@evalite/core/sdk";
+import { average, sum } from "@evalite/core/utils";
 import type { MetaFunction } from "@remix-run/node";
 import {
   NavLink,
@@ -12,6 +13,7 @@ import { DisplayInput } from "~/components/display-input";
 import { InnerPageLayout } from "~/components/page-layout";
 import { getScoreState, Score } from "~/components/score";
 import { MyLineChart } from "~/components/ui/line-chart";
+import { LiveDate } from "~/components/ui/live-date";
 import { Separator } from "~/components/ui/separator";
 import {
   Table,
@@ -22,6 +24,7 @@ import {
 } from "~/components/ui/table";
 import { cn } from "~/lib/utils";
 import { TestServerStateContext } from "~/use-subscribe-to-socket";
+import { formatTime } from "~/utils";
 
 export const meta: MetaFunction<typeof clientLoader> = (args) => {
   return [
@@ -53,13 +56,43 @@ export default function Page() {
 
   const isTraceRoute = location.pathname.includes("trace");
 
+  const score = average(evaluation.results, (r) =>
+    average(r.scores, (s) => s.score)
+  );
+
+  const prevScore = prevEvaluation
+    ? average(prevEvaluation.results, (r) => average(r.scores, (s) => s.score))
+    : undefined;
+
   return (
     <>
       <InnerPageLayout
-        title={name}
         vscodeUrl={`vscode://file${evaluation.filepath}`}
         filepath={evaluation.filepath.split(/(\/|\\)/).slice(-1)[0]!}
       >
+        <div className="text-gray-600 mb-10 text-sm">
+          <h1 className="tracking-tight text-2xl mb-2 font-medium text-gray-700">
+            {name}
+          </h1>
+          <div className="flex items-center">
+            <Score
+              evalStatus={evaluation.status}
+              isRunning={
+                serverState.state.type === "running" &&
+                serverState.state.filepaths.has(evaluation.filepath)
+              }
+              score={score}
+              state={getScoreState(score, prevScore)}
+            ></Score>
+            <Separator orientation="vertical" className="h-4 mx-4" />
+            <span>{formatTime(evaluation.duration)}</span>
+            <Separator orientation="vertical" className="h-4 mx-4" />
+            <span>
+              <LiveDate date={evaluation.created_at} />
+            </span>
+          </div>
+        </div>
+
         {evaluation.status === "fail" && (
           <div className="flex gap-4 px-4">
             <div className="flex-shrink-0">
@@ -77,17 +110,14 @@ export default function Page() {
         {evaluation.status === "success" && (
           <div className="">
             {history.length > 1 && (
-              <>
+              <div className="mb-10">
                 <h2 className="mb-4 font-medium text-lg text-gray-600">
                   History
                 </h2>
                 {history.length > 1 && <MyLineChart data={history} />}
-                <Separator orientation="horizontal" className="my-8" />
-                <h2 className="mb-4 font-medium text-lg text-gray-600">
-                  Results
-                </h2>
-              </>
+              </div>
             )}
+            <h2 className="mb-4 font-medium text-lg text-gray-600">Results</h2>
             <Table>
               <TableHeader>
                 <TableRow>
