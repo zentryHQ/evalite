@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDistance } from "date-fns";
 import { Area, AreaChart, XAxis } from "recharts";
 
 import {
@@ -8,6 +9,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "~/components/ui/chart";
+import { LiveDate } from "./live-date";
 
 const chartConfig = {
   score: {
@@ -16,13 +18,21 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function MyLineChart(props: { data: { score: number }[] }) {
+export function MyLineChart(props: {
+  data: { date: string; score: number }[];
+}) {
   return (
     <ChartContainer
       config={chartConfig}
-      className="h-24 overflow-visible max-w-[120ch]"
+      className="h-24 overflow-visible max-w-[120ch] -mb-6 w-full"
     >
-      <AreaChart accessibilityLayer data={props.data}>
+      <AreaChart
+        accessibilityLayer
+        data={props.data.map((s) => ({
+          ...s,
+          score: Math.round(s.score * 100),
+        }))}
+      >
         <XAxis
           dataKey="month"
           tickLine={false}
@@ -32,7 +42,11 @@ export function MyLineChart(props: { data: { score: number }[] }) {
         />
         <ChartTooltip
           cursor={false}
-          content={<ChartTooltipContent hideLabel />}
+          content={
+            <ChartTooltipContent
+              labelFormatter={(l, p) => <LiveDate date={p[0]?.payload?.date} />}
+            />
+          }
         />
         <Area
           isAnimationActive={false}

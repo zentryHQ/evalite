@@ -6,6 +6,7 @@ import {
   getAverageScoresFromResults,
   getEvals,
   getEvalsAverageScores,
+  getHistoricalEvalsWithScoresByName,
   getMostRecentEvalByName,
   getMostRecentRun,
   getPreviousEvalRun,
@@ -176,6 +177,7 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
   server.route<{
     Querystring: {
       name: string;
+      timestamp?: string;
     };
     Reply: GetEvalByNameResult;
   }>({
@@ -186,7 +188,9 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
         type: "object",
         properties: {
           name: { type: "string" },
+          timestamp: { type: "string" },
         },
+        required: ["name"],
       },
     },
     handler: async (req, res) => {
@@ -214,8 +218,13 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
         results.map((r) => r.id)
       );
 
+      const history = getHistoricalEvalsWithScoresByName(opts.db, name);
+
       return res.code(200).send({
-        history: [], // TODO when we enable chart
+        history: history.map((h) => ({
+          score: h.average_score,
+          date: h.created_at,
+        })),
         evaluation: {
           ...evaluation,
           results: results

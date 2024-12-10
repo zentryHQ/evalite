@@ -11,6 +11,8 @@ import React, { useContext } from "react";
 import { DisplayInput } from "~/components/display-input";
 import { InnerPageLayout } from "~/components/page-layout";
 import { getScoreState, Score } from "~/components/score";
+import { MyLineChart } from "~/components/ui/line-chart";
+import { Separator } from "~/components/ui/separator";
 import {
   Table,
   TableBody,
@@ -58,7 +60,6 @@ export default function Page() {
         vscodeUrl={`vscode://file${evaluation.filepath}`}
         filepath={evaluation.filepath.split(/(\/|\\)/).slice(-1)[0]!}
       >
-        {/* {history.length > 1 && <MyLineChart data={history} />} */}
         {evaluation.status === "fail" && (
           <div className="flex gap-4 px-4">
             <div className="flex-shrink-0">
@@ -74,97 +75,115 @@ export default function Page() {
           </div>
         )}
         {evaluation.status === "success" && (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Input</TableHead>
-                <TableHead>Output</TableHead>
-                {showExpectedColumn && <TableHead>Expected</TableHead>}
-                {firstResult?.scores.map((scorer, index) => (
-                  <TableHead
-                    key={scorer.name}
-                    className={cn(index === 0 && "border-l")}
-                  >
-                    {scorer.name}
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {evaluation.results.map((result, index) => {
-                const Wrapper = (props: { children: React.ReactNode }) => (
-                  <NavLink
-                    prefetch="intent"
-                    to={`trace/${index}`}
-                    preventScrollReset
-                    className={({ isActive }) => {
-                      return cn("block h-full p-4", isActive && "active");
-                    }}
-                  >
-                    {props.children}
-                  </NavLink>
-                );
-                return (
-                  <TableRow
-                    key={JSON.stringify(result.input)}
-                    className="has-[.active]:bg-gray-100"
-                  >
-                    <td className="align-top">
-                      <DisplayInput
-                        input={result.input}
-                        shouldTruncateText
-                        Wrapper={Wrapper}
-                      />
-                    </td>
-                    <td className="align-top">
-                      <DisplayInput
-                        input={result.output}
-                        shouldTruncateText
-                        Wrapper={Wrapper}
-                      />
-                    </td>
-                    {showExpectedColumn && (
+          <div className="">
+            {history.length > 1 && (
+              <>
+                <h2 className="mb-4 font-medium text-lg text-gray-600">
+                  History
+                </h2>
+                {history.length > 1 && <MyLineChart data={history} />}
+                <Separator orientation="horizontal" className="my-8" />
+                <h2 className="mb-4 font-medium text-lg text-gray-600">
+                  Results
+                </h2>
+              </>
+            )}
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Input</TableHead>
+                  <TableHead>Output</TableHead>
+                  {showExpectedColumn && <TableHead>Expected</TableHead>}
+                  {firstResult?.scores.map((scorer, index) => (
+                    <TableHead
+                      key={scorer.name}
+                      className={cn(index === 0 && "border-l")}
+                    >
+                      {scorer.name}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {evaluation.results.map((result, index) => {
+                  const Wrapper = (props: { children: React.ReactNode }) => (
+                    <NavLink
+                      prefetch="intent"
+                      to={`trace/${index}`}
+                      preventScrollReset
+                      className={({ isActive }) => {
+                        return cn("block h-full p-4", isActive && "active");
+                      }}
+                    >
+                      {props.children}
+                    </NavLink>
+                  );
+                  return (
+                    <TableRow
+                      key={JSON.stringify(result.input)}
+                      className="has-[.active]:bg-gray-100"
+                    >
                       <td className="align-top">
                         <DisplayInput
-                          input={result.expected}
+                          input={result.input}
                           shouldTruncateText
                           Wrapper={Wrapper}
                         />
                       </td>
-                    )}
-                    {result.scores.map((scorer, index) => {
-                      const scoreInPreviousEvaluation = prevEvaluation?.results
-                        .find((r) => r.input === result.input)
-                        ?.scores.find((s) => s.name === scorer.name);
-                      return (
-                        <td
-                          key={scorer.name}
-                          className={cn(index === 0 && "border-l", "align-top")}
-                        >
-                          <Wrapper>
-                            <Score
-                              score={scorer.score}
-                              isRunning={
-                                serverState.state.type === "running" &&
-                                serverState.state.filepaths.has(
-                                  evaluation.filepath
-                                )
-                              }
-                              evalStatus={evaluation.status}
-                              state={getScoreState(
-                                scorer.score,
-                                scoreInPreviousEvaluation?.score
-                              )}
-                            />
-                          </Wrapper>
+                      <td className="align-top">
+                        <DisplayInput
+                          input={result.output}
+                          shouldTruncateText
+                          Wrapper={Wrapper}
+                        />
+                      </td>
+                      {showExpectedColumn && (
+                        <td className="align-top">
+                          <DisplayInput
+                            input={result.expected}
+                            shouldTruncateText
+                            Wrapper={Wrapper}
+                          />
                         </td>
-                      );
-                    })}
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+                      )}
+                      {result.scores.map((scorer, index) => {
+                        const scoreInPreviousEvaluation =
+                          prevEvaluation?.results
+                            .find((r) => r.input === result.input)
+                            ?.scores.find((s) => s.name === scorer.name);
+                        return (
+                          <td
+                            key={scorer.name}
+                            className={cn(
+                              index === 0 && "border-l",
+                              "align-top"
+                            )}
+                          >
+                            <Wrapper>
+                              <Score
+                                score={scorer.score}
+                                isRunning={
+                                  serverState.state.type === "running" &&
+                                  serverState.state.filepaths.has(
+                                    evaluation.filepath
+                                  )
+                                }
+                                evalStatus={evaluation.status}
+                                state={getScoreState(
+                                  scorer.score,
+                                  scoreInPreviousEvaluation?.score
+                                )}
+                              />
+                            </Wrapper>
+                          </td>
+                        );
+                      })}
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </InnerPageLayout>
       <div

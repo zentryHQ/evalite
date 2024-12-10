@@ -456,3 +456,22 @@ export const getMostRecentEvalByName = (
     )
     .get({ name });
 };
+
+export const getHistoricalEvalsWithScoresByName = (
+  db: BetterSqlite3.Database,
+  name: string
+): (Db.Eval & { average_score: number })[] => {
+  return db
+    .prepare<{ name: string }, Db.Eval & { average_score: number }>(
+      `
+    SELECT evals.*, AVG(scores.score) as average_score
+    FROM evals
+    LEFT JOIN results ON evals.id = results.eval_id
+    LEFT JOIN scores ON results.id = scores.result_id
+    WHERE evals.name = @name
+    GROUP BY evals.id
+    ORDER BY evals.created_at ASC
+  `
+    )
+    .all({ name });
+};
