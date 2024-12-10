@@ -1,5 +1,12 @@
 # @evalite/core
 
+## 0.4.1
+
+### Patch Changes
+
+- e3f64cf: Fixed a bug where the loading indicators were not accurate on first load.
+- 9d6880f: Fixed a bug where the UI was showing times in UTC.
+
 ## 0.4.0
 
 ### Minor Changes
