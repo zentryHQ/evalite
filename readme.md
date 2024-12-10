@@ -1,5 +1,3 @@
-# Evalite
-
 ![Evalite: the TypeScript-native, local-first tool for testing LLM-powered apps.](https://raw.githubusercontent.com/mattpocock/evalite/refs/heads/main/repo-card.jpg)
 
 - [View the docs](./packages/evalite/readme.md)
