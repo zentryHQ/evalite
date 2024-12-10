@@ -1,5 +1,11 @@
 # @evalite/core
 
+## 0.3.4
+
+### Patch Changes
+
+- 9ef8421: Made failed evaluations show a message in the UI.
+
 ## 0.3.3
 
 ### Patch Changes
