@@ -29,6 +29,7 @@ import {
   useSubscribeToTestServer,
 } from "./use-subscribe-to-socket";
 import { useContext } from "react";
+import Logo from "./components/logo";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -51,6 +52,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
       </head>
       <body>
         {children}
@@ -96,12 +99,9 @@ export default function App() {
         <Sidebar className="border-r-0">
           <SidebarHeader>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <div className="px-2 py-1 flex items-center space-x-2.5">
-                  <ZapIcon className="size-4" />
-                  <span className="truncate font-semibold tracking-tight">
-                    Evalite
-                  </span>
+              <SidebarMenuItem className="border-b md:-mx-3 -mx-2 md:px-3 px-2 pb-1.5">
+                <div className="px-2 py-1">
+                  <Logo />
                 </div>
               </SidebarMenuItem>
             </SidebarMenu>
