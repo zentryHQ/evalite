@@ -11,9 +11,14 @@ export const LiveDate = (props: { date: string; className?: string }) => {
     }, ONE_MINUTE);
     return () => clearInterval(interval);
   }, []);
+
+  const utcDate = new Date(props.date + "Z");
+
   return (
     <span className={props.className}>
-      {formatDistance(props.date, new Date(), { addSuffix: true })}
+      {formatDistance(utcDate, new Date(), {
+        addSuffix: true,
+      })}
     </span>
   );
 };
