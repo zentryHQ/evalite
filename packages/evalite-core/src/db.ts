@@ -359,7 +359,7 @@ export const getMostRecentRun = (
   return run;
 };
 
-export const getPreviousEvalRun = (
+export const getPreviousEval = (
   db: BetterSqlite3.Database,
   name: string,
   startTime: string

@@ -2,9 +2,11 @@ import { getEvalByName } from "@evalite/core/sdk";
 import { average, sum } from "@evalite/core/utils";
 import type { MetaFunction } from "@remix-run/node";
 import {
+  Link,
   NavLink,
   Outlet,
   useLoaderData,
+  useSearchParams,
   type ClientLoaderFunctionArgs,
 } from "@remix-run/react";
 import { XCircleIcon } from "lucide-react";
@@ -12,6 +14,7 @@ import React, { useContext } from "react";
 import { DisplayInput } from "~/components/display-input";
 import { InnerPageLayout } from "~/components/page-layout";
 import { getScoreState, Score } from "~/components/score";
+import { Button } from "~/components/ui/button";
 import { MyLineChart } from "~/components/ui/line-chart";
 import { LiveDate } from "~/components/ui/live-date";
 import { Separator } from "~/components/ui/separator";
@@ -34,7 +37,11 @@ export const meta: MetaFunction<typeof clientLoader> = (args) => {
 };
 
 export const clientLoader = async (args: ClientLoaderFunctionArgs) => {
-  const result = await getEvalByName(args.params.name!);
+  const searchParams = new URLSearchParams(args.request.url.split("?")[1]);
+  const result = await getEvalByName(
+    args.params.name!,
+    searchParams.get("timestamp")
+  );
 
   return {
     ...result,
@@ -64,6 +71,10 @@ export default function Page() {
     ? average(prevEvaluation.results, (r) => average(r.scores, (s) => s.score))
     : undefined;
 
+  const [search, setSearch] = useSearchParams();
+
+  const timestamp = search.get("timestamp");
+
   return (
     <>
       <InnerPageLayout
@@ -87,9 +98,20 @@ export default function Page() {
             <Separator orientation="vertical" className="h-4 mx-4" />
             <span>{formatTime(evaluation.duration)}</span>
             <Separator orientation="vertical" className="h-4 mx-4" />
-            <span>
-              <LiveDate date={evaluation.created_at} />
-            </span>
+            <div className="flex items-center space-x-5">
+              <LiveDate date={evaluation.created_at} className="block" />
+              {timestamp && (
+                <>
+                  <Link
+                    to={`/eval/${name}`}
+                    prefetch="intent"
+                    className="bg-blue-100 uppercase tracking-wide font-medium text-blue-700 px-3 text-xs py-1 -my-1 rounded"
+                  >
+                    View Latest
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -114,7 +136,14 @@ export default function Page() {
                 <h2 className="mb-4 font-medium text-lg text-gray-600">
                   History
                 </h2>
-                {history.length > 1 && <MyLineChart data={history} />}
+                {history.length > 1 && (
+                  <MyLineChart
+                    data={history}
+                    onDotClick={({ date }) => {
+                      setSearch({ timestamp: date });
+                    }}
+                  />
+                )}
               </div>
             )}
             <h2 className="mb-4 font-medium text-lg text-gray-600">Results</h2>
@@ -139,7 +168,7 @@ export default function Page() {
                   const Wrapper = (props: { children: React.ReactNode }) => (
                     <NavLink
                       prefetch="intent"
-                      to={`trace/${index}`}
+                      to={`trace/${index}${timestamp ? `?timestamp=${timestamp}` : ""}`}
                       preventScrollReset
                       className={({ isActive }) => {
                         return cn("block h-full p-4", isActive && "active");
