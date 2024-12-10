@@ -7,7 +7,7 @@ import {
   getEvals,
   getEvalsAverageScores,
   getHistoricalEvalsWithScoresByName,
-  getMostRecentEvalByName,
+  getEvalByName,
   getMostRecentRun,
   getPreviousEvalRun,
   getResults,
@@ -196,7 +196,7 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
     handler: async (req, res) => {
       const name = req.query.name;
 
-      const evaluation = getMostRecentEvalByName(opts.db, name);
+      const evaluation = getEvalByName(opts.db, name, req.query.timestamp);
 
       if (!evaluation) {
         return res.code(404).send();
@@ -268,7 +268,7 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
       },
     },
     handler: async (req, res) => {
-      const evaluation = getMostRecentEvalByName(opts.db, req.query.name);
+      const evaluation = getEvalByName(opts.db, req.query.name);
 
       if (!evaluation) {
         return res.code(404).send();
