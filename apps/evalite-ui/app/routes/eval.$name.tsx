@@ -94,7 +94,8 @@ export default function Page() {
               evalStatus={evaluation.status}
               isRunning={
                 serverState.state.type === "running" &&
-                serverState.state.filepaths.has(evaluation.filepath)
+                serverState.state.filepaths.has(evaluation.filepath) &&
+                evaluation.created_at === latestDate
               }
               score={score}
               state={getScoreState(score, prevScore)}
