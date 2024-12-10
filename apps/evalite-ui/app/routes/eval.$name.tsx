@@ -75,6 +75,10 @@ export default function Page() {
 
   const timestamp = search.get("timestamp");
 
+  const latestDate = history[history.length - 1]?.date;
+
+  const isNotViewingLatest = timestamp && timestamp !== latestDate;
+
   return (
     <>
       <InnerPageLayout
@@ -100,7 +104,7 @@ export default function Page() {
             <Separator orientation="vertical" className="h-4 mx-4" />
             <div className="flex items-center space-x-5">
               <LiveDate date={evaluation.created_at} className="block" />
-              {timestamp && (
+              {isNotViewingLatest && (
                 <>
                   <Link
                     to={`/eval/${name}`}
@@ -140,7 +144,11 @@ export default function Page() {
                   <MyLineChart
                     data={history}
                     onDotClick={({ date }) => {
-                      setSearch({ timestamp: date });
+                      if (date === latestDate) {
+                        setSearch({});
+                      } else {
+                        setSearch({ timestamp: date });
+                      }
                     }}
                   />
                 )}
