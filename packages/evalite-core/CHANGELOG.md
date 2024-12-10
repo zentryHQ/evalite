@@ -1,5 +1,11 @@
 # @evalite/core
 
+## 0.4.0
+
+### Minor Changes
+
+- 5379066: Added a historical view for evals so that you can go back in time and view previous eval runs and traces.
+
 ## 0.3.4
 
 ### Patch Changes
