@@ -25,7 +25,7 @@ export default function Logo({
       </svg>
       <span
         className={cn(
-          "truncate font-normal text-lg tracking-tight",
+          "truncate font-normal text-lg tracking-tight ml-2",
           textClassName
         )}
       >
