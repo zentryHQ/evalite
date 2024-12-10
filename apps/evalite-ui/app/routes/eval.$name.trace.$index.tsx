@@ -18,6 +18,7 @@ import {
   BreadcrumbList,
 } from "~/components/ui/breadcrumb";
 import { Button } from "~/components/ui/button";
+import { LiveDate } from "~/components/ui/live-date";
 import { Separator } from "~/components/ui/separator";
 import { SidebarContent, SidebarHeader } from "~/components/ui/sidebar";
 import { cn } from "~/lib/utils";
@@ -45,26 +46,34 @@ const MainBodySection = ({
 );
 
 export const clientLoader = async (args: ClientLoaderFunctionArgs) => {
+  const searchParams = new URLSearchParams(args.request.url.split("?")[1]);
   const data = await getResult({
     evalName: args.params.name!,
     resultIndex: args.params.index!,
+    evalTimestamp: searchParams.get("timestamp"),
   });
 
-  return { data, name: args.params.name!, resultIndex: args.params.index! };
+  return {
+    data,
+    name: args.params.name!,
+    resultIndex: args.params.index!,
+    timestamp: searchParams.get("timestamp"),
+  };
 };
 
 export default function Page() {
   const {
-    data: { result, prevResult, filepath, evalStatus },
+    data: { result, prevResult, evaluation },
     name,
     resultIndex,
+    timestamp,
   } = useLoaderData<typeof clientLoader>();
 
   const serverState = useContext(TestServerStateContext);
 
   const isRunning =
     serverState.state.type === "running" &&
-    serverState.state.filepaths.has(filepath);
+    serverState.state.filepaths.has(evaluation.filepath);
 
   const [searchParams] = useSearchParams();
 
@@ -95,7 +104,11 @@ export default function Page() {
       <SidebarHeader>
         <div className="flex items-center gap-3">
           <Button size={"icon"} variant="ghost" asChild>
-            <Link to={`/eval/${name}`} prefetch="intent" preventScrollReset>
+            <Link
+              to={`/eval/${name}${timestamp ? `?timestamp=${timestamp}` : ""}`}
+              prefetch="intent"
+              preventScrollReset
+            >
               <SidebarCloseIcon className="size-5 rotate-180" />
             </Link>
           </Button>
@@ -108,11 +121,15 @@ export default function Page() {
                     isRunning={isRunning}
                     score={result.score}
                     state={getScoreState(result.score, prevResult?.score)}
-                    evalStatus={evalStatus}
+                    evalStatus={evaluation.status}
                   />
                 </BreadcrumbItem>
                 <Separator orientation="vertical" className="mx-1 h-4" />
                 <BreadcrumbItem>{formatTime(result.duration)}</BreadcrumbItem>
+                <Separator orientation="vertical" className="mx-1 h-4" />
+                <BreadcrumbItem>
+                  <LiveDate date={evaluation.created_at} />
+                </BreadcrumbItem>
                 {wholeEvalUsage && (
                   <>
                     <Separator orientation="vertical" className="mx-1 h-4" />
@@ -224,7 +241,7 @@ export default function Page() {
                           (prevScore) => prevScore.name === score.name
                         )?.score
                       )}
-                      evalStatus={evalStatus}
+                      evalStatus={evaluation.status}
                     />
                   </MainBodySection>
                   {score.metadata && (
