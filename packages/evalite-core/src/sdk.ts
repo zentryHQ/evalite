@@ -35,25 +35,30 @@ export type GetEvalByNameResult = {
 };
 
 export const getEvalByName = async (
-  name: string
+  name: string,
+  timestamp: string | null | undefined
 ): Promise<GetEvalByNameResult> => {
-  const res = await fetch(`${BASE_URL}/api/eval?name=${name}`);
+  const params = new URLSearchParams({ name, timestamp: timestamp || "" });
+  const res = await fetch(`${BASE_URL}/api/eval?${params.toString()}`);
   return res.json() as any;
 };
 
 export type GetResultResult = {
   result: Db.Result & { traces: Db.Trace[]; score: number; scores: Db.Score[] };
   prevResult: (Db.Result & { score: number; scores: Db.Score[] }) | undefined;
-  filepath: string;
-  evalStatus: "success" | "fail";
+  evaluation: Db.Eval;
 };
 
 export const getResult = async (opts: {
   evalName: string;
+  evalTimestamp: string | null | undefined;
   resultIndex: string;
 }): Promise<GetResultResult> => {
-  const res = await fetch(
-    `${BASE_URL}/api/eval/result?name=${opts.evalName}&index=${opts.resultIndex}`
-  );
+  const params = new URLSearchParams({
+    name: opts.evalName,
+    index: opts.resultIndex,
+    timestamp: opts.evalTimestamp || "",
+  });
+  const res = await fetch(`${BASE_URL}/api/eval/result?${params.toString()}`);
   return res.json() as any;
 };

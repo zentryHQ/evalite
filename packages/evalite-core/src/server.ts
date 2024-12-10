@@ -7,9 +7,9 @@ import {
   getEvals,
   getEvalsAverageScores,
   getHistoricalEvalsWithScoresByName,
-  getMostRecentEvalByName,
+  getEvalByName,
   getMostRecentRun,
-  getPreviousEvalRun,
+  getPreviousEval,
   getResults,
   getScores,
   getTraces,
@@ -99,7 +99,7 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
       )
     ).map((e) => ({
       ...e,
-      prevEval: getPreviousEvalRun(opts.db, e.name, e.created_at),
+      prevEval: getPreviousEval(opts.db, e.name, e.created_at),
     }));
 
     const evalsAverageScores = getEvalsAverageScores(
@@ -196,13 +196,13 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
     handler: async (req, res) => {
       const name = req.query.name;
 
-      const evaluation = getMostRecentEvalByName(opts.db, name);
+      const evaluation = getEvalByName(opts.db, name, req.query.timestamp);
 
       if (!evaluation) {
         return res.code(404).send();
       }
 
-      const prevEvaluation = getPreviousEvalRun(
+      const prevEvaluation = getPreviousEval(
         opts.db,
         name,
         evaluation.created_at
@@ -253,6 +253,7 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
     Querystring: {
       name: string;
       index: string;
+      timestamp?: string;
     };
     Reply: GetResultResult;
   }>({
@@ -264,17 +265,23 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
         properties: {
           name: { type: "string" },
           index: { type: "string" },
+          timestamp: { type: "string" },
         },
+        required: ["name", "index"],
       },
     },
     handler: async (req, res) => {
-      const evaluation = getMostRecentEvalByName(opts.db, req.query.name);
+      const evaluation = getEvalByName(
+        opts.db,
+        req.query.name,
+        req.query.timestamp
+      );
 
       if (!evaluation) {
         return res.code(404).send();
       }
 
-      const prevEvaluation = getPreviousEvalRun(
+      const prevEvaluation = getPreviousEval(
         opts.db,
         req.query.name,
         evaluation.created_at
@@ -338,8 +345,7 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
       return res.code(200).send({
         result,
         prevResult,
-        filepath: evaluation.filepath,
-        evalStatus: evaluation.status,
+        evaluation,
       });
     },
   });

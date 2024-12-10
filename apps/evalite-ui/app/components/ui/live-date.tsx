@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 const ONE_MINUTE = 60_000;
 
-export const LiveDate = (props: { date: string }) => {
+export const LiveDate = (props: { date: string; className?: string }) => {
   const [, setNow] = useState(new Date());
   useEffect(() => {
     const interval = setInterval(() => {
@@ -12,6 +12,8 @@ export const LiveDate = (props: { date: string }) => {
     return () => clearInterval(interval);
   }, []);
   return (
-    <span>{formatDistance(props.date, new Date(), { addSuffix: true })}</span>
+    <span className={props.className}>
+      {formatDistance(props.date, new Date(), { addSuffix: true })}
+    </span>
   );
 };

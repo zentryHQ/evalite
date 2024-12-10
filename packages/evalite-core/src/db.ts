@@ -359,7 +359,7 @@ export const getMostRecentRun = (
   return run;
 };
 
-export const getPreviousEvalRun = (
+export const getPreviousEval = (
   db: BetterSqlite3.Database,
   name: string,
   startTime: string
@@ -441,20 +441,25 @@ export const jsonParseFields = <T extends object, K extends keyof T>(
   return objToReturn;
 };
 
-export const getMostRecentEvalByName = (
+/**
+ * Defaults to most recent if timestamp not passed
+ */
+export const getEvalByName = (
   db: BetterSqlite3.Database,
-  name: string
+  name: string,
+  timestamp?: string
 ) => {
   return db
-    .prepare<{ name: string }, Db.Eval>(
+    .prepare<{ name: string; timestamp?: string }, Db.Eval>(
       `
     SELECT * FROM evals
     WHERE name = @name
+    ${timestamp ? "AND created_at = @timestamp" : ""}
     ORDER BY created_at DESC
     LIMIT 1
   `
     )
-    .get({ name });
+    .get({ name, timestamp });
 };
 
 export const getHistoricalEvalsWithScoresByName = (
