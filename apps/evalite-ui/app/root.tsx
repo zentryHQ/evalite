@@ -62,10 +62,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export const clientLoader = async () => {
-  const { archivedEvals, currentEvals, prevScore, score } =
+  const { archivedEvals, currentEvals, prevScore, score, evalStatus } =
     await getMenuItems();
 
   return {
+    evalStatus,
     prevScore,
     score,
     archivedEvals: archivedEvals.map((e) => {
@@ -118,6 +119,7 @@ export default function App() {
                     score={data.score}
                     state={getScoreState(data.score, data.prevScore)}
                     iconClassName="size-4"
+                    evalStatus={data.evalStatus}
                   />
                 </div>
               </div>
@@ -133,6 +135,7 @@ export default function App() {
                       name={e.name}
                       score={e.score}
                       state={e.state}
+                      evalStatus={e.evalStatus}
                     />
                   );
                 })}
@@ -150,6 +153,7 @@ export default function App() {
                         name={e.name}
                         score={e.score}
                         state={e.state}
+                        evalStatus={e.evalStatus}
                       />
                     );
                   })}
@@ -169,6 +173,7 @@ const SidebarItem = (props: {
   name: string;
   state: ScoreState;
   score: number;
+  evalStatus: "success" | "fail";
 }) => {
   let isRunning = false;
 
@@ -191,7 +196,12 @@ const SidebarItem = (props: {
       >
         <span>{props.name}</span>
 
-        <Score score={props.score} state={props.state} isRunning={isRunning} />
+        <Score
+          score={props.score}
+          state={props.state}
+          isRunning={isRunning}
+          evalStatus={props.evalStatus}
+        />
       </NavLink>
     </SidebarMenuItem>
   );
