@@ -1,5 +1,6 @@
 import type { Evalite } from "@evalite/core";
 import { DEFAULT_SERVER_PORT } from "@evalite/core/constants";
+import type { GetServerStateResult } from "@evalite/core/sdk";
 import { useNavigate } from "@remix-run/react";
 import { createContext, useEffect, useMemo, useState } from "react";
 
@@ -16,8 +17,23 @@ export type TestServerState =
       type: "idle";
     };
 
-export const useSubscribeToTestServer = () => {
-  const [state, setState] = useState<TestServerState>({ type: "idle" });
+const serverStateToInitialState = (
+  serverState: GetServerStateResult
+): TestServerState => {
+  if (serverState.type === "idle") {
+    return { type: "idle" };
+  }
+
+  return {
+    type: "running",
+    filepaths: new Set(serverState.filepaths),
+  };
+};
+
+export const useSubscribeToTestServer = (serverState: GetServerStateResult) => {
+  const [state, setState] = useState<TestServerState>(
+    serverStateToInitialState(serverState)
+  );
 
   const navigate = useNavigate();
 

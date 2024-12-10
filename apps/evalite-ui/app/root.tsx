@@ -20,7 +20,7 @@ import {
   SidebarProvider,
 } from "~/components/ui/sidebar";
 
-import { getMenuItems } from "@evalite/core/sdk";
+import { getMenuItems, getServerState } from "@evalite/core/sdk";
 import { getScoreState, Score, type ScoreState } from "./components/score";
 import { cn } from "./lib/utils";
 import "./tailwind.css";
@@ -65,10 +65,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export const clientLoader = async () => {
-  const { archivedEvals, currentEvals, prevScore, score, evalStatus } =
-    await getMenuItems();
+  const [
+    { archivedEvals, currentEvals, prevScore, score, evalStatus },
+    serverState,
+  ] = await Promise.all([getMenuItems(), getServerState()]);
 
   return {
+    serverState,
     evalStatus,
     prevScore,
     score,
@@ -92,7 +95,7 @@ export const clientLoader = async () => {
 export default function App() {
   const data = useLoaderData<typeof clientLoader>();
 
-  const testServer = useSubscribeToTestServer();
+  const testServer = useSubscribeToTestServer(data.serverState);
 
   return (
     <TestServerStateContext.Provider value={testServer}>

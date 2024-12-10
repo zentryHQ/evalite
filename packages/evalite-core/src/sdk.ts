@@ -2,6 +2,20 @@ import type { Db } from "./db.js";
 
 const BASE_URL = "http://localhost:3006";
 
+export type GetServerStateResult =
+  | {
+      type: "running";
+      filepaths: string[];
+    }
+  | {
+      type: "idle";
+    };
+
+export const getServerState = async (): Promise<GetServerStateResult> => {
+  const res = await fetch(`${BASE_URL}/api/server-state`);
+  return res.json() as any;
+};
+
 export type GetMenuItemsResultEval = {
   filepath: string;
   score: number;

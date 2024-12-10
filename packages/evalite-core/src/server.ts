@@ -2,12 +2,13 @@ import { fastifyStatic } from "@fastify/static";
 import { fastifyWebsocket } from "@fastify/websocket";
 import fastify from "fastify";
 import path from "path";
+import { fileURLToPath } from "url";
 import {
   getAverageScoresFromResults,
+  getEvalByName,
   getEvals,
   getEvalsAverageScores,
   getHistoricalEvalsWithScoresByName,
-  getEvalByName,
   getMostRecentRun,
   getPreviousEval,
   getResults,
@@ -20,12 +21,43 @@ import {
   type GetMenuItemsResult,
   type GetMenuItemsResultEval,
   type GetResultResult,
+  type GetServerStateResult,
 } from "./sdk.js";
 import type { Evalite } from "./types.js";
-import { fileURLToPath } from "url";
 import { average } from "./utils.js";
 
 export type Server = ReturnType<typeof createServer>;
+
+export const handleWebsockets = (server: fastify.FastifyInstance) => {
+  const websocketListeners = new Map<
+    string,
+    (event: Evalite.WebsocketEvent) => void
+  >();
+
+  let lastEventReceived: Evalite.WebsocketEvent | undefined = undefined;
+
+  server.register(async (fastify) => {
+    fastify.get("/api/socket", { websocket: true }, (socket, req) => {
+      websocketListeners.set(req.id, (event) => {
+        socket.send(JSON.stringify(event));
+      });
+
+      socket.on("close", () => {
+        websocketListeners.delete(req.id);
+      });
+    });
+  });
+
+  return {
+    send: (event: Evalite.WebsocketEvent) => {
+      lastEventReceived = event;
+      for (const listener of websocketListeners.values()) {
+        listener(event);
+      }
+    },
+    getLastEventReceived: () => lastEventReceived,
+  };
+};
 
 export const createServer = (opts: { db: SQLiteDatabase }) => {
   const UI_ROOT = path.join(
@@ -49,17 +81,21 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
     done(null, payload);
   });
 
-  const listeners = new Map<string, (event: Evalite.WebsocketEvent) => void>();
+  const websockets = handleWebsockets(server);
 
-  server.register(async (fastify) => {
-    fastify.get("/api/socket", { websocket: true }, (socket, req) => {
-      listeners.set(req.id, (event) => {
-        socket.send(JSON.stringify(event));
+  server.get<{
+    Reply: GetServerStateResult;
+  }>("/api/server-state", async (req, reply) => {
+    const rawWebsocketEvent = websockets.getLastEventReceived();
+    if (!rawWebsocketEvent || rawWebsocketEvent.type !== "RUN_IN_PROGRESS") {
+      return reply.code(200).send({
+        type: "idle",
       });
+    }
 
-      socket.on("close", () => {
-        listeners.delete(req.id);
-      });
+    return reply.code(200).send({
+      type: "running",
+      filepaths: rawWebsocketEvent.filepaths,
     });
   });
 
@@ -351,11 +387,7 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
   });
 
   return {
-    send: (event: Evalite.WebsocketEvent) => {
-      for (const listener of listeners.values()) {
-        listener(event);
-      }
-    },
+    send: websockets.send,
     start: (port: number) => {
       server.listen(
         {
