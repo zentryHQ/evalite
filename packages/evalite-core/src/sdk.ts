@@ -2,11 +2,12 @@ import type { Db } from "./db.js";
 
 const BASE_URL = "http://localhost:3006";
 
-type GetMenuItemsResultEval = {
+export type GetMenuItemsResultEval = {
   filepath: string;
   score: number;
   name: string;
   prevScore: number | undefined;
+  evalStatus: "success" | "fail";
 };
 
 export type GetMenuItemsResult = {
@@ -14,6 +15,7 @@ export type GetMenuItemsResult = {
   archivedEvals: GetMenuItemsResultEval[];
   score: number;
   prevScore: number | undefined;
+  evalStatus: "success" | "fail";
 };
 
 export const getMenuItems = async (): Promise<GetMenuItemsResult> => {
@@ -43,6 +45,7 @@ export type GetResultResult = {
   result: Db.Result & { traces: Db.Trace[]; score: number; scores: Db.Score[] };
   prevResult: (Db.Result & { score: number; scores: Db.Score[] }) | undefined;
   filepath: string;
+  evalStatus: "success" | "fail";
 };
 
 export const getResult = async (opts: {

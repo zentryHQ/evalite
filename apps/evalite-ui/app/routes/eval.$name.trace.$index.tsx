@@ -55,7 +55,7 @@ export const clientLoader = async (args: ClientLoaderFunctionArgs) => {
 
 export default function Page() {
   const {
-    data: { result, prevResult, filepath },
+    data: { result, prevResult, filepath, evalStatus },
     name,
     resultIndex,
   } = useLoaderData<typeof clientLoader>();
@@ -108,6 +108,7 @@ export default function Page() {
                     isRunning={isRunning}
                     score={result.score}
                     state={getScoreState(result.score, prevResult?.score)}
+                    evalStatus={evalStatus}
                   />
                 </BreadcrumbItem>
                 <Separator orientation="vertical" className="mx-1 h-4" />
@@ -223,6 +224,7 @@ export default function Page() {
                           (prevScore) => prevScore.name === score.name
                         )?.score
                       )}
+                      evalStatus={evalStatus}
                     />
                   </MainBodySection>
                   {score.metadata && (

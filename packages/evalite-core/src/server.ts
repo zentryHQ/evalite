@@ -17,6 +17,7 @@ import {
 import {
   type GetEvalByNameResult,
   type GetMenuItemsResult,
+  type GetMenuItemsResultEval,
   type GetResultResult,
 } from "./sdk.js";
 import type { Evalite } from "./types.js";
@@ -74,6 +75,7 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
         archivedEvals: [],
         prevScore: undefined,
         score: 0,
+        evalStatus: "success",
       });
     }
 
@@ -109,7 +111,9 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
       })
     );
 
-    const createEvalMenuItem = (e: (typeof evals)[number]) => {
+    const createEvalMenuItem = (
+      e: (typeof evals)[number]
+    ): GetMenuItemsResultEval => {
       const score =
         evalsAverageScores.find((s) => s.eval_id === e.id)?.average ?? 0;
       const prevScore = evalsAverageScores.find(
@@ -121,6 +125,7 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
         name: e.name,
         score,
         prevScore,
+        evalStatus: e.status,
       };
     };
 
@@ -149,6 +154,9 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
             // Default to the latest score if no prevScore is found
             e.score
         ),
+        evalStatus: currentEvals.some((e) => e.evalStatus === "fail")
+          ? "fail"
+          : "success",
       });
     }
 
@@ -159,6 +167,9 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
       archivedEvals: [],
       score: average(menuItems, (e) => e.score),
       prevScore: average(menuItems, (e) => e.prevScore ?? e.score),
+      evalStatus: menuItems.some((e) => e.evalStatus === "fail")
+        ? "fail"
+        : "success",
     });
   });
 
@@ -315,9 +326,12 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
           }
         : undefined;
 
-      return res
-        .code(200)
-        .send({ result, prevResult, filepath: evaluation.filepath });
+      return res.code(200).send({
+        result,
+        prevResult,
+        filepath: evaluation.filepath,
+        evalStatus: evaluation.status,
+      });
     },
   });
 

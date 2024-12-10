@@ -3,6 +3,7 @@ import {
   ChevronRightCircleIcon,
   ChevronUpCircleIcon,
   LoaderCircleIcon,
+  XCircleIcon,
 } from "lucide-react";
 import { cn } from "~/lib/utils";
 
@@ -12,44 +13,57 @@ export const Score = (props: {
   score: number;
   state: ScoreState;
   isRunning: boolean;
+  evalStatus: "success" | "fail";
   iconClassName?: string;
 }) => {
   return (
     <span className="flex items-center space-x-2">
       <span>{Math.round(props.score * 100)}%</span>
-      {props.isRunning ? (
-        <span className="text-gray-500">
-          <LoaderCircleIcon
-            className={cn(
-              "size-3 text-blue-500 animate-spin",
-              props.iconClassName
-            )}
-          />
-        </span>
-      ) : (
-        <>
-          {props.state === "up" && (
-            <ChevronUpCircleIcon
-              className={cn("size-3 text-green-600", props.iconClassName)}
-            />
-          )}
-          {props.state === "down" && (
-            <ChevronDownCircleIcon
-              className={cn("size-3 text-red-600", props.iconClassName)}
-            />
-          )}
-          {props.state === "same" && (
-            <ChevronRightCircleIcon
-              className={cn("size-3 text-blue-500", props.iconClassName)}
-            />
-          )}
-          {props.state === "first" && (
-            <ChevronRightCircleIcon
-              className={cn("size-3 text-blue-500", props.iconClassName)}
-            />
-          )}
-        </>
-      )}
+      {(() => {
+        switch (true) {
+          case props.isRunning:
+            return (
+              <LoaderCircleIcon
+                className={cn(
+                  "size-3 text-blue-500 animate-spin",
+                  props.iconClassName
+                )}
+              />
+            );
+          case props.evalStatus === "fail":
+            return (
+              <XCircleIcon
+                className={cn("size-3 text-red-500", props.iconClassName)}
+              />
+            );
+          case props.state === "up":
+            return (
+              <ChevronUpCircleIcon
+                className={cn("size-3 text-green-600", props.iconClassName)}
+              />
+            );
+          case props.state === "down":
+            return (
+              <ChevronDownCircleIcon
+                className={cn("size-3 text-red-600", props.iconClassName)}
+              />
+            );
+          case props.state === "same":
+            return (
+              <ChevronRightCircleIcon
+                className={cn("size-3 text-blue-500", props.iconClassName)}
+              />
+            );
+          case props.state === "first":
+            return (
+              <ChevronRightCircleIcon
+                className={cn("size-3 text-blue-500", props.iconClassName)}
+              />
+            );
+          default:
+            return null;
+        }
+      })()}
     </span>
   );
 };

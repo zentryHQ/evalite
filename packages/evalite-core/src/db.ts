@@ -1,6 +1,7 @@
 import type * as BetterSqlite3 from "better-sqlite3";
 import Database from "better-sqlite3";
 import type { Evalite } from "./index.js";
+import type { TaskState } from "vitest";
 
 export type SQLiteDatabase = BetterSqlite3.Database;
 
@@ -61,6 +62,13 @@ export const createDatabase = (url: string): BetterSqlite3.Database => {
     );
   `);
 
+  // Add status key
+  try {
+    db.exec(
+      `ALTER TABLE evals ADD COLUMN status TEXT NOT NULL DEFAULT 'success';`
+    );
+  } catch (e) {}
+
   return db;
 };
 
@@ -75,6 +83,7 @@ export declare namespace Db {
     id: number;
     run_id: number;
     name: string;
+    status: "fail" | "success";
     filepath: string;
     duration: number;
     created_at: string;
@@ -126,6 +135,9 @@ export const saveRun = (
       filepath: string;
       tasks: {
         name: string;
+        result?: {
+          state: TaskState;
+        };
         meta: {
           evalite?: Evalite.TaskMeta;
         };
@@ -147,8 +159,8 @@ export const saveRun = (
       const evalId = db
         .prepare(
           `
-          INSERT INTO evals (run_id, name, filepath, duration)
-          VALUES (@runId, @name, @filepath, @duration)
+          INSERT INTO evals (run_id, name, filepath, duration, status)
+          VALUES (@runId, @name, @filepath, @duration, @status)
         `
         )
         .run({
@@ -156,6 +168,7 @@ export const saveRun = (
           name: task.name,
           filepath: file.filepath,
           duration: task.meta.evalite?.duration ?? 0,
+          status: task.result?.state === "fail" ? "fail" : "success",
         }).lastInsertRowid;
 
       if (task.meta.evalite) {
