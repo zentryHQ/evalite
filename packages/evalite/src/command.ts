@@ -1,6 +1,5 @@
 import { Command } from "commander";
 import { runVitest } from "./run-vitest.js";
-import { createDatabase } from "@evalite/core/db";
 
 export const program = new Command();
 
