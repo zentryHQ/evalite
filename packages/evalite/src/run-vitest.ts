@@ -60,22 +60,6 @@ export const runVitest = async (opts: {
     }
   );
 
-  await vitest.collect(filters);
-
-  const allFileResults = Array.from(vitest.vitenode.fetchCache);
-
-  const sourceFileResults = allFileResults.filter(([path, item]) => {
-    return !(path.endsWith(".eval.ts") || path.endsWith(".eval.js"));
-  });
-
-  const codeFromSourceFiles = sourceFileResults.reduce((acc, [path, item]) => {
-    return acc + (item.result.code ?? "");
-  }, "");
-
-  const hash = createHash("sha256").update(codeFromSourceFiles).digest("hex");
-
-  vitest.provide("evaliteInputHash", hash);
-
   await vitest.start(filters);
 
   const dispose = registerConsoleShortcuts(
