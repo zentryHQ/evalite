@@ -1,6 +1,8 @@
 # Evalite
 
-The TypeScript-native, local-first tool for testing LLM-powered apps.
+![Evalite: the TypeScript-native, local-first tool for testing LLM-powered apps.](https://raw.githubusercontent.com/mattpocock/evalite/refs/heads/main/repo-card.jpg)
+
+## What Is Evalite?
 
 - Fully open source: **No API Key required**.
 - Local-first: runs on your machine, your data never leaves your laptop.
