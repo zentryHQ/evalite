@@ -1,5 +1,13 @@
 # evalite
 
+## 0.5.4
+
+### Patch Changes
+
+- 9ef8421: Made failed evaluations show a message in the UI.
+- Updated dependencies [9ef8421]
+  - @evalite/core@0.3.4
+
 ## 0.5.3
 
 ### Patch Changes
