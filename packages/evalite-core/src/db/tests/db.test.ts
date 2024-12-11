@@ -20,30 +20,34 @@ describe("getEvalsAverageScores", () => {
           tasks: [
             {
               name: "task",
-              meta: {
-                evalite: {
-                  duration: 100,
-                  results: [
-                    {
-                      input: "input",
+              tasks: [
+                {
+                  name: "task 1",
+                  meta: {
+                    evalite: {
                       duration: 100,
-                      output: "result",
-                      expected: "expected",
-                      scores: [
-                        {
-                          name: "score",
-                          score: 1,
-                        },
-                        {
-                          name: "Other Score",
-                          score: 0,
-                        },
-                      ],
-                      traces: [],
+                      result: {
+                        order: 1,
+                        input: "input",
+                        duration: 100,
+                        output: "result",
+                        expected: "expected",
+                        scores: [
+                          {
+                            name: "score",
+                            score: 1,
+                          },
+                          {
+                            name: "Other Score",
+                            score: 0,
+                          },
+                        ],
+                        traces: [],
+                      },
                     },
-                  ],
+                  },
                 },
-              },
+              ],
             },
           ],
         },

@@ -8,7 +8,7 @@ evalite("Failure", {
     },
   ],
   task: async (input) => {
-    return "x";
+    throw new Error("Fail");
   },
   scorers: [],
 });

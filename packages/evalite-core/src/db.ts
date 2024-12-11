@@ -2,6 +2,7 @@ import type * as BetterSqlite3 from "better-sqlite3";
 import Database from "better-sqlite3";
 import type { Evalite } from "./index.js";
 import type { TaskState } from "vitest";
+import { max } from "./utils.js";
 
 export type SQLiteDatabase = BetterSqlite3.Database;
 
@@ -138,7 +139,7 @@ export const saveRun = (
         result?: {
           state: TaskState;
         };
-        tasks: {
+        tasks?: {
           name: string;
           result?: {
             state: TaskState;
@@ -162,6 +163,12 @@ export const saveRun = (
 
   for (const file of files) {
     for (const suite of file.tasks) {
+      if (!suite.tasks) {
+        throw new Error(
+          "An unknown error occurred - did you nest evalite inside a describe block?"
+        );
+      }
+
       const evalId = db
         .prepare(
           `
@@ -173,15 +180,13 @@ export const saveRun = (
           runId,
           name: suite.name,
           filepath: file.filepath,
-          duration: 0, // TODO - go with max duration
+          duration: max(suite.tasks, (t) => t.meta.evalite?.duration ?? 0),
           status: suite.result?.state === "fail" ? "fail" : "success",
         }).lastInsertRowid;
 
-      let order = 0;
       for (const task of suite.tasks) {
         if (task.meta.evalite?.result) {
-          order += 1;
-          const { duration, input, output, expected, scores, traces } =
+          const { duration, input, output, expected, scores, traces, order } =
             task.meta.evalite.result;
           const resultId = db
             .prepare(

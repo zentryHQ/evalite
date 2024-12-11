@@ -98,6 +98,7 @@ export const evalite = <TInput, TExpected = TInput>(
         });
         task.meta.evalite = {
           result: {
+            order: index,
             duration,
             expected: data.expected,
             input: data.input,

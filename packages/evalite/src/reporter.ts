@@ -6,6 +6,7 @@ import { inspect } from "util";
 import type { RunnerTask, RunnerTestFile, TaskResultPack, Test } from "vitest";
 import { BasicReporter } from "vitest/reporters";
 import { average, sum } from "./utils.js";
+import { getSuites, getTasks, getTests } from "@vitest/runner/utils";
 
 export interface EvaliteReporterOptions {
   isWatching: boolean;
@@ -121,119 +122,121 @@ export default class EvaliteReporter extends BasicReporter {
     super.onFinished(files, errors);
   };
 
-  // protected override printTask(task: RunnerTask): void {
-  //   // Tasks can be files or individual tests, and
-  //   // this ensures we only print files
-  //   if (
-  //     !("filepath" in task) ||
-  //     !task.result?.state ||
-  //     task.result?.state === "run"
-  //   ) {
-  //     return;
-  //   }
+  protected override printTask(file: RunnerTask): void {
+    // Tasks can be files or individual tests, and
+    // this ensures we only print files
+    if (
+      !("filepath" in file) ||
+      !file.result?.state ||
+      file.result?.state === "run"
+    ) {
+      return;
+    }
 
-  //   const hasNoEvalite = task.tasks.every((t) => !t.meta.evalite);
+    const tests = getTests(file);
 
-  //   if (hasNoEvalite) {
-  //     return super.printTask(task);
-  //   }
+    const hasNoEvalite = tests.every((t) => !t.meta.evalite);
 
-  //   const scores: number[] = [];
+    if (hasNoEvalite) {
+      return super.printTask(file);
+    }
 
-  //   const failed = task.tasks.some((t) => t.result?.state === "fail");
+    const scores: number[] = [];
 
-  //   for (const { meta } of task.tasks) {
-  //     if (meta.evalite) {
-  //       scores.push(
-  //         ...meta.evalite!.results.flatMap((r) =>
-  //           r.scores.map((s) => s.score ?? 0)
-  //         )
-  //       );
-  //     }
-  //   }
+    const failed = tests.some((t) => t.result?.state === "fail");
 
-  //   const totalScore = scores.reduce((a, b) => a + b, 0);
-  //   const averageScore = totalScore / scores.length;
+    for (const { meta } of tests) {
+      if (meta.evalite) {
+        scores.push(...meta.evalite!.result.scores.map((s) => s.score ?? 0));
+      }
+    }
 
-  //   const title = failed ? c.red("✖") : displayScore(averageScore);
+    const totalScore = scores.reduce((a, b) => a + b, 0);
+    const averageScore = totalScore / scores.length;
 
-  //   const toLog = [
-  //     ` ${title} `,
-  //     `${task.name}  `,
-  //     c.dim(
-  //       `(${task.tasks.length} ${task.tasks.length > 1 ? "evals" : "eval"})`
-  //     ),
-  //   ];
+    const title = failed ? c.red("✖") : displayScore(averageScore);
 
-  //   // if (task.result.duration) {
-  //   //   toLog.push(" " + c.dim(`${Math.round(task.result.duration ?? 0)}ms`));
-  //   // }
+    const toLog = [
+      ` ${title} `,
+      `${file.name}  `,
+      c.dim(
+        `(${file.tasks.length} ${file.tasks.length > 1 ? "evals" : "eval"})`
+      ),
+    ];
 
-  //   this.ctx.logger.log(toLog.join(""));
-  // }
+    // if (task.result.duration) {
+    //   toLog.push(" " + c.dim(`${Math.round(task.result.duration ?? 0)}ms`));
+    // }
 
-  // override reportTestSummary(files: RunnerTestFile[], errors: unknown[]): void {
-  //   // this.printErrorsSummary(errors); // TODO
+    this.ctx.logger.log(toLog.join(""));
+  }
 
-  //   const evals = files.flatMap((file) =>
-  //     file.tasks.filter((task) => task.meta.evalite)
-  //   );
+  override reportTestSummary(files: RunnerTestFile[], errors: unknown[]): void {
+    /**
+     * These tasks are the actual tests that were run
+     */
+    const tests = getTests(files);
 
-  //   const scores = evals.flatMap((task) =>
-  //     task.meta.evalite!.results.flatMap((r) => r.scores.map((s) => s.score))
-  //   );
+    const scores = tests.flatMap((test) =>
+      test.meta.evalite?.result.scores.map((s) => s.score ?? 0)
+    );
 
-  //   const totalScore = sum(scores, (score) => score ?? 0);
-  //   const averageScore = totalScore / scores.length;
+    const totalScore = sum(scores, (score) => score ?? 0);
+    const averageScore = totalScore / scores.length;
 
-  //   const collectTime = files.reduce((a, b) => a + (b.collectDuration || 0), 0);
-  //   const testsTime = files.reduce((a, b) => a + (b.result?.duration || 0), 0);
-  //   const setupTime = files.reduce((a, b) => a + (b.setupDuration || 0), 0);
+    const collectTime = files.reduce((a, b) => a + (b.collectDuration || 0), 0);
+    const testsTime = files.reduce((a, b) => a + (b.result?.duration || 0), 0);
+    const setupTime = files.reduce((a, b) => a + (b.setupDuration || 0), 0);
 
-  //   const totalDuration = collectTime + testsTime + setupTime;
+    const totalDuration = collectTime + testsTime + setupTime;
 
-  //   const failedTasks = files.filter((file) => {
-  //     return file.tasks.some((task) => task.result?.state === "fail");
-  //   });
+    const failedTasks = files.filter((file) => {
+      return file.tasks.some((task) => task.result?.state === "fail");
+    });
 
-  //   const scoreDisplay =
-  //     failedTasks.length > 0
-  //       ? c.red("✖ ") + c.dim(`(${failedTasks.length} failed)`)
-  //       : displayScore(averageScore);
+    const scoreDisplay =
+      failedTasks.length > 0
+        ? c.red("✖ ") + c.dim(`(${failedTasks.length} failed)`)
+        : displayScore(averageScore);
 
-  //   this.ctx.logger.log(
-  //     ["      ", c.dim("Score"), "  ", scoreDisplay].join("")
-  //   );
+    this.ctx.logger.log(
+      ["      ", c.dim("Score"), "  ", scoreDisplay].join("")
+    );
 
-  //   this.ctx.logger.log(
-  //     [" ", c.dim("Eval Files"), "  ", files.length].join("")
-  //   );
+    this.ctx.logger.log(
+      [" ", c.dim("Eval Files"), "  ", files.length].join("")
+    );
 
-  //   this.ctx.logger.log(
-  //     [
-  //       "      ",
-  //       c.dim("Evals"),
-  //       "  ",
-  //       files.reduce((a, b) => a + b.tasks.length, 0),
-  //     ].join("")
-  //   );
+    this.ctx.logger.log(
+      [
+        "      ",
+        c.dim("Evals"),
+        "  ",
+        files.reduce((a, b) => a + b.tasks.length, 0),
+      ].join("")
+    );
 
-  //   this.ctx.logger.log(
-  //     ["   ", c.dim("Duration"), "  ", `${Math.round(totalDuration)}ms`].join(
-  //       ""
-  //     )
-  //   );
+    this.ctx.logger.log(
+      ["   ", c.dim("Duration"), "  ", `${Math.round(totalDuration)}ms`].join(
+        ""
+      )
+    );
 
-  //   if (evals.length === 1 && evals[0]) {
-  //     this.renderTable(
-  //       evals[0].meta.evalite!.results.map((result) => ({
-  //         input: result.input,
-  //         output: result.output,
-  //         score: average(result.scores, (s) => s.score ?? 0),
-  //       }))
-  //     );
-  //   }
-  // }
+    const totalFiles = new Set(files.map((f) => f.filepath)).size;
+
+    if (totalFiles === 1 && failedTasks.length === 0) {
+      this.renderTable(
+        tests
+          .filter((t) => typeof t.meta.evalite === "object")
+          .map((t) => t.meta.evalite!.result)
+          .map((result) => ({
+            input: result.input,
+            output: result.output,
+            score: average(result.scores, (s) => s.score ?? 0),
+          }))
+      );
+    }
+  }
 
   private renderTable(
     props: {
@@ -330,10 +333,13 @@ export default class EvaliteReporter extends BasicReporter {
 
     startingTestFiles.forEach((file) => this.onTestFilePrepare(file));
     startingTests.forEach((test) => this.onTestStart(test));
+
+    super.onTaskUpdate(packs);
   }
 }
 
-const displayScore = (score: number) => {
+const displayScore = (_score: number) => {
+  const score = Number.isNaN(_score) ? 0 : _score;
   const percentageScore = Math.round(score * 100);
   if (percentageScore >= 80) {
     return c.bold(c.green(percentageScore + "%"));
