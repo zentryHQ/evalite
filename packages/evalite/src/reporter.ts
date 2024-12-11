@@ -11,7 +11,7 @@ import { saveRun, type SQLiteDatabase } from "@evalite/core/db";
 export interface EvaliteReporterOptions {
   isWatching: boolean;
   port: number;
-  logEvent: (event: Evalite.WebsocketEvent) => void;
+  logNewState: (event: Evalite.ServerState) => void;
   db: SQLiteDatabase;
 }
 
@@ -31,9 +31,20 @@ const renderers = {
   },
 };
 
+type ReporterEvent =
+  | {
+      type: "RUN_BEGUN";
+      filepaths: string[];
+      runType: Evalite.RunType;
+    }
+  | {
+      type: "RUN_ENDED";
+    };
+
 export default class EvaliteReporter extends BasicReporter {
   private opts: EvaliteReporterOptions;
   private lastRunTypeLogged: Evalite.RunType = "full";
+  private state: Evalite.ServerState = { type: "idle" };
 
   // private server: Server;
   constructor(opts: EvaliteReporterOptions) {
@@ -50,8 +61,8 @@ export default class EvaliteReporter extends BasicReporter {
     );
     this.ctx.logger.log("");
 
-    this.opts.logEvent({
-      type: "RUN_IN_PROGRESS",
+    this.sendEvent({
+      type: "RUN_BEGUN",
       filepaths: this.ctx.state.getFiles().map((f) => f.filepath),
       runType: "full",
     });
@@ -62,9 +73,35 @@ export default class EvaliteReporter extends BasicReporter {
     super.onWatcherStart(files, errors);
   }
 
+  updateState(state: Evalite.ServerState) {
+    this.state = state;
+    this.opts.logNewState(state);
+  }
+
+  /**
+   * Handles the state management for the reporter
+   */
+  sendEvent(event: ReporterEvent): void {
+    switch (event.type) {
+      case "RUN_BEGUN":
+        this.updateState({
+          filepaths: event.filepaths,
+          runType: event.runType,
+          type: "running",
+        });
+        break;
+      case "RUN_ENDED":
+        this.updateState({ type: "idle" });
+        break;
+      default:
+        event satisfies never;
+        throw new Error("Unknown event type");
+    }
+  }
+
   override onWatcherRerun(files: string[], trigger?: string): void {
-    this.opts.logEvent({
-      type: "RUN_IN_PROGRESS",
+    this.sendEvent({
+      type: "RUN_BEGUN",
       filepaths: files,
       runType: "partial",
     });
@@ -76,8 +113,8 @@ export default class EvaliteReporter extends BasicReporter {
     files = this.ctx.state.getFiles(),
     errors = this.ctx.state.getUnhandledErrors()
   ) => {
-    this.opts.logEvent({
-      type: "RUN_COMPLETE",
+    this.sendEvent({
+      type: "RUN_ENDED",
     });
 
     saveRun(this.opts.db, { files, runType: this.lastRunTypeLogged });

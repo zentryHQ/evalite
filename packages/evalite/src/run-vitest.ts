@@ -43,8 +43,8 @@ export const runVitest = async (opts: {
       },
       reporters: [
         new EvaliteReporter({
-          logEvent: (event) => {
-            server?.send(event);
+          logNewState: (newState) => {
+            server?.updateState(newState);
           },
           port: DEFAULT_SERVER_PORT,
           isWatching: opts.mode === "watch-for-file-changes",

@@ -93,8 +93,7 @@ export default function Page() {
             <Score
               evalStatus={evaluation.status}
               isRunning={
-                serverState.state.type === "running" &&
-                serverState.state.filepaths.has(evaluation.filepath) &&
+                serverState.isRunningFilepath(evaluation.filepath) &&
                 evaluation.created_at === latestDate
               }
               score={score}
@@ -230,12 +229,9 @@ export default function Page() {
                             <Wrapper>
                               <Score
                                 score={scorer.score}
-                                isRunning={
-                                  serverState.state.type === "running" &&
-                                  serverState.state.filepaths.has(
-                                    evaluation.filepath
-                                  )
-                                }
+                                isRunning={serverState.isRunningFilepath(
+                                  evaluation.filepath
+                                )}
                                 evalStatus={evaluation.status}
                                 state={getScoreState(
                                   scorer.score,

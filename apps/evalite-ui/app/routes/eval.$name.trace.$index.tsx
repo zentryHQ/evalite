@@ -71,9 +71,7 @@ export default function Page() {
 
   const serverState = useContext(TestServerStateContext);
 
-  const isRunning =
-    serverState.state.type === "running" &&
-    serverState.state.filepaths.has(evaluation.filepath);
+  const isRunning = serverState.isRunningFilepath(evaluation.filepath);
 
   const [searchParams] = useSearchParams();
 

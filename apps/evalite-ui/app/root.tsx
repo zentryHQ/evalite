@@ -183,7 +183,7 @@ const SidebarItem = (props: {
   const testServer = useContext(TestServerStateContext);
 
   if (testServer.state.type === "running") {
-    isRunning = testServer.state.filepaths.has(props.filepath);
+    isRunning = testServer.isRunningFilepath(props.filepath);
   }
   return (
     <SidebarMenuItem key={props.name}>

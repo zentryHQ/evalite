@@ -1,13 +1,13 @@
 export declare namespace Evalite {
   export type RunType = "full" | "partial";
-  export type WebsocketEvent =
+  export type ServerState =
     | {
-        type: "RUN_IN_PROGRESS";
+        type: "running";
         runType: RunType;
         filepaths: string[];
       }
     | {
-        type: "RUN_COMPLETE";
+        type: "idle";
       };
 
   export type MaybePromise<T> = T | Promise<T>;

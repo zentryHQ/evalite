@@ -1,6 +1,5 @@
 import type { Evalite } from "@evalite/core";
 import { DEFAULT_SERVER_PORT } from "@evalite/core/constants";
-import type { GetServerStateResult } from "@evalite/core/sdk";
 import { useNavigate } from "@remix-run/react";
 import { createContext, useEffect, useMemo, useState } from "react";
 
@@ -8,36 +7,13 @@ export const TestServerStateContext = createContext<
   ReturnType<typeof useSubscribeToTestServer>
 >({} as never);
 
-export type TestServerState =
-  | {
-      type: "running";
-      filepaths: Set<string>;
-    }
-  | {
-      type: "idle";
-    };
-
-const serverStateToInitialState = (
-  serverState: GetServerStateResult
-): TestServerState => {
-  if (serverState.type === "idle") {
-    return { type: "idle" };
-  }
-
-  return {
-    type: "running",
-    filepaths: new Set(serverState.filepaths),
-  };
-};
-
-export const useSubscribeToTestServer = (serverState: GetServerStateResult) => {
-  const [state, setState] = useState<TestServerState>(
-    serverStateToInitialState(serverState)
-  );
+export const useSubscribeToTestServer = (serverState: Evalite.ServerState) => {
+  const [state, setState] = useState<Evalite.ServerState>(serverState);
 
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Reload fetchers when the server state changes
     navigate(window.location, {
       preventScrollReset: true,
       replace: true,
@@ -50,18 +26,8 @@ export const useSubscribeToTestServer = (serverState: GetServerStateResult) => {
     );
 
     socket.onmessage = (event) => {
-      const data: Evalite.WebsocketEvent = JSON.parse(event.data);
-      switch (data.type) {
-        case "RUN_IN_PROGRESS":
-          setState({
-            type: "running",
-            filepaths: new Set(data.filepaths),
-          });
-          break;
-        case "RUN_COMPLETE":
-          setState({ type: "idle" });
-          break;
-      }
+      const newState: Evalite.ServerState = JSON.parse(event.data);
+      setState(newState);
     };
 
     return () => {
@@ -69,5 +35,15 @@ export const useSubscribeToTestServer = (serverState: GetServerStateResult) => {
     };
   }, []);
 
-  return useMemo(() => ({ state }), [state]);
+  return useMemo(() => {
+    const filePathSet: Set<string> =
+      state.type === "running" ? new Set(state.filepaths) : new Set();
+
+    const isRunningFilepath = (filepath: string) =>
+      filePathSet.has(filepath) && state.type === "running";
+    return {
+      state,
+      isRunningFilepath,
+    };
+  }, [state]);
 };

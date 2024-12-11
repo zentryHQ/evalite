@@ -1,17 +1,9 @@
 import type { Db } from "./db.js";
+import type { Evalite } from "./types.js";
 
 const BASE_URL = "http://localhost:3006";
 
-export type GetServerStateResult =
-  | {
-      type: "running";
-      filepaths: string[];
-    }
-  | {
-      type: "idle";
-    };
-
-export const getServerState = async (): Promise<GetServerStateResult> => {
+export const getServerState = async (): Promise<Evalite.ServerState> => {
   const res = await fetch(`${BASE_URL}/api/server-state`);
   return res.json() as any;
 };

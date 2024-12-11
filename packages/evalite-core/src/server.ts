@@ -21,7 +21,6 @@ import {
   type GetMenuItemsResult,
   type GetMenuItemsResultEval,
   type GetResultResult,
-  type GetServerStateResult,
 } from "./sdk.js";
 import type { Evalite } from "./types.js";
 import { average } from "./utils.js";
@@ -31,10 +30,12 @@ export type Server = ReturnType<typeof createServer>;
 export const handleWebsockets = (server: fastify.FastifyInstance) => {
   const websocketListeners = new Map<
     string,
-    (event: Evalite.WebsocketEvent) => void
+    (event: Evalite.ServerState) => void
   >();
 
-  let lastEventReceived: Evalite.WebsocketEvent | undefined = undefined;
+  let currentState: Evalite.ServerState = {
+    type: "idle",
+  };
 
   server.register(async (fastify) => {
     fastify.get("/api/socket", { websocket: true }, (socket, req) => {
@@ -49,13 +50,13 @@ export const handleWebsockets = (server: fastify.FastifyInstance) => {
   });
 
   return {
-    send: (event: Evalite.WebsocketEvent) => {
-      lastEventReceived = event;
+    updateState: (newState: Evalite.ServerState) => {
+      currentState = newState;
       for (const listener of websocketListeners.values()) {
-        listener(event);
+        listener(newState);
       }
     },
-    getLastEventReceived: () => lastEventReceived,
+    getState: () => currentState,
   };
 };
 
@@ -84,19 +85,9 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
   const websockets = handleWebsockets(server);
 
   server.get<{
-    Reply: GetServerStateResult;
+    Reply: Evalite.ServerState;
   }>("/api/server-state", async (req, reply) => {
-    const rawWebsocketEvent = websockets.getLastEventReceived();
-    if (!rawWebsocketEvent || rawWebsocketEvent.type !== "RUN_IN_PROGRESS") {
-      return reply.code(200).send({
-        type: "idle",
-      });
-    }
-
-    return reply.code(200).send({
-      type: "running",
-      filepaths: rawWebsocketEvent.filepaths,
-    });
+    return reply.code(200).send(websockets.getState());
   });
 
   server.get<{
@@ -387,7 +378,7 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
   });
 
   return {
-    send: websockets.send,
+    updateState: websockets.updateState,
     start: (port: number) => {
       server.listen(
         {
