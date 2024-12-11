@@ -22,7 +22,7 @@ it("Should report the basics correctly", async () => {
   expect(captured.getOutput()).toContain("100% basics.eval.ts  (1 eval)");
 });
 
-it("Should create a evalite-report.jsonl", async () => {
+it("Should save the basic information in a db", async () => {
   using fixture = loadFixture("basics");
 
   const captured = captureStdout();

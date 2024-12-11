@@ -18,6 +18,9 @@ it("Should report a failing test", async () => {
 
   expect(captured.getOutput()).toContain("failing-test.eval.ts");
   expect(captured.getOutput()).toContain("Score  ✖ (1 failed)");
+
+  // Should not display a table
+  expect(captured.getOutput()).not.toContain("Input");
 });
 
 it("Should save the test as failed in the database", async () => {

@@ -1,5 +1,5 @@
 import type { Evalite } from "@evalite/core";
-import { inject, it } from "vitest";
+import { afterEach, beforeEach, describe, inject, it } from "vitest";
 import { reportTraceLocalStorage } from "./traces.js";
 
 declare module "vitest" {
@@ -78,34 +78,38 @@ export const evalite = <TInput, TExpected = TInput>(
   testName: string,
   opts: Evalite.RunnerOpts<TInput, TExpected>
 ) => {
-  return it(testName, async ({ task }) => {
-    const data = await opts.data();
-    const start = performance.now();
-    const results = await Promise.all(
-      data.map(async ({ input, expected }): Promise<Evalite.Result> => {
+  return describe(testName, async () => {
+    const dataset = await opts.data();
+
+    let index = 0;
+    for (const data of dataset) {
+      index++;
+      it(`${testName} ${index}`, { concurrent: true }, async ({ task }) => {
+        const start = performance.now();
+
         const traces: Evalite.Trace[] = [];
         reportTraceLocalStorage.enterWith((trace) => traces.push(trace));
+
         const { output, scores, duration } = await runTask({
-          expected,
-          input,
+          expected: data.expected,
+          input: data.input,
           scores: opts.scorers,
           task: opts.task,
         });
-
-        return {
-          input,
-          output,
-          scores,
-          duration,
-          expected,
-          traces,
+        task.meta.evalite = {
+          result: {
+            order: index,
+            duration,
+            expected: data.expected,
+            input: data.input,
+            output,
+            scores,
+            traces,
+          },
+          duration: Math.round(performance.now() - start),
         };
-      })
-    );
-    task.meta.evalite = {
-      results,
-      duration: Math.round(performance.now() - start),
-    };
+      });
+    }
   });
 };
 

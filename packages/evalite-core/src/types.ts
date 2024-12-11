@@ -13,6 +13,7 @@ export declare namespace Evalite {
   export type MaybePromise<T> = T | Promise<T>;
 
   export type Result = {
+    order: number;
     input: unknown;
     output: unknown;
     expected: unknown;
@@ -46,7 +47,7 @@ export declare namespace Evalite {
   };
 
   export type TaskMeta = {
-    results: Result[];
+    result: Result;
     duration: number | undefined;
   };
 

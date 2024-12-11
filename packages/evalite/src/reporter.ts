@@ -1,12 +1,12 @@
-import type { RunnerTask, RunnerTestFile, TaskResultPack } from "vitest";
-import { BasicReporter } from "vitest/reporters";
-
 import { type Evalite } from "@evalite/core";
+import { saveRun, type SQLiteDatabase } from "@evalite/core/db";
 import { table } from "table";
 import c from "tinyrainbow";
-import { average, sum } from "./utils.js";
 import { inspect } from "util";
-import { saveRun, type SQLiteDatabase } from "@evalite/core/db";
+import type { RunnerTask, RunnerTestFile, TaskResultPack, Test } from "vitest";
+import { BasicReporter } from "vitest/reporters";
+import { average, sum } from "./utils.js";
+import { getSuites, getTasks, getTests } from "@vitest/runner/utils";
 
 export interface EvaliteReporterOptions {
   isWatching: boolean;
@@ -122,34 +122,32 @@ export default class EvaliteReporter extends BasicReporter {
     super.onFinished(files, errors);
   };
 
-  protected override printTask(task: RunnerTask): void {
+  protected override printTask(file: RunnerTask): void {
     // Tasks can be files or individual tests, and
     // this ensures we only print files
     if (
-      !("filepath" in task) ||
-      !task.result?.state ||
-      task.result?.state === "run"
+      !("filepath" in file) ||
+      !file.result?.state ||
+      file.result?.state === "run"
     ) {
       return;
     }
 
-    const hasNoEvalite = task.tasks.every((t) => !t.meta.evalite);
+    const tests = getTests(file);
+
+    const hasNoEvalite = tests.every((t) => !t.meta.evalite);
 
     if (hasNoEvalite) {
-      return super.printTask(task);
+      return super.printTask(file);
     }
 
     const scores: number[] = [];
 
-    const failed = task.tasks.some((t) => t.result?.state === "fail");
+    const failed = tests.some((t) => t.result?.state === "fail");
 
-    for (const { meta } of task.tasks) {
+    for (const { meta } of tests) {
       if (meta.evalite) {
-        scores.push(
-          ...meta.evalite!.results.flatMap((r) =>
-            r.scores.map((s) => s.score ?? 0)
-          )
-        );
+        scores.push(...meta.evalite!.result.scores.map((s) => s.score ?? 0));
       }
     }
 
@@ -160,9 +158,9 @@ export default class EvaliteReporter extends BasicReporter {
 
     const toLog = [
       ` ${title} `,
-      `${task.name}  `,
+      `${file.name}  `,
       c.dim(
-        `(${task.tasks.length} ${task.tasks.length > 1 ? "evals" : "eval"})`
+        `(${file.tasks.length} ${file.tasks.length > 1 ? "evals" : "eval"})`
       ),
     ];
 
@@ -174,14 +172,13 @@ export default class EvaliteReporter extends BasicReporter {
   }
 
   override reportTestSummary(files: RunnerTestFile[], errors: unknown[]): void {
-    // this.printErrorsSummary(errors); // TODO
+    /**
+     * These tasks are the actual tests that were run
+     */
+    const tests = getTests(files);
 
-    const evals = files.flatMap((file) =>
-      file.tasks.filter((task) => task.meta.evalite)
-    );
-
-    const scores = evals.flatMap((task) =>
-      task.meta.evalite!.results.flatMap((r) => r.scores.map((s) => s.score))
+    const scores = tests.flatMap((test) =>
+      test.meta.evalite?.result.scores.map((s) => s.score ?? 0)
     );
 
     const totalScore = sum(scores, (score) => score ?? 0);
@@ -225,13 +222,18 @@ export default class EvaliteReporter extends BasicReporter {
       )
     );
 
-    if (evals.length === 1 && evals[0]) {
+    const totalFiles = new Set(files.map((f) => f.filepath)).size;
+
+    if (totalFiles === 1 && failedTasks.length === 0) {
       this.renderTable(
-        evals[0].meta.evalite!.results.map((result) => ({
-          input: result.input,
-          output: result.output,
-          score: average(result.scores, (s) => s.score ?? 0),
-        }))
+        tests
+          .filter((t) => typeof t.meta.evalite === "object")
+          .map((t) => t.meta.evalite!.result)
+          .map((result) => ({
+            input: result.input,
+            output: result.output,
+            score: average(result.scores, (s) => s.score ?? 0),
+          }))
       );
     }
   }
@@ -294,9 +296,50 @@ export default class EvaliteReporter extends BasicReporter {
       )
     );
   }
+
+  onTestStart(_test: Test) {}
+  onTestFinished(_test: Test) {}
+
+  onTestFilePrepare(_file: RunnerTestFile) {}
+  onTestFileFinished(_file: RunnerTestFile) {}
+
+  override onTaskUpdate(packs: TaskResultPack[]) {
+    const startingTestFiles: RunnerTestFile[] = [];
+    const finishedTestFiles: RunnerTestFile[] = [];
+
+    const startingTests: Test[] = [];
+    const finishedTests: Test[] = [];
+
+    for (const pack of packs) {
+      const task = this.ctx.state.idMap.get(pack[0]);
+
+      if (task?.type === "suite" && "filepath" in task && task.result?.state) {
+        if (task?.result?.state === "run") {
+          startingTestFiles.push(task);
+        }
+      }
+
+      if (task?.type === "test") {
+        if (task.result?.state === "run") {
+          startingTests.push(task);
+        } else if (task.result?.hooks?.afterEach !== "run") {
+          finishedTests.push(task);
+        }
+      }
+    }
+
+    finishedTests.forEach((test) => this.onTestFinished(test));
+    finishedTestFiles.forEach((file) => this.onTestFileFinished(file));
+
+    startingTestFiles.forEach((file) => this.onTestFilePrepare(file));
+    startingTests.forEach((test) => this.onTestStart(test));
+
+    super.onTaskUpdate(packs);
+  }
 }
 
-const displayScore = (score: number) => {
+const displayScore = (_score: number) => {
+  const score = Number.isNaN(_score) ? 0 : _score;
   const percentageScore = Math.round(score * 100);
   if (percentageScore >= 80) {
     return c.bold(c.green(percentageScore + "%"));

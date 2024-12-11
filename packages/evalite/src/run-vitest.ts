@@ -60,13 +60,6 @@ export const runVitest = async (opts: {
     }
   );
 
-  /**
-   * This is important to run before start, so that
-   * we immediately report the correct files to the
-   * server.
-   */
-  await vitest.collect(filters);
-
   await vitest.start(filters);
 
   const dispose = registerConsoleShortcuts(
