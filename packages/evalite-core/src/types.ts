@@ -1,12 +1,17 @@
 export declare namespace Evalite {
   export type RunType = "full" | "partial";
+
+  export type RunningServerState = {
+    type: "running";
+    runType: RunType;
+    filepaths: string[];
+    runId: number | bigint;
+    evalNamesRunning: string[];
+    resultIdsRunning: (number | bigint)[];
+  };
+
   export type ServerState =
-    | {
-        type: "running";
-        runType: RunType;
-        filepaths: string[];
-        runId: number | bigint;
-      }
+    | RunningServerState
     | {
         type: "idle";
       };

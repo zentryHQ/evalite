@@ -141,7 +141,7 @@ export default class EvaliteReporter extends BasicReporter {
                 runId: this.state.runId,
               });
 
-              this.opts.db
+              const resultId = this.opts.db
                 .prepare<{}, { id: number }>(
                   `
                   INSERT INTO results (eval_id, col_order, input, expected, duration, output)
@@ -155,7 +155,16 @@ export default class EvaliteReporter extends BasicReporter {
                   expected: JSON.stringify(event.initialResult.expected),
                   output: JSON.stringify(null),
                   duration: 0,
-                });
+                }).lastInsertRowid;
+
+              this.updateState({
+                ...this.state,
+                evalNamesRunning: [
+                  ...this.state.evalNamesRunning,
+                  event.initialResult.evalName,
+                ],
+                resultIdsRunning: [...this.state.resultIdsRunning, resultId],
+              });
             }
 
             break;
@@ -262,6 +271,38 @@ export default class EvaliteReporter extends BasicReporter {
                     col_order: traceOrder,
                   });
               }
+
+              const allResults = this.opts.db
+                .prepare<{ eval_id: number | bigint }, { id: number }>(
+                  `
+                  SELECT id
+                  FROM results
+                  WHERE eval_id = @eval_id
+                `
+                )
+                .all({ eval_id: evalId });
+
+              const resultIdsRunning = this.state.resultIdsRunning.filter(
+                (id) => id !== existingResultId
+              );
+
+              /**
+               * The eval is complete if all results are no longer
+               * running
+               */
+              const isEvalComplete = allResults.every(
+                (result) => !resultIdsRunning.includes(result.id)
+              );
+
+              this.updateState({
+                ...this.state,
+                evalNamesRunning: isEvalComplete
+                  ? this.state.evalNamesRunning.filter(
+                      (name) => name !== event.result.evalName
+                    )
+                  : this.state.evalNamesRunning,
+                resultIdsRunning,
+              });
             }
 
             break;
@@ -285,6 +326,8 @@ export default class EvaliteReporter extends BasicReporter {
               runType: event.runType,
               type: "running",
               runId,
+              evalNamesRunning: [],
+              resultIdsRunning: [],
             });
             break;
         }

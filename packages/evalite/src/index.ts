@@ -1,5 +1,5 @@
 import type { Evalite } from "@evalite/core";
-import { afterEach, beforeEach, describe, inject, it } from "vitest";
+import { describe, it } from "vitest";
 import { reportTraceLocalStorage } from "./traces.js";
 
 declare module "vitest" {
