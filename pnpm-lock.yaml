@@ -177,6 +177,9 @@ importers:
       '@evalite/core':
         specifier: workspace:*
         version: link:../evalite-core
+      '@vitest/runner':
+        specifier: ^2.1.8
+        version: 2.1.8
       commander:
         specifier: ^12.1.0
         version: 12.1.0

@@ -46,7 +46,7 @@ export declare namespace Evalite {
   };
 
   export type TaskMeta = {
-    results: Result[];
+    result: Result;
     duration: number | undefined;
   };
 

@@ -138,9 +138,15 @@ export const saveRun = (
         result?: {
           state: TaskState;
         };
-        meta: {
-          evalite?: Evalite.TaskMeta;
-        };
+        tasks: {
+          name: string;
+          result?: {
+            state: TaskState;
+          };
+          meta: {
+            evalite?: Evalite.TaskMeta;
+          };
+        }[];
       }[];
     }[];
   }
@@ -155,7 +161,7 @@ export const saveRun = (
     .run({ runType }).lastInsertRowid;
 
   for (const file of files) {
-    for (const task of file.tasks) {
+    for (const suite of file.tasks) {
       const evalId = db
         .prepare(
           `
@@ -165,23 +171,24 @@ export const saveRun = (
         )
         .run({
           runId,
-          name: task.name,
+          name: suite.name,
           filepath: file.filepath,
-          duration: task.meta.evalite?.duration ?? 0,
-          status: task.result?.state === "fail" ? "fail" : "success",
+          duration: 0, // TODO - go with max duration
+          status: suite.result?.state === "fail" ? "fail" : "success",
         }).lastInsertRowid;
 
-      if (task.meta.evalite) {
-        let order = 0;
-        for (const { input, output, scores, duration, expected, traces } of task
-          .meta.evalite.results) {
+      let order = 0;
+      for (const task of suite.tasks) {
+        if (task.meta.evalite?.result) {
           order += 1;
+          const { duration, input, output, expected, scores, traces } =
+            task.meta.evalite.result;
           const resultId = db
             .prepare(
               `
-              INSERT INTO results (eval_id, duration, input, output, expected, col_order)
-              VALUES (@evalId, @duration, @input, @output, @expected, @col_order)
-            `
+                INSERT INTO results (eval_id, duration, input, output, expected, col_order)
+                VALUES (@evalId, @duration, @input, @output, @expected, @col_order)
+              `
             )
             .run({
               evalId,
@@ -195,9 +202,9 @@ export const saveRun = (
           for (const score of scores) {
             db.prepare(
               `
-                INSERT INTO scores (result_id, name, score, description, metadata)
-                VALUES (@resultId, @name, @score, @description, @metadata)
-              `
+                  INSERT INTO scores (result_id, name, score, description, metadata)
+                  VALUES (@resultId, @name, @score, @description, @metadata)
+                `
             ).run({
               resultId,
               name: score.name,
@@ -212,9 +219,9 @@ export const saveRun = (
             traceOrder += 1;
             db.prepare(
               `
-                INSERT INTO traces (result_id, input, output, start_time, end_time, prompt_tokens, completion_tokens, col_order)
-                VALUES (@resultId, @input, @output, @start_time, @end_time, @prompt_tokens, @completion_tokens, @col_order)
-              `
+                  INSERT INTO traces (result_id, input, output, start_time, end_time, prompt_tokens, completion_tokens, col_order)
+                  VALUES (@resultId, @input, @output, @start_time, @end_time, @prompt_tokens, @completion_tokens, @col_order)
+                `
             ).run({
               resultId,
               input: JSON.stringify(trace.input),
