@@ -5,6 +5,7 @@ export declare namespace Evalite {
         type: "running";
         runType: RunType;
         filepaths: string[];
+        runId: number | bigint;
       }
     | {
         type: "idle";
@@ -12,15 +13,20 @@ export declare namespace Evalite {
 
   export type MaybePromise<T> = T | Promise<T>;
 
-  export type Result = {
+  export interface InitialResult {
+    evalName: string;
+    filepath: string;
     order: number;
     input: unknown;
+    expected?: unknown;
+  }
+
+  export interface Result extends InitialResult {
     output: unknown;
-    expected: unknown;
     scores: Score[];
     duration: number;
     traces: Trace[];
-  };
+  }
 
   export type Score = {
     /**
@@ -47,7 +53,8 @@ export declare namespace Evalite {
   };
 
   export type TaskMeta = {
-    result: Result;
+    initialResult?: InitialResult;
+    result?: Result;
     duration: number | undefined;
   };
 
