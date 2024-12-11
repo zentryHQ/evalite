@@ -1,5 +1,7 @@
 ![Evalite: the TypeScript-native, local-first tool for testing LLM-powered apps.](https://raw.githubusercontent.com/mattpocock/evalite/refs/heads/main/repo-card.jpg)
 
+- [Join the Discord](https://www.mattpocock.com/ai-discord)
+
 ## What Is Evalite?
 
 - Fully open source: **No API Key required**.
