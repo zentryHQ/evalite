@@ -52,11 +52,30 @@ export const clientLoader = async (args: ClientLoaderFunctionArgs) => {
 export default function Page() {
   const {
     name,
+
     evaluation: possiblyRunningEvaluation,
     prevEvaluation,
     history,
   } = useLoaderData<typeof clientLoader>();
 
+  /**
+   * There are two evaluations we need to take account of:
+   * - possiblyRunningEvaluation: The evaluation that
+   * may be currently running
+   * - evaluationWithoutLayoutShift: The data from the
+   * evaluation that is currently running, but without
+   * dangers of layout shift
+   *
+   * The reason for this is that the evaluation that is
+   * currently running may report its results in a way
+   * that causes massive layout shift.
+   *
+   * So, we temporarily show the previous evaluation (if
+   * there is one) until the new evaluation is done.
+   *
+   * If there isn't a previous evaluation, we leave it
+   * undefined - which will hide the table.
+   */
   let evaluationWithoutLayoutShift:
     | typeof possiblyRunningEvaluation
     | undefined;
@@ -128,7 +147,7 @@ export default function Page() {
                 date={possiblyRunningEvaluation.created_at}
                 className="block"
               />
-              {isViewingLatest && (
+              {!isViewingLatest && (
                 <>
                   <Link
                     to={`/eval/${name}`}
