@@ -52,7 +52,6 @@ export const clientLoader = async (args: ClientLoaderFunctionArgs) => {
 export default function Page() {
   const {
     name,
-
     evaluation: possiblyRunningEvaluation,
     prevEvaluation,
     history,
