@@ -6,11 +6,11 @@ import { fileURLToPath } from "url";
 import {
   getAverageScoresFromResults,
   getEvalByName,
-  getCompletedEvals,
+  getEvals,
   getEvalsAverageScores,
   getHistoricalEvalsWithScoresByName,
   getMostRecentRun,
-  getPreviousEval,
+  getPreviousCompletedEval,
   getResults,
   getScores,
   getTraces,
@@ -119,14 +119,15 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
       latestPartialRun = undefined;
     }
 
-    const evals = getCompletedEvals(
+    const evals = getEvals(
       opts.db,
       [latestFullRun.id, latestPartialRun?.id].filter(
         (id) => typeof id === "number"
-      )
+      ),
+      ["fail", "success", "running"]
     ).map((e) => ({
       ...e,
-      prevEval: getPreviousEval(opts.db, e.name, e.created_at),
+      prevEval: getPreviousCompletedEval(opts.db, e.name, e.created_at),
     }));
 
     const evalsAverageScores = getEvalsAverageScores(
@@ -223,13 +224,16 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
     handler: async (req, res) => {
       const name = req.query.name;
 
-      const evaluation = getEvalByName(opts.db, name, req.query.timestamp);
+      const evaluation = getEvalByName(opts.db, {
+        name,
+        timestamp: req.query.timestamp,
+      });
 
       if (!evaluation) {
         return res.code(404).send();
       }
 
-      const prevEvaluation = getPreviousEval(
+      const prevEvaluation = getPreviousCompletedEval(
         opts.db,
         name,
         evaluation.created_at
@@ -298,17 +302,16 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
       },
     },
     handler: async (req, res) => {
-      const evaluation = getEvalByName(
-        opts.db,
-        req.query.name,
-        req.query.timestamp
-      );
+      const evaluation = getEvalByName(opts.db, {
+        name: req.query.name,
+        timestamp: req.query.timestamp,
+      });
 
       if (!evaluation) {
         return res.code(404).send();
       }
 
-      const prevEvaluation = getPreviousEval(
+      const prevEvaluation = getPreviousCompletedEval(
         opts.db,
         req.query.name,
         evaluation.created_at

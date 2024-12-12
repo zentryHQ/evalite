@@ -1,7 +1,7 @@
 import { assert, describe, expect, it } from "vitest";
 import {
   createDatabase,
-  getCompletedEvals,
+  getEvals,
   getEvalsAverageScores,
   getMostRecentRun,
   saveRun,
@@ -60,7 +60,7 @@ describe("getEvalsAverageScores", () => {
 
     assert(run);
 
-    const evals = getCompletedEvals(db, [run.id]);
+    const evals = getEvals(db, [run.id], ["success"]);
 
     const averageScore = getEvalsAverageScores(
       db,

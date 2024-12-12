@@ -5,7 +5,7 @@ export declare namespace Evalite {
     type: "running";
     runType: RunType;
     filepaths: string[];
-    runId: number | bigint;
+    runId: number | bigint | undefined;
     evalNamesRunning: string[];
     resultIdsRunning: (number | bigint)[];
   };

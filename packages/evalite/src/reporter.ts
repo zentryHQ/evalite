@@ -87,6 +87,22 @@ const createEvalIfNotExists = (
   return evaluationId;
 };
 
+const createRun = (
+  db: SQLiteDatabase,
+  opts: {
+    runType: Evalite.RunType;
+  }
+): number | bigint => {
+  return db
+    .prepare<{ runType: Evalite.RunType }, { id: number }>(
+      `
+          INSERT INTO runs (runType)
+          VALUES (@runType)
+        `
+    )
+    .run({ runType: opts.runType }).lastInsertRowid;
+};
+
 export default class EvaliteReporter extends BasicReporter {
   private opts: EvaliteReporterOptions;
   private lastRunTypeLogged: Evalite.RunType = "full";
@@ -136,10 +152,16 @@ export default class EvaliteReporter extends BasicReporter {
             break;
           case "RESULT_STARTED":
             {
+              const runId =
+                this.state.runId ??
+                createRun(this.opts.db, {
+                  runType: this.state.runType,
+                });
+
               const evalId = createEvalIfNotExists(this.opts.db, {
                 filepath: event.initialResult.filepath,
                 name: event.initialResult.evalName,
-                runId: this.state.runId,
+                runId: runId,
               });
 
               const resultId = this.opts.db
@@ -165,16 +187,23 @@ export default class EvaliteReporter extends BasicReporter {
                   event.initialResult.evalName,
                 ],
                 resultIdsRunning: [...this.state.resultIdsRunning, resultId],
+                runId,
               });
             }
 
             break;
           case "RESULT_SUBMITTED":
             {
+              const runId =
+                this.state.runId ??
+                createRun(this.opts.db, {
+                  runType: this.state.runType,
+                });
+
               const evalId = createEvalIfNotExists(this.opts.db, {
                 filepath: event.result.filepath,
                 name: event.result.evalName,
-                runId: this.state.runId,
+                runId: runId,
               });
 
               let existingResultId: number | bigint | undefined = this.opts.db
@@ -319,6 +348,7 @@ export default class EvaliteReporter extends BasicReporter {
                     )
                   : this.state.evalNamesRunning,
                 resultIdsRunning,
+                runId,
               });
             }
 
@@ -329,20 +359,11 @@ export default class EvaliteReporter extends BasicReporter {
       case "idle": {
         switch (event.type) {
           case "RUN_BEGUN":
-            const runId = this.opts.db
-              .prepare<{}, { runType: Evalite.RunType }>(
-                `
-                  INSERT INTO runs (runType)
-                  VALUES (@runType)
-                `
-              )
-              .run({ runType: event.runType }).lastInsertRowid;
-
             this.updateState({
               filepaths: event.filepaths,
               runType: event.runType,
               type: "running",
-              runId,
+              runId: undefined, // Run is created lazily
               evalNamesRunning: [],
               resultIdsRunning: [],
             });

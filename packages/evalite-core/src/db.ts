@@ -306,16 +306,17 @@ export const getEvalsAsRecord = async (
   return recordOfEvals;
 };
 
-export const getCompletedEvals = (
+export const getEvals = (
   db: BetterSqlite3.Database,
-  runIds: number[]
+  runIds: number[],
+  allowedStatuses: Db.EvalStatus[]
 ) => {
   return db
     .prepare<unknown[], Db.Eval>(
       `
     SELECT * FROM evals
     WHERE run_id IN (${runIds.join(",")})
-    AND status != 'running'
+    AND status IN (${allowedStatuses.map((s) => `'${s}'`).join(",")})
   `
     )
     .all();
@@ -377,7 +378,7 @@ export const getMostRecentRun = (
   return run;
 };
 
-export const getPreviousEval = (
+export const getPreviousCompletedEval = (
   db: BetterSqlite3.Database,
   name: string,
   startTime: string
@@ -465,21 +466,22 @@ export const jsonParseFields = <T extends object, K extends keyof T>(
  */
 export const getEvalByName = (
   db: BetterSqlite3.Database,
-  name: string,
-  timestamp?: string
+  opts: {
+    name: string;
+    timestamp?: string;
+  }
 ) => {
   return db
     .prepare<{ name: string; timestamp?: string }, Db.Eval>(
       `
     SELECT * FROM evals
     WHERE name = @name
-    ${timestamp ? "AND created_at = @timestamp" : ""}
-    AND status != 'running'
+    ${opts.timestamp ? "AND created_at = @timestamp" : ""}
     ORDER BY created_at DESC
     LIMIT 1
   `
     )
-    .get({ name, timestamp });
+    .get({ name: opts.name, timestamp: opts.timestamp });
 };
 
 export const getHistoricalEvalsWithScoresByName = (
