@@ -46,6 +46,7 @@ evalite("Content generation", {
         Never use hashtags.
         Do not use exclamation marks.
         Use code examples if needed.
+        Prefer using pnpm over npm or yarn.
 
         <banned-phrases>
 
@@ -66,6 +67,7 @@ evalite("Content generation", {
         1. When typing React props, do not use React.FC.
         2. When typing React props, use interfaces.
         3. When typing React props, I prefer not to destructure the props.
+        4. When configuring tsconfig.json, set "jsx" to "react-jsx".
 
         </react-advice>
 
@@ -76,6 +78,7 @@ evalite("Content generation", {
         - Template literal types are different from template literals at runtime.
         - You can pass a union of strings to a template literal type to get a union back.
         - You can use Capitalize, Uppercase, Lowercase, and Uncapitalize to transform strings.
+        - Direct any tsconfig.json questions to the article at https://www.totaltypescript.com/tsconfig-cheat-sheet
 
         </typescript-advice>
       `,

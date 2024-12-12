@@ -17,14 +17,19 @@ export const Score = (props: {
   evalStatus: Db.EvalStatus;
   iconClassName?: string;
 }) => {
+  const isRunning = props.isRunning || props.evalStatus === "running";
   return (
     <span className="flex items-center space-x-2">
-      <span>
-        {Math.round((Number.isNaN(props.score) ? 0 : props.score) * 100)}%
-      </span>
+      {isRunning ? (
+        <span>---%</span>
+      ) : (
+        <span>
+          {Math.round((Number.isNaN(props.score) ? 0 : props.score) * 100)}%
+        </span>
+      )}
       {(() => {
         switch (true) {
-          case props.isRunning:
+          case isRunning:
             return (
               <LoaderCircleIcon
                 className={cn(

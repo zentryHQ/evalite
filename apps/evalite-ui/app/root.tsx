@@ -66,23 +66,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export const clientLoader = async () => {
-  const [
-    { archivedEvals, currentEvals, prevScore, score, evalStatus },
-    serverState,
-  ] = await Promise.all([getMenuItems(), getServerState()]);
+  const [{ evals: currentEvals, prevScore, score, evalStatus }, serverState] =
+    await Promise.all([getMenuItems(), getServerState()]);
 
   return {
     serverState,
     evalStatus,
     prevScore,
     score,
-    archivedEvals: archivedEvals.map((e) => {
-      const state = getScoreState(e.score, e.prevScore);
-      return {
-        ...e,
-        state,
-      };
-    }),
     currentEvals: currentEvals.map((e) => {
       const state = getScoreState(e.score, e.prevScore);
       return {
@@ -129,7 +120,7 @@ export default function App() {
               </div>
             </SidebarGroup>
             <SidebarGroup>
-              <SidebarGroupLabel>Current Run</SidebarGroupLabel>
+              <SidebarGroupLabel>Evals</SidebarGroupLabel>
               <SidebarMenu>
                 {data.currentEvals.map((e) => {
                   return (
@@ -144,24 +135,6 @@ export default function App() {
                 })}
               </SidebarMenu>
             </SidebarGroup>
-            {data.archivedEvals.length > 0 && (
-              <SidebarGroup>
-                <SidebarGroupLabel>Previous Runs</SidebarGroupLabel>
-                <SidebarMenu>
-                  {data.archivedEvals.map((e) => {
-                    return (
-                      <EvalSidebarItem
-                        key={`archived-${e.name}`}
-                        name={e.name}
-                        score={e.score}
-                        state={e.state}
-                        evalStatus={e.evalStatus}
-                      />
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroup>
-            )}
           </SidebarContent>
         </Sidebar>
         <Outlet />

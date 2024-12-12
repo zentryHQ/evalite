@@ -17,8 +17,7 @@ export type GetMenuItemsResultEval = {
 };
 
 export type GetMenuItemsResult = {
-  currentEvals: GetMenuItemsResultEval[];
-  archivedEvals: GetMenuItemsResultEval[];
+  evals: GetMenuItemsResultEval[];
   score: number;
   prevScore: number | undefined;
   evalStatus: Db.EvalStatus;

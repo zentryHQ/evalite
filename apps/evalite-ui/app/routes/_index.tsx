@@ -6,7 +6,7 @@ export const meta: MetaFunction = () => {
 };
 
 export const clientLoader = async () => {
-  const { currentEvals } = await getMenuItems();
+  const { evals: currentEvals } = await getMenuItems();
 
   const firstName = currentEvals[0]?.name;
 

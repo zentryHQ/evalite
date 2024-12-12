@@ -1,5 +1,5 @@
 import { getEvalByName } from "@evalite/core/sdk";
-import { average, sum } from "@evalite/core/utils";
+import { average } from "@evalite/core/utils";
 import type { MetaFunction } from "@remix-run/node";
 import {
   Link,
@@ -9,12 +9,11 @@ import {
   useSearchParams,
   type ClientLoaderFunctionArgs,
 } from "@remix-run/react";
-import { Loader, LoaderCircleIcon, XCircleIcon } from "lucide-react";
+import { XCircleIcon } from "lucide-react";
 import React, { useContext } from "react";
 import { DisplayInput } from "~/components/display-input";
 import { InnerPageLayout } from "~/components/page-layout";
 import { getScoreState, Score } from "~/components/score";
-import { Button } from "~/components/ui/button";
 import { MyLineChart } from "~/components/ui/line-chart";
 import { LiveDate } from "~/components/ui/live-date";
 import { Separator } from "~/components/ui/separator";
