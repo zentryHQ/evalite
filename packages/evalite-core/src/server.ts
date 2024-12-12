@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 import {
   getAverageScoresFromResults,
   getEvalByName,
-  getEvals,
+  getCompletedEvals,
   getEvalsAverageScores,
   getHistoricalEvalsWithScoresByName,
   getMostRecentRun,
@@ -119,7 +119,7 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
       latestPartialRun = undefined;
     }
 
-    const evals = getEvals(
+    const evals = getCompletedEvals(
       opts.db,
       [latestFullRun.id, latestPartialRun?.id].filter(
         (id) => typeof id === "number"

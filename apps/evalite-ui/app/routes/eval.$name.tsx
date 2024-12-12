@@ -79,6 +79,9 @@ export default function Page() {
 
   const isNotViewingLatest = timestamp && timestamp !== latestDate;
 
+  const isRunningEval =
+    serverState.isRunningEvalName(name) && evaluation.created_at === latestDate;
+
   return (
     <>
       <InnerPageLayout
@@ -92,10 +95,7 @@ export default function Page() {
           <div className="flex items-center">
             <Score
               evalStatus={evaluation.status}
-              isRunning={
-                serverState.isRunningEvalName(evaluation.name) &&
-                evaluation.created_at === latestDate
-              }
+              isRunning={isRunningEval}
               score={score}
               state={getScoreState(score, prevScore)}
             ></Score>
@@ -173,9 +173,9 @@ export default function Page() {
               </TableHeader>
               <TableBody>
                 {evaluation.results.map((result, index) => {
-                  const isResultRunning = serverState.isRunningResultId(
-                    result.id
-                  );
+                  const isRunning =
+                    serverState.isRunningEvalName(name) &&
+                    evaluation.created_at === latestDate;
                   const Wrapper = (props: { children: React.ReactNode }) => (
                     <NavLink
                       prefetch="intent"
@@ -191,31 +191,37 @@ export default function Page() {
                   return (
                     <TableRow
                       key={JSON.stringify(result.input)}
-                      className="has-[.active]:bg-gray-100"
+                      className={cn("has-[.active]:bg-gray-100")}
                     >
                       <td className="align-top">
                         <DisplayInput
+                          className={cn(
+                            isRunningEval && "opacity-25",
+                            "transition-opacity"
+                          )}
                           input={result.input}
                           shouldTruncateText
                           Wrapper={Wrapper}
                         />
                       </td>
                       <td className="align-top">
-                        {isResultRunning ? (
-                          <div className="p-4">
-                            <LoaderCircleIcon className="animate-spin size-5 text-blue-500" />
-                          </div>
-                        ) : (
-                          <DisplayInput
-                            input={result.output}
-                            shouldTruncateText
-                            Wrapper={Wrapper}
-                          />
-                        )}
+                        <DisplayInput
+                          className={cn(
+                            isRunningEval && "opacity-25",
+                            "transition-opacity"
+                          )}
+                          input={result.output}
+                          shouldTruncateText
+                          Wrapper={Wrapper}
+                        />
                       </td>
                       {showExpectedColumn && (
                         <td className="align-top">
                           <DisplayInput
+                            className={cn(
+                              isRunningEval && "opacity-25",
+                              "transition-opacity"
+                            )}
                             input={result.expected}
                             shouldTruncateText
                             Wrapper={Wrapper}
@@ -238,9 +244,7 @@ export default function Page() {
                             <Wrapper>
                               <Score
                                 score={scorer.score}
-                                isRunning={serverState.isRunningResultId(
-                                  result.id
-                                )}
+                                isRunning={isRunningEval}
                                 evalStatus={evaluation.status}
                                 state={getScoreState(
                                   scorer.score,

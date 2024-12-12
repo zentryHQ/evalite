@@ -54,7 +54,6 @@ export const useSubscribeToTestServer = (serverState: Evalite.ServerState) => {
       state,
       isRunningFilepath,
       isRunningEvalName,
-      isRunningResultId,
     };
   }, [state]);
 };

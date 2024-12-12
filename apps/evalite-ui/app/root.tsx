@@ -30,6 +30,7 @@ import {
 } from "./use-subscribe-to-socket";
 import { useContext } from "react";
 import Logo from "./components/logo";
+import type { Db } from "@evalite/core/db";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -173,15 +174,10 @@ const EvalSidebarItem = (props: {
   name: string;
   state: ScoreState;
   score: number;
-  evalStatus: "success" | "fail";
+  evalStatus: Db.EvalStatus;
 }) => {
-  let isRunning = false;
-
   const testServer = useContext(TestServerStateContext);
 
-  if (testServer.state.type === "running") {
-    isRunning = testServer.isRunningEvalName(props.name);
-  }
   return (
     <SidebarMenuItem key={props.name}>
       <NavLink
@@ -199,7 +195,7 @@ const EvalSidebarItem = (props: {
         <Score
           score={props.score}
           state={props.state}
-          isRunning={isRunning}
+          isRunning={testServer.isRunningEvalName(props.name)}
           evalStatus={props.evalStatus}
         />
       </NavLink>

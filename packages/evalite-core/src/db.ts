@@ -80,11 +80,13 @@ export declare namespace Db {
     created_at: string;
   };
 
+  export type EvalStatus = "fail" | "success" | "running";
+
   export type Eval = {
     id: number;
     run_id: number;
     name: string;
-    status: "fail" | "success";
+    status: EvalStatus;
     filepath: string;
     duration: number;
     created_at: string;
@@ -304,12 +306,16 @@ export const getEvalsAsRecord = async (
   return recordOfEvals;
 };
 
-export const getEvals = (db: BetterSqlite3.Database, runIds: number[]) => {
+export const getCompletedEvals = (
+  db: BetterSqlite3.Database,
+  runIds: number[]
+) => {
   return db
     .prepare<unknown[], Db.Eval>(
       `
     SELECT * FROM evals
     WHERE run_id IN (${runIds.join(",")})
+    AND status != 'running'
   `
     )
     .all();
@@ -381,6 +387,7 @@ export const getPreviousEval = (
       `
     SELECT * FROM evals
     WHERE name = @name AND created_at < @startTime
+    AND status != 'running'
     ORDER BY created_at DESC
     LIMIT 1
   `
@@ -467,6 +474,7 @@ export const getEvalByName = (
     SELECT * FROM evals
     WHERE name = @name
     ${timestamp ? "AND created_at = @timestamp" : ""}
+    AND status != 'running'
     ORDER BY created_at DESC
     LIMIT 1
   `
@@ -486,6 +494,7 @@ export const getHistoricalEvalsWithScoresByName = (
     LEFT JOIN results ON evals.id = results.eval_id
     LEFT JOIN scores ON results.id = scores.result_id
     WHERE evals.name = @name
+    AND evals.status != 'running'
     GROUP BY evals.id
     ORDER BY evals.created_at ASC
   `

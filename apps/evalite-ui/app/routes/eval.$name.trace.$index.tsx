@@ -71,7 +71,8 @@ export default function Page() {
 
   const serverState = useContext(TestServerStateContext);
 
-  const isRunning = serverState.isRunningResultId(result.id);
+  const isRunning =
+    serverState.isRunningEvalName(name) && evaluation.created_at === timestamp;
 
   const [searchParams] = useSearchParams();
 

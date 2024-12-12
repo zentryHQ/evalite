@@ -1,4 +1,5 @@
 import { openai } from "@ai-sdk/openai";
+import { setTimeout } from "node:timers/promises";
 import { generateText } from "ai";
 import { createScorer, evalite } from "evalite";
 import { createStorage } from "unstorage";
@@ -27,9 +28,13 @@ evalite("Content generation", {
       {
         input: "Write a tweet about TypeScript utility types.",
       },
+      {
+        input: "Write a tweet about how to add TypeScript to a React app.",
+      },
     ];
   },
   task: async (input) => {
+    await setTimeout(4000);
     const result = await generateText({
       model: traceAISDKModel(cacheModel(openai("gpt-4o-mini"), storage)),
       prompt: input,
@@ -39,6 +44,7 @@ evalite("Content generation", {
         Return only the tweet.
         Do not use emojis.
         Never use hashtags.
+        Do not use exclamation marks.
         Use code examples if needed.
 
         <banned-phrases>
@@ -50,6 +56,8 @@ evalite("Content generation", {
         - Code quality
         - Maintanability
         - Enhance code structure
+        - Powerful
+        - Simplify
 
         </banned-phrases>
 

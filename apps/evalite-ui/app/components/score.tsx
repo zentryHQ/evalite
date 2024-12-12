@@ -1,3 +1,4 @@
+import type { Db } from "@evalite/core/db";
 import {
   ChevronDownCircleIcon,
   ChevronRightCircleIcon,
@@ -13,7 +14,7 @@ export const Score = (props: {
   score: number;
   state: ScoreState;
   isRunning: boolean;
-  evalStatus: "success" | "fail";
+  evalStatus: Db.EvalStatus;
   iconClassName?: string;
 }) => {
   return (

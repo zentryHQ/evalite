@@ -1,5 +1,5 @@
 import { type Evalite } from "@evalite/core";
-import { saveRun, type SQLiteDatabase } from "@evalite/core/db";
+import { saveRun, type Db, type SQLiteDatabase } from "@evalite/core/db";
 import { getTests } from "@vitest/runner/utils";
 import { table } from "table";
 import c from "tinyrainbow";
@@ -71,8 +71,8 @@ const createEvalIfNotExists = (
     evaluationId = db
       .prepare<{}, { id: number }>(
         `
-          INSERT INTO evals (run_id, name, filepath, duration)
-          VALUES (@runId, @name, @filepath, @duration)
+          INSERT INTO evals (run_id, name, filepath, duration, status)
+          VALUES (@runId, @name, @filepath, @duration, @status)
         `
       )
       .run({
@@ -80,6 +80,7 @@ const createEvalIfNotExists = (
         name: opts.name,
         filepath: opts.filepath,
         duration: 0,
+        status: "running",
       }).lastInsertRowid;
   }
 
@@ -293,6 +294,22 @@ export default class EvaliteReporter extends BasicReporter {
               const isEvalComplete = allResults.every(
                 (result) => !resultIdsRunning.includes(result.id)
               );
+
+              // Update the eval status
+              if (isEvalComplete) {
+                this.opts.db
+                  .prepare<
+                    { id: number | bigint; status: Db.EvalStatus },
+                    { id: number }
+                  >(
+                    `
+                    UPDATE evals
+                    SET status = @status
+                    WHERE id = @id
+                  `
+                  )
+                  .run({ id: evalId, status: "success" });
+              }
 
               this.updateState({
                 ...this.state,
