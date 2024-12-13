@@ -34,6 +34,26 @@ evalite("My Eval", {
 
 The `name` and `description` of the scorer will be displayed in the Evalite UI.
 
+## Type Arguments
+
+In TypeScript, `createScorer` takes two type arguments, the input and output type:
+
+```ts
+import { createScorer } from "evalite";
+
+const containsParis = createScorer<
+  string, // Input type
+  string // Output type
+>({
+  name: "Contains Paris",
+  description: "Checks if the output contains the word 'Paris'.",
+  score: (output) => {
+    // output is typed as string!
+    return output.includes("Paris") ? 1 : 0;
+  },
+});
+```
+
 ## Scorer Metadata
 
 You can provide metadata along with your custom scorer:
