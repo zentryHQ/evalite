@@ -1,12 +1,25 @@
 import { type Evalite } from "@evalite/core";
-import { saveRun, type SQLiteDatabase } from "@evalite/core/db";
+import {
+  createEvalIfNotExists,
+  createRun,
+  findResultByEvalIdAndOrder,
+  getAllResultsForEval,
+  insertResult,
+  insertScore,
+  insertTrace,
+  saveRun,
+  updateEvalStatusAndDuration,
+  updateResult,
+  type Db,
+  type SQLiteDatabase,
+} from "@evalite/core/db";
+import { getTests } from "@vitest/runner/utils";
 import { table } from "table";
 import c from "tinyrainbow";
 import { inspect } from "util";
 import type { RunnerTask, RunnerTestFile, TaskResultPack, Test } from "vitest";
 import { BasicReporter } from "vitest/reporters";
-import { average, sum } from "./utils.js";
-import { getSuites, getTasks, getTests } from "@vitest/runner/utils";
+import { average } from "./utils.js";
 
 export interface EvaliteReporterOptions {
   isWatching: boolean;
@@ -39,11 +52,18 @@ type ReporterEvent =
     }
   | {
       type: "RUN_ENDED";
+    }
+  | {
+      type: "RESULT_SUBMITTED";
+      result: Evalite.Result;
+    }
+  | {
+      type: "RESULT_STARTED";
+      initialResult: Evalite.InitialResult;
     };
 
 export default class EvaliteReporter extends BasicReporter {
   private opts: EvaliteReporterOptions;
-  private lastRunTypeLogged: Evalite.RunType = "full";
   private state: Evalite.ServerState = { type: "idle" };
 
   // private server: Server;
@@ -66,7 +86,6 @@ export default class EvaliteReporter extends BasicReporter {
       filepaths: this.ctx.state.getFiles().map((f) => f.filepath),
       runType: "full",
     });
-    this.lastRunTypeLogged = "full";
   }
 
   override onWatcherStart(files?: RunnerTestFile[], errors?: unknown[]): void {
@@ -82,20 +101,180 @@ export default class EvaliteReporter extends BasicReporter {
    * Handles the state management for the reporter
    */
   sendEvent(event: ReporterEvent): void {
-    switch (event.type) {
-      case "RUN_BEGUN":
-        this.updateState({
-          filepaths: event.filepaths,
-          runType: event.runType,
-          type: "running",
-        });
-        break;
-      case "RUN_ENDED":
-        this.updateState({ type: "idle" });
-        break;
-      default:
-        event satisfies never;
-        throw new Error("Unknown event type");
+    switch (this.state.type) {
+      case "running":
+        switch (event.type) {
+          case "RUN_ENDED":
+            this.updateState({ type: "idle" });
+            break;
+          case "RESULT_STARTED":
+            {
+              const runId =
+                this.state.runId ??
+                createRun({
+                  db: this.opts.db,
+                  runType: this.state.runType,
+                });
+
+              const evalId = createEvalIfNotExists({
+                db: this.opts.db,
+                filepath: event.initialResult.filepath,
+                name: event.initialResult.evalName,
+                runId,
+              });
+
+              const resultId = insertResult({
+                db: this.opts.db,
+                evalId,
+                order: event.initialResult.order,
+                input: event.initialResult.input,
+                expected: event.initialResult.expected,
+                output: null,
+                duration: 0,
+                status: "running",
+              });
+
+              this.updateState({
+                ...this.state,
+                evalNamesRunning: [
+                  ...this.state.evalNamesRunning,
+                  event.initialResult.evalName,
+                ],
+                resultIdsRunning: [...this.state.resultIdsRunning, resultId],
+                runId,
+              });
+            }
+
+            break;
+          case "RESULT_SUBMITTED":
+            {
+              const runId =
+                this.state.runId ??
+                createRun({
+                  db: this.opts.db,
+                  runType: this.state.runType,
+                });
+
+              const evalId = createEvalIfNotExists({
+                db: this.opts.db,
+                filepath: event.result.filepath,
+                name: event.result.evalName,
+                runId,
+              });
+
+              let existingResultId: number | bigint | undefined =
+                findResultByEvalIdAndOrder({
+                  db: this.opts.db,
+                  evalId,
+                  order: event.result.order,
+                });
+
+              if (existingResultId) {
+                updateResult({
+                  db: this.opts.db,
+                  resultId: existingResultId,
+                  output: event.result.output,
+                  duration: event.result.duration,
+                  status: event.result.status,
+                });
+              } else {
+                existingResultId = insertResult({
+                  db: this.opts.db,
+                  evalId,
+                  order: event.result.order,
+                  input: event.result.input,
+                  expected: event.result.expected,
+                  output: event.result.output,
+                  duration: event.result.duration,
+                  status: event.result.status,
+                });
+              }
+
+              for (const score of event.result.scores) {
+                insertScore({
+                  db: this.opts.db,
+                  resultId: existingResultId,
+                  description: score.description,
+                  name: score.name,
+                  score: score.score ?? 0,
+                  metadata: score.metadata,
+                });
+              }
+
+              let traceOrder = 0;
+              for (const trace of event.result.traces) {
+                traceOrder++;
+                insertTrace({
+                  db: this.opts.db,
+                  resultId: existingResultId,
+                  input: trace.input,
+                  output: trace.output,
+                  start: trace.start,
+                  end: trace.end,
+                  promptTokens: trace.usage?.promptTokens,
+                  completionTokens: trace.usage?.completionTokens,
+                  order: traceOrder,
+                });
+              }
+
+              const allResults = getAllResultsForEval({
+                db: this.opts.db,
+                evalId,
+              });
+
+              const resultIdsRunning = this.state.resultIdsRunning.filter(
+                (id) => id !== existingResultId
+              );
+
+              /**
+               * The eval is complete if all results are no longer
+               * running
+               */
+              const isEvalComplete = allResults.every(
+                (result) => !resultIdsRunning.includes(result.id)
+              );
+
+              // Update the eval status and duration
+              if (isEvalComplete) {
+                updateEvalStatusAndDuration({
+                  db: this.opts.db,
+                  evalId,
+                  status: allResults.some((r) => r.status === "fail")
+                    ? "fail"
+                    : "success",
+                });
+              }
+
+              this.updateState({
+                ...this.state,
+                evalNamesRunning: isEvalComplete
+                  ? this.state.evalNamesRunning.filter(
+                      (name) => name !== event.result.evalName
+                    )
+                  : this.state.evalNamesRunning,
+                resultIdsRunning,
+                runId,
+              });
+            }
+
+            break;
+          default:
+            throw new Error(`${event.type} not allowed in ${this.state.type}`);
+        }
+      case "idle": {
+        switch (event.type) {
+          case "RUN_BEGUN":
+            this.updateState({
+              filepaths: event.filepaths,
+              runType: event.runType,
+              type: "running",
+              runId: undefined, // Run is created lazily
+              evalNamesRunning: [],
+              resultIdsRunning: [],
+            });
+            break;
+        }
+      }
     }
   }
 
@@ -105,7 +284,6 @@ export default class EvaliteReporter extends BasicReporter {
       filepaths: files,
       runType: "partial",
     });
-    this.lastRunTypeLogged = "partial";
     super.onWatcherRerun(files, trigger);
   }
 
@@ -116,8 +294,6 @@ export default class EvaliteReporter extends BasicReporter {
     this.sendEvent({
       type: "RUN_ENDED",
     });
-
-    saveRun(this.opts.db, { files, runType: this.lastRunTypeLogged });
 
     super.onFinished(files, errors);
   };
@@ -146,7 +322,7 @@ export default class EvaliteReporter extends BasicReporter {
     const failed = tests.some((t) => t.result?.state === "fail");
 
     for (const { meta } of tests) {
-      if (meta.evalite) {
+      if (meta.evalite?.result) {
         scores.push(...meta.evalite!.result.scores.map((s) => s.score ?? 0));
       }
     }
@@ -178,11 +354,10 @@ export default class EvaliteReporter extends BasicReporter {
     const tests = getTests(files);
 
     const scores = tests.flatMap((test) =>
-      test.meta.evalite?.result.scores.map((s) => s.score ?? 0)
+      test.meta.evalite?.result?.scores.map((s) => s.score ?? 0)
     );
 
-    const totalScore = sum(scores, (score) => score ?? 0);
-    const averageScore = totalScore / scores.length;
+    const averageScore = average(scores, (score) => score ?? 0);
 
     const collectTime = files.reduce((a, b) => a + (b.collectDuration || 0), 0);
     const testsTime = files.reduce((a, b) => a + (b.result?.duration || 0), 0);
@@ -227,8 +402,8 @@ export default class EvaliteReporter extends BasicReporter {
     if (totalFiles === 1 && failedTasks.length === 0) {
       this.renderTable(
         tests
-          .filter((t) => typeof t.meta.evalite === "object")
-          .map((t) => t.meta.evalite!.result)
+          .filter((t) => typeof t.meta.evalite?.result === "object")
+          .map((t) => t.meta.evalite!.result!)
           .map((result) => ({
             input: result.input,
             output: result.output,
@@ -297,27 +472,41 @@ export default class EvaliteReporter extends BasicReporter {
     );
   }
 
-  onTestStart(_test: Test) {}
-  onTestFinished(_test: Test) {}
+  onTestStart(test: Test) {
+    if (!test.meta.evalite?.initialResult) {
+      throw new Error("No initial result present");
+    }
 
-  onTestFilePrepare(_file: RunnerTestFile) {}
-  onTestFileFinished(_file: RunnerTestFile) {}
+    this.sendEvent({
+      type: "RESULT_STARTED",
+      initialResult: test.meta.evalite.initialResult,
+    });
+  }
+  onTestFinished(test: Test) {
+    if (!test.suite) {
+      throw new Error("No suite present");
+    }
 
+    if (!test.meta.evalite?.result) {
+      throw new Error("No result present");
+    }
+
+    this.sendEvent({
+      type: "RESULT_SUBMITTED",
+      result: test.meta.evalite.result,
+    });
+  }
+
+  onTestFilePrepare(file: RunnerTestFile) {}
+  onTestFileFinished(file: RunnerTestFile) {}
+
+  // Taken from https://github.com/vitest-dev/vitest/blob/4e60333dc7235704f96314c34ca510e3901fe61f/packages/vitest/src/node/reporters/task-parser.ts
   override onTaskUpdate(packs: TaskResultPack[]) {
-    const startingTestFiles: RunnerTestFile[] = [];
-    const finishedTestFiles: RunnerTestFile[] = [];
-
     const startingTests: Test[] = [];
     const finishedTests: Test[] = [];
 
     for (const pack of packs) {
       const task = this.ctx.state.idMap.get(pack[0]);
-
-      if (task?.type === "suite" && "filepath" in task && task.result?.state) {
-        if (task?.result?.state === "run") {
-          startingTestFiles.push(task);
-        }
-      }
 
       if (task?.type === "test") {
         if (task.result?.state === "run") {
@@ -329,9 +518,7 @@ export default class EvaliteReporter extends BasicReporter {
     }
 
     finishedTests.forEach((test) => this.onTestFinished(test));
-    finishedTestFiles.forEach((file) => this.onTestFileFinished(file));
 
-    startingTestFiles.forEach((file) => this.onTestFilePrepare(file));
     startingTests.forEach((test) => this.onTestStart(test));
 
     super.onTaskUpdate(packs);

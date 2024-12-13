@@ -10,7 +10,7 @@ import {
   getEvalsAverageScores,
   getHistoricalEvalsWithScoresByName,
   getMostRecentRun,
-  getPreviousEval,
+  getPreviousCompletedEval,
   getResults,
   getScores,
   getTraces,
@@ -27,6 +27,8 @@ import { average } from "./utils.js";
 
 export type Server = ReturnType<typeof createServer>;
 
+const THROTTLE_TIME = 100;
+
 export const handleWebsockets = (server: fastify.FastifyInstance) => {
   const websocketListeners = new Map<
     string,
@@ -36,6 +38,8 @@ export const handleWebsockets = (server: fastify.FastifyInstance) => {
   let currentState: Evalite.ServerState = {
     type: "idle",
   };
+
+  let timeout: NodeJS.Timeout | undefined;
 
   server.register(async (fastify) => {
     fastify.get("/api/socket", { websocket: true }, (socket, req) => {
@@ -52,9 +56,13 @@ export const handleWebsockets = (server: fastify.FastifyInstance) => {
   return {
     updateState: (newState: Evalite.ServerState) => {
       currentState = newState;
-      for (const listener of websocketListeners.values()) {
-        listener(newState);
-      }
+      clearTimeout(timeout);
+
+      timeout = setTimeout(() => {
+        websocketListeners.forEach((listener) => {
+          listener(newState);
+        });
+      }, THROTTLE_TIME);
     },
     getState: () => currentState,
   };
@@ -95,17 +103,16 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
   }>("/api/menu-items", async (req, reply) => {
     const latestFullRun = getMostRecentRun(opts.db, "full");
 
-    let latestPartialRun = getMostRecentRun(opts.db, "partial");
-
     if (!latestFullRun) {
       return reply.code(200).send({
-        currentEvals: [],
-        archivedEvals: [],
+        evals: [],
         prevScore: undefined,
         score: 0,
         evalStatus: "success",
       });
     }
+
+    let latestPartialRun = getMostRecentRun(opts.db, "partial");
 
     /**
      * Ignore latestPartialRun if the latestFullRun is more
@@ -119,19 +126,20 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
       latestPartialRun = undefined;
     }
 
-    const evals = getEvals(
+    const allEvals = getEvals(
       opts.db,
       [latestFullRun.id, latestPartialRun?.id].filter(
         (id) => typeof id === "number"
-      )
+      ),
+      ["fail", "success", "running"]
     ).map((e) => ({
       ...e,
-      prevEval: getPreviousEval(opts.db, e.name, e.created_at),
+      prevEval: getPreviousCompletedEval(opts.db, e.name, e.created_at),
     }));
 
     const evalsAverageScores = getEvalsAverageScores(
       opts.db,
-      evals.flatMap((e) => {
+      allEvals.flatMap((e) => {
         if (e.prevEval) {
           return [e.id, e.prevEval.id];
         }
@@ -140,7 +148,7 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
     );
 
     const createEvalMenuItem = (
-      e: (typeof evals)[number]
+      e: (typeof allEvals)[number]
     ): GetMenuItemsResultEval => {
       const score =
         evalsAverageScores.find((s) => s.eval_id === e.id)?.average ?? 0;
@@ -157,42 +165,31 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
       };
     };
 
+    let lastFullRunEvals = allEvals.filter(
+      (e) => e.run_id === latestFullRun.id
+    );
+
     if (latestPartialRun) {
-      const currentEvals = evals
-        .filter((e) => e.run_id === latestPartialRun.id)
-        .map(createEvalMenuItem);
+      const partialEvals = allEvals.filter(
+        (e) => e.run_id === latestPartialRun.id
+      );
 
-      const nameSet = new Set(currentEvals.map((e) => e.name));
-
-      const archivedEvals = evals
-        .filter((e) => e.run_id === latestFullRun.id)
-        .filter((e) => !nameSet.has(e.name))
-        .map(createEvalMenuItem);
-
-      const allEvals = [...currentEvals, ...archivedEvals];
-
-      return reply.code(200).send({
-        currentEvals,
-        archivedEvals,
-        score: average(allEvals, (e) => e.score),
-        prevScore: average(
-          allEvals,
-          (e) =>
-            e.prevScore ??
-            // Default to the latest score if no prevScore is found
-            e.score
+      // Filter out the partial evals from the full run
+      // and add them to the lastFullRunEvals
+      lastFullRunEvals = [
+        ...partialEvals,
+        ...lastFullRunEvals.filter(
+          (e) => !partialEvals.some((p) => p.name === e.name)
         ),
-        evalStatus: currentEvals.some((e) => e.evalStatus === "fail")
-          ? "fail"
-          : "success",
-      });
+      ];
     }
 
-    const menuItems = evals.map(createEvalMenuItem);
+    const menuItems = lastFullRunEvals.map(createEvalMenuItem).sort((a, b) => {
+      return a.name.localeCompare(b.name);
+    });
 
     return reply.code(200).send({
-      currentEvals: menuItems,
-      archivedEvals: [],
+      evals: menuItems,
       score: average(menuItems, (e) => e.score),
       prevScore: average(menuItems, (e) => e.prevScore ?? e.score),
       evalStatus: menuItems.some((e) => e.evalStatus === "fail")
@@ -223,13 +220,16 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
     handler: async (req, res) => {
       const name = req.query.name;
 
-      const evaluation = getEvalByName(opts.db, name, req.query.timestamp);
+      const evaluation = getEvalByName(opts.db, {
+        name,
+        timestamp: req.query.timestamp,
+      });
 
       if (!evaluation) {
         return res.code(404).send();
       }
 
-      const prevEvaluation = getPreviousEval(
+      const prevEvaluation = getPreviousCompletedEval(
         opts.db,
         name,
         evaluation.created_at
@@ -298,17 +298,17 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
       },
     },
     handler: async (req, res) => {
-      const evaluation = getEvalByName(
-        opts.db,
-        req.query.name,
-        req.query.timestamp
-      );
+      const evaluation = getEvalByName(opts.db, {
+        name: req.query.name,
+        timestamp: req.query.timestamp,
+        statuses: ["fail", "success"],
+      });
 
       if (!evaluation) {
         return res.code(404).send();
       }
 
-      const prevEvaluation = getPreviousEval(
+      const prevEvaluation = getPreviousCompletedEval(
         opts.db,
         req.query.name,
         evaluation.created_at

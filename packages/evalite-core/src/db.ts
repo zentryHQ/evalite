@@ -63,10 +63,17 @@ export const createDatabase = (url: string): BetterSqlite3.Database => {
     );
   `);
 
-  // Add status key
+  // Add status key to evals table
   try {
     db.exec(
       `ALTER TABLE evals ADD COLUMN status TEXT NOT NULL DEFAULT 'success';`
+    );
+  } catch (e) {}
+
+  // Add status key to results table
+  try {
+    db.exec(
+      `ALTER TABLE results ADD COLUMN status TEXT NOT NULL DEFAULT 'success';`
     );
   } catch (e) {}
 
@@ -80,11 +87,13 @@ export declare namespace Db {
     created_at: string;
   };
 
+  export type EvalStatus = "fail" | "success" | "running";
+
   export type Eval = {
     id: number;
     run_id: number;
     name: string;
-    status: "fail" | "success";
+    status: EvalStatus;
     filepath: string;
     duration: number;
     created_at: string;
@@ -99,6 +108,7 @@ export declare namespace Db {
     expected?: unknown;
     created_at: string;
     col_order: number;
+    status: Evalite.ResultStatus;
   };
 
   export type Score = {
@@ -207,9 +217,9 @@ export const saveRun = (
           for (const score of scores) {
             db.prepare(
               `
-                  INSERT INTO scores (result_id, name, score, description, metadata)
-                  VALUES (@resultId, @name, @score, @description, @metadata)
-                `
+                INSERT INTO scores (result_id, name, score, description, metadata)
+                VALUES (@resultId, @name, @score, @description, @metadata)
+              `
             ).run({
               resultId,
               name: score.name,
@@ -304,12 +314,17 @@ export const getEvalsAsRecord = async (
   return recordOfEvals;
 };
 
-export const getEvals = (db: BetterSqlite3.Database, runIds: number[]) => {
+export const getEvals = (
+  db: BetterSqlite3.Database,
+  runIds: number[],
+  allowedStatuses: Db.EvalStatus[]
+) => {
   return db
     .prepare<unknown[], Db.Eval>(
       `
     SELECT * FROM evals
     WHERE run_id IN (${runIds.join(",")})
+    AND status IN (${allowedStatuses.map((s) => `'${s}'`).join(",")})
   `
     )
     .all();
@@ -371,7 +386,7 @@ export const getMostRecentRun = (
   return run;
 };
 
-export const getPreviousEval = (
+export const getPreviousCompletedEval = (
   db: BetterSqlite3.Database,
   name: string,
   startTime: string
@@ -381,6 +396,7 @@ export const getPreviousEval = (
       `
     SELECT * FROM evals
     WHERE name = @name AND created_at < @startTime
+    AND status != 'running'
     ORDER BY created_at DESC
     LIMIT 1
   `
@@ -458,20 +474,24 @@ export const jsonParseFields = <T extends object, K extends keyof T>(
  */
 export const getEvalByName = (
   db: BetterSqlite3.Database,
-  name: string,
-  timestamp?: string
+  opts: {
+    name: string;
+    timestamp?: string;
+    statuses?: Db.EvalStatus[];
+  }
 ) => {
   return db
     .prepare<{ name: string; timestamp?: string }, Db.Eval>(
       `
     SELECT * FROM evals
     WHERE name = @name
-    ${timestamp ? "AND created_at = @timestamp" : ""}
+    ${opts.timestamp ? "AND created_at = @timestamp" : ""}
+    ${opts.statuses ? `AND status IN (${opts.statuses.map((s) => `'${s}'`).join(",")})` : ""}
     ORDER BY created_at DESC
     LIMIT 1
   `
     )
-    .get({ name, timestamp });
+    .get({ name: opts.name, timestamp: opts.timestamp });
 };
 
 export const getHistoricalEvalsWithScoresByName = (
@@ -486,9 +506,236 @@ export const getHistoricalEvalsWithScoresByName = (
     LEFT JOIN results ON evals.id = results.eval_id
     LEFT JOIN scores ON results.id = scores.result_id
     WHERE evals.name = @name
+    AND evals.status != 'running'
     GROUP BY evals.id
     ORDER BY evals.created_at ASC
   `
     )
     .all({ name });
+};
+
+export const createEvalIfNotExists = ({
+  db,
+  runId,
+  name,
+  filepath,
+}: {
+  db: SQLiteDatabase;
+  runId: number | bigint;
+  name: string;
+  filepath: string;
+}): number | bigint => {
+  let evaluationId: number | bigint | undefined = db
+    .prepare<
+      { name: string; runId: number | bigint },
+      { id: number }
+    >(`SELECT id FROM evals WHERE name = @name AND run_id = @runId`)
+    .get({ name, runId })?.id;
+
+  if (!evaluationId) {
+    evaluationId = db
+      .prepare(
+        `INSERT INTO evals (run_id, name, filepath, duration, status)
+         VALUES (@runId, @name, @filepath, @duration, @status)`
+      )
+      .run({
+        runId,
+        name,
+        filepath,
+        duration: 0,
+        status: "running",
+      }).lastInsertRowid;
+  }
+
+  return evaluationId;
+};
+
+export const createRun = ({
+  db,
+  runType,
+}: {
+  db: SQLiteDatabase;
+  runType: Evalite.RunType;
+}): number | bigint => {
+  return db
+    .prepare(`INSERT INTO runs (runType) VALUES (@runType)`)
+    .run({ runType }).lastInsertRowid;
+};
+
+export const insertResult = ({
+  db,
+  evalId,
+  order,
+  input,
+  expected,
+  output,
+  duration,
+  status,
+}: {
+  db: SQLiteDatabase;
+  evalId: number | bigint;
+  order: number;
+  input: unknown;
+  expected: unknown;
+  output: unknown;
+  duration: number;
+  status: string;
+}): number | bigint => {
+  return db
+    .prepare(
+      `INSERT INTO results (eval_id, col_order, input, expected, output, duration, status)
+       VALUES (@eval_id, @col_order, @input, @expected, @output, @duration, @status)`
+    )
+    .run({
+      eval_id: evalId,
+      col_order: order,
+      input: JSON.stringify(input),
+      expected: JSON.stringify(expected),
+      output: JSON.stringify(output),
+      duration,
+      status,
+    }).lastInsertRowid;
+};
+
+export const updateResult = ({
+  db,
+  resultId,
+  output,
+  duration,
+  status,
+}: {
+  db: SQLiteDatabase;
+  resultId: number | bigint;
+  output: unknown;
+  duration: number;
+  status: string;
+}) => {
+  db.prepare(
+    `UPDATE results
+     SET output = @output, duration = @duration, status = @status
+     WHERE id = @id`
+  ).run({
+    id: resultId,
+    output: JSON.stringify(output),
+    duration,
+    status,
+  });
+};
+
+export const insertScore = ({
+  db,
+  resultId,
+  description,
+  name,
+  score,
+  metadata,
+}: {
+  db: SQLiteDatabase;
+  resultId: number | bigint;
+  description: string | undefined;
+  name: string;
+  score: number;
+  metadata: unknown;
+}) => {
+  db.prepare(
+    `INSERT INTO scores (result_id, name, score, metadata, description)
+     VALUES (@result_id, @name, @score, @metadata, @description)`
+  ).run({
+    result_id: resultId,
+    description,
+    name,
+    score,
+    metadata: JSON.stringify(metadata),
+  });
+};
+
+export const insertTrace = ({
+  db,
+  resultId,
+  input,
+  output,
+  start,
+  end,
+  promptTokens,
+  completionTokens,
+  order,
+}: {
+  db: SQLiteDatabase;
+  resultId: number | bigint;
+  input: unknown;
+  output: unknown;
+  start: number;
+  end: number;
+  promptTokens: number | undefined;
+  completionTokens: number | undefined;
+  order: number;
+}) => {
+  db.prepare(
+    `INSERT INTO traces (result_id, input, output, start_time, end_time, prompt_tokens, completion_tokens, col_order)
+     VALUES (@result_id, @input, @output, @start_time, @end_time, @prompt_tokens, @completion_tokens, @col_order)`
+  ).run({
+    result_id: resultId,
+    input: JSON.stringify(input),
+    output: JSON.stringify(output),
+    start_time: Math.round(start),
+    end_time: Math.round(end),
+    prompt_tokens: promptTokens,
+    completion_tokens: completionTokens,
+    col_order: order,
+  });
+};
+
+export const updateEvalStatusAndDuration = ({
+  db,
+  evalId,
+  status,
+}: {
+  db: SQLiteDatabase;
+  evalId: number | bigint;
+  status: Db.EvalStatus;
+}) => {
+  db.prepare(
+    `UPDATE evals
+     SET status = @status,
+     duration = (SELECT MAX(duration) FROM results WHERE eval_id = @id)
+     WHERE id = @id`
+  ).run({
+    id: evalId,
+    status,
+  });
+};
+
+export const findResultByEvalIdAndOrder = ({
+  db,
+  evalId,
+  order,
+}: {
+  db: SQLiteDatabase;
+  evalId: number | bigint;
+  order: number;
+}): number | undefined => {
+  return db
+    .prepare<
+      {},
+      { id: number }
+    >(`SELECT id FROM results WHERE eval_id = @eval_id AND col_order = @col_order`)
+    .get({
+      eval_id: evalId,
+      col_order: order,
+    })?.id;
+};
+
+export const getAllResultsForEval = ({
+  db,
+  evalId,
+}: {
+  db: SQLiteDatabase;
+  evalId: number | bigint;
+}): Array<{ id: number; status: Evalite.ResultStatus }> => {
+  return db
+    .prepare<
+      { eval_id: number | bigint },
+      { id: number; status: Evalite.ResultStatus }
+    >(`SELECT id, status FROM results WHERE eval_id = @eval_id`)
+    .all({ eval_id: evalId });
 };

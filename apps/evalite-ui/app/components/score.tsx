@@ -1,3 +1,4 @@
+import type { Db } from "@evalite/core/db";
 import {
   ChevronDownCircleIcon,
   ChevronRightCircleIcon,
@@ -13,17 +14,23 @@ export const Score = (props: {
   score: number;
   state: ScoreState;
   isRunning: boolean;
-  evalStatus: "success" | "fail";
+  evalStatus: Db.EvalStatus;
+  resultStatus: Db.Result["status"] | undefined;
   iconClassName?: string;
 }) => {
+  const isRunning = props.isRunning || props.evalStatus === "running";
   return (
     <span className="flex items-center space-x-2">
-      <span>
-        {Math.round((Number.isNaN(props.score) ? 0 : props.score) * 100)}%
-      </span>
+      {isRunning ? (
+        <span>---%</span>
+      ) : (
+        <span>
+          {Math.round((Number.isNaN(props.score) ? 0 : props.score) * 100)}%
+        </span>
+      )}
       {(() => {
         switch (true) {
-          case props.isRunning:
+          case isRunning:
             return (
               <LoaderCircleIcon
                 className={cn(
@@ -32,7 +39,7 @@ export const Score = (props: {
                 )}
               />
             );
-          case props.evalStatus === "fail":
+          case props.evalStatus === "fail" || props.resultStatus === "fail":
             return (
               <XCircleIcon
                 className={cn("size-3 text-red-500", props.iconClassName)}

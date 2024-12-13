@@ -1,5 +1,5 @@
 import { getEvalByName } from "@evalite/core/sdk";
-import { average, sum } from "@evalite/core/utils";
+import { average } from "@evalite/core/utils";
 import type { MetaFunction } from "@remix-run/node";
 import {
   Link,
@@ -14,7 +14,6 @@ import React, { useContext } from "react";
 import { DisplayInput } from "~/components/display-input";
 import { InnerPageLayout } from "~/components/page-layout";
 import { getScoreState, Score } from "~/components/score";
-import { Button } from "~/components/ui/button";
 import { MyLineChart } from "~/components/ui/line-chart";
 import { LiveDate } from "~/components/ui/live-date";
 import { Separator } from "~/components/ui/separator";
@@ -50,20 +49,64 @@ export const clientLoader = async (args: ClientLoaderFunctionArgs) => {
 };
 
 export default function Page() {
-  const { name, evaluation, prevEvaluation, history } =
-    useLoaderData<typeof clientLoader>();
+  const {
+    name,
+    evaluation: possiblyRunningEvaluation,
+    prevEvaluation,
+    history,
+  } = useLoaderData<typeof clientLoader>();
 
-  const firstResult = evaluation.results[0];
+  /**
+   * There are two evaluations we need to take account of:
+   * - possiblyRunningEvaluation: The evaluation that
+   * may be currently running
+   * - evaluationWithoutLayoutShift: The data from the
+   * evaluation that is currently running, but without
+   * dangers of layout shift
+   *
+   * The reason for this is that the evaluation that is
+   * currently running may report its results in a way
+   * that causes massive layout shift.
+   *
+   * So, we temporarily show the previous evaluation (if
+   * there is one) until the new evaluation is done.
+   *
+   * If there isn't a previous evaluation, we leave it
+   * undefined - which will hide the table.
+   */
+  let evaluationWithoutLayoutShift:
+    | typeof possiblyRunningEvaluation
+    | undefined;
+
+  const [search, setSearch] = useSearchParams();
+
+  const mostRecentDate = history[history.length - 1]?.date;
+  const timestamp = search.get("timestamp");
+  const isViewingLatest = !timestamp || timestamp === mostRecentDate;
+
+  if (possiblyRunningEvaluation.status === "running" && isViewingLatest) {
+    // If it's running, and there is a previous evaluation,
+    // show the previous one
+    if (prevEvaluation) {
+      evaluationWithoutLayoutShift = prevEvaluation;
+    } else {
+      // Otherwise, show empty dataset
+      evaluationWithoutLayoutShift = undefined;
+    }
+  } else {
+    evaluationWithoutLayoutShift = possiblyRunningEvaluation;
+  }
 
   const serverState = useContext(TestServerStateContext);
 
-  const showExpectedColumn = evaluation.results.every(
-    (result) => result.expected !== null
-  );
+  const showExpectedColumn =
+    evaluationWithoutLayoutShift?.results.every(
+      (result) => result.expected !== null
+    ) ?? false;
 
   const isTraceRoute = location.pathname.includes("trace");
 
-  const score = average(evaluation.results, (r) =>
+  const evalScore = average(possiblyRunningEvaluation.results || [], (r) =>
     average(r.scores, (s) => s.score)
   );
 
@@ -71,19 +114,17 @@ export default function Page() {
     ? average(prevEvaluation.results, (r) => average(r.scores, (s) => s.score))
     : undefined;
 
-  const [search, setSearch] = useSearchParams();
-
-  const timestamp = search.get("timestamp");
-
-  const latestDate = history[history.length - 1]?.date;
-
-  const isNotViewingLatest = timestamp && timestamp !== latestDate;
+  const isRunningEval =
+    serverState.isRunningEvalName(name) &&
+    evaluationWithoutLayoutShift?.created_at === mostRecentDate;
 
   return (
     <>
       <InnerPageLayout
-        vscodeUrl={`vscode://file${evaluation.filepath}`}
-        filepath={evaluation.filepath.split(/(\/|\\)/).slice(-1)[0]!}
+        vscodeUrl={`vscode://file${possiblyRunningEvaluation.filepath}`}
+        filepath={
+          possiblyRunningEvaluation.filepath.split(/(\/|\\)/).slice(-1)[0]!
+        }
       >
         <div className="text-gray-600 mb-10 text-sm">
           <h1 className="tracking-tight text-2xl mb-2 font-medium text-gray-700">
@@ -91,20 +132,21 @@ export default function Page() {
           </h1>
           <div className="flex items-center">
             <Score
-              evalStatus={evaluation.status}
-              isRunning={
-                serverState.isRunningFilepath(evaluation.filepath) &&
-                evaluation.created_at === latestDate
-              }
-              score={score}
-              state={getScoreState(score, prevScore)}
+              evalStatus={possiblyRunningEvaluation.status}
+              isRunning={isRunningEval}
+              score={evalScore}
+              state={getScoreState(evalScore, prevScore)}
+              resultStatus={undefined}
             ></Score>
             <Separator orientation="vertical" className="h-4 mx-4" />
-            <span>{formatTime(evaluation.duration)}</span>
+            <span>{formatTime(possiblyRunningEvaluation.duration)}</span>
             <Separator orientation="vertical" className="h-4 mx-4" />
             <div className="flex items-center space-x-5">
-              <LiveDate date={evaluation.created_at} className="block" />
-              {isNotViewingLatest && (
+              <LiveDate
+                date={possiblyRunningEvaluation.created_at}
+                className="block"
+              />
+              {!isViewingLatest && (
                 <>
                   <Link
                     to={`/eval/${name}`}
@@ -119,8 +161,25 @@ export default function Page() {
           </div>
         </div>
 
-        {evaluation.status === "fail" && (
-          <div className="flex gap-4 px-4">
+        {history.length > 1 && (
+          <div className="mb-10">
+            <h2 className="mb-4 font-medium text-lg text-gray-600">History</h2>
+            {history.length > 1 && (
+              <MyLineChart
+                data={history}
+                onDotClick={({ date }) => {
+                  if (date === mostRecentDate) {
+                    setSearch({});
+                  } else {
+                    setSearch({ timestamp: date });
+                  }
+                }}
+              />
+            )}
+          </div>
+        )}
+        {evaluationWithoutLayoutShift?.status === "fail" && (
+          <div className="flex gap-4 px-4 my-14">
             <div className="flex-shrink-0">
               <XCircleIcon className="text-red-500 size-7" />
             </div>
@@ -128,32 +187,13 @@ export default function Page() {
               <h3 className="font-semibold text-gray-700 mb-1 text-lg">
                 Evaluation Failed
               </h3>
-              <p>This is likely because of an exception from your code.</p>
+              <p>At least one of the runs produced an unexpected error.</p>
               <p>Check the terminal for more information.</p>
             </div>
           </div>
         )}
-        {evaluation.status === "success" && (
-          <div className="">
-            {history.length > 1 && (
-              <div className="mb-10">
-                <h2 className="mb-4 font-medium text-lg text-gray-600">
-                  History
-                </h2>
-                {history.length > 1 && (
-                  <MyLineChart
-                    data={history}
-                    onDotClick={({ date }) => {
-                      if (date === latestDate) {
-                        setSearch({});
-                      } else {
-                        setSearch({ timestamp: date });
-                      }
-                    }}
-                  />
-                )}
-              </div>
-            )}
+        {evaluationWithoutLayoutShift && (
+          <>
             <h2 className="mb-4 font-medium text-lg text-gray-600">Results</h2>
             <Table>
               <TableHeader>
@@ -161,18 +201,22 @@ export default function Page() {
                   <TableHead>Input</TableHead>
                   <TableHead>Output</TableHead>
                   {showExpectedColumn && <TableHead>Expected</TableHead>}
-                  {firstResult?.scores.map((scorer, index) => (
-                    <TableHead
-                      key={scorer.name}
-                      className={cn(index === 0 && "border-l")}
-                    >
-                      {scorer.name}
-                    </TableHead>
-                  ))}
+                  {evaluationWithoutLayoutShift.results[0]?.scores.length ===
+                    0 && <TableHead className="border-l">Score</TableHead>}
+                  {evaluationWithoutLayoutShift.results[0]?.scores.map(
+                    (scorer, index) => (
+                      <TableHead
+                        key={scorer.name}
+                        className={cn(index === 0 && "border-l")}
+                      >
+                        {scorer.name}
+                      </TableHead>
+                    )
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {evaluation.results.map((result, index) => {
+                {evaluationWithoutLayoutShift.results.map((result, index) => {
                   const Wrapper = (props: { children: React.ReactNode }) => (
                     <NavLink
                       prefetch="intent"
@@ -188,10 +232,14 @@ export default function Page() {
                   return (
                     <TableRow
                       key={JSON.stringify(result.input)}
-                      className="has-[.active]:bg-gray-100"
+                      className={cn("has-[.active]:bg-gray-100")}
                     >
                       <td className="align-top">
                         <DisplayInput
+                          className={cn(
+                            isRunningEval && "opacity-25",
+                            "transition-opacity"
+                          )}
                           input={result.input}
                           shouldTruncateText
                           Wrapper={Wrapper}
@@ -199,6 +247,10 @@ export default function Page() {
                       </td>
                       <td className="align-top">
                         <DisplayInput
+                          className={cn(
+                            isRunningEval && "opacity-25",
+                            "transition-opacity"
+                          )}
                           input={result.output}
                           shouldTruncateText
                           Wrapper={Wrapper}
@@ -207,10 +259,27 @@ export default function Page() {
                       {showExpectedColumn && (
                         <td className="align-top">
                           <DisplayInput
+                            className={cn(
+                              isRunningEval && "opacity-25",
+                              "transition-opacity"
+                            )}
                             input={result.expected}
                             shouldTruncateText
                             Wrapper={Wrapper}
                           />
+                        </td>
+                      )}
+                      {result.scores.length === 0 && (
+                        <td className="border-l">
+                          <Wrapper>
+                            <Score
+                              score={0}
+                              isRunning={isRunningEval}
+                              resultStatus={result.status}
+                              evalStatus={possiblyRunningEvaluation.status}
+                              state={"first"}
+                            />
+                          </Wrapper>
                         </td>
                       )}
                       {result.scores.map((scorer, index) => {
@@ -220,7 +289,7 @@ export default function Page() {
                             ?.scores.find((s) => s.name === scorer.name);
                         return (
                           <td
-                            key={scorer.name}
+                            key={scorer.id}
                             className={cn(
                               index === 0 && "border-l",
                               "align-top"
@@ -229,10 +298,9 @@ export default function Page() {
                             <Wrapper>
                               <Score
                                 score={scorer.score}
-                                isRunning={serverState.isRunningFilepath(
-                                  evaluation.filepath
-                                )}
-                                evalStatus={evaluation.status}
+                                isRunning={isRunningEval}
+                                resultStatus={result.status}
+                                evalStatus={possiblyRunningEvaluation.status}
                                 state={getScoreState(
                                   scorer.score,
                                   scoreInPreviousEvaluation?.score
@@ -247,7 +315,7 @@ export default function Page() {
                 })}
               </TableBody>
             </Table>
-          </div>
+          </>
         )}
       </InnerPageLayout>
       <div

@@ -15,8 +15,10 @@ const DisplayText = ({
   input,
   shouldTruncateText,
   Wrapper,
+  className,
 }: {
   input: string;
+  className?: string;
   Wrapper: React.ElementType<{ children: React.ReactNode }>;
   shouldTruncateText: boolean;
 }) => {
@@ -34,7 +36,7 @@ const DisplayText = ({
   }, [input, shouldTruncateText]);
 
   return (
-    <div>
+    <div className={className}>
       <Wrapper>
         <div
           ref={contentRef}
@@ -97,7 +99,8 @@ const DisplayJSON = ({ input }: { input: object }) => {
 export const DisplayInput = (props: {
   input: unknown;
   shouldTruncateText: boolean;
-  Wrapper?: React.FC<{ children: React.ReactNode }>;
+  className?: string;
+  Wrapper?: React.FC<{ children: React.ReactNode; className?: string }>;
 }) => {
   const Wrapper = props.Wrapper || Fragment;
   if (typeof props.input === "string" || typeof props.input === "number") {
@@ -105,6 +108,7 @@ export const DisplayInput = (props: {
       <DisplayText
         Wrapper={Wrapper}
         input={props.input.toString()}
+        className={props.className}
         shouldTruncateText={props.shouldTruncateText}
       />
     );
@@ -112,14 +116,14 @@ export const DisplayInput = (props: {
 
   if (typeof props.input === "object" && props.input !== null) {
     return (
-      <Wrapper>
+      <Wrapper className={props.className}>
         <DisplayJSON input={props.input} />
       </Wrapper>
     );
   }
 
   return (
-    <Wrapper>
+    <Wrapper className={props.className}>
       <pre>{JSON.stringify(props.input, null, 2)}</pre>
     </Wrapper>
   );

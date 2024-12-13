@@ -1,7 +1,7 @@
-import { expect, it } from "vitest";
+import { createDatabase, getEvalsAsRecord, type Db } from "@evalite/core/db";
 import { runVitest } from "evalite/runner";
+import { expect, it } from "vitest";
 import { captureStdout, loadFixture } from "./test-utils.js";
-import { createDatabase, getEvalsAsRecord } from "@evalite/core/db";
 
 it("Should report a failing test", async () => {
   using fixture = loadFixture("failing-test");
@@ -23,7 +23,7 @@ it("Should report a failing test", async () => {
   expect(captured.getOutput()).not.toContain("Input");
 });
 
-it("Should save the test as failed in the database", async () => {
+it("Should save the result AND eval as failed in the database", async () => {
   using fixture = loadFixture("failing-test");
 
   const captured = captureStdout();
@@ -40,7 +40,13 @@ it("Should save the test as failed in the database", async () => {
 
   const evals = await getEvalsAsRecord(db);
 
-  expect(evals.Failing![0]).toMatchObject({
-    status: "fail",
+  expect(evals.Failing?.[0]).toMatchObject({
+    name: "Failing",
+    status: "fail" satisfies Db.EvalStatus,
+    results: [
+      {
+        status: "fail",
+      },
+    ],
   });
 });

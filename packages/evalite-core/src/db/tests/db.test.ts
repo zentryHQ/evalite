@@ -27,6 +27,9 @@ describe("getEvalsAverageScores", () => {
                     evalite: {
                       duration: 100,
                       result: {
+                        status: "success",
+                        evalName: "task 1",
+                        filepath: "/path/to/file",
                         order: 1,
                         input: "input",
                         duration: 100,
@@ -58,7 +61,7 @@ describe("getEvalsAverageScores", () => {
 
     assert(run);
 
-    const evals = getEvals(db, [run.id]);
+    const evals = getEvals(db, [run.id], ["success"]);
 
     const averageScore = getEvalsAverageScores(
       db,

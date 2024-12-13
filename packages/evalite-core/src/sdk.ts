@@ -13,15 +13,14 @@ export type GetMenuItemsResultEval = {
   score: number;
   name: string;
   prevScore: number | undefined;
-  evalStatus: "success" | "fail";
+  evalStatus: Db.EvalStatus;
 };
 
 export type GetMenuItemsResult = {
-  currentEvals: GetMenuItemsResultEval[];
-  archivedEvals: GetMenuItemsResultEval[];
+  evals: GetMenuItemsResultEval[];
   score: number;
   prevScore: number | undefined;
-  evalStatus: "success" | "fail";
+  evalStatus: Db.EvalStatus;
 };
 
 export const getMenuItems = async (): Promise<GetMenuItemsResult> => {

@@ -30,6 +30,7 @@ import {
 } from "./use-subscribe-to-socket";
 import { useContext } from "react";
 import Logo from "./components/logo";
+import type { Db } from "@evalite/core/db";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -65,23 +66,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export const clientLoader = async () => {
-  const [
-    { archivedEvals, currentEvals, prevScore, score, evalStatus },
-    serverState,
-  ] = await Promise.all([getMenuItems(), getServerState()]);
+  const [{ evals: currentEvals, prevScore, score, evalStatus }, serverState] =
+    await Promise.all([getMenuItems(), getServerState()]);
 
   return {
     serverState,
     evalStatus,
     prevScore,
     score,
-    archivedEvals: archivedEvals.map((e) => {
-      const state = getScoreState(e.score, e.prevScore);
-      return {
-        ...e,
-        state,
-      };
-    }),
     currentEvals: currentEvals.map((e) => {
       const state = getScoreState(e.score, e.prevScore);
       return {
@@ -123,18 +115,18 @@ export default function App() {
                     state={getScoreState(data.score, data.prevScore)}
                     iconClassName="size-4"
                     evalStatus={data.evalStatus}
+                    resultStatus={undefined}
                   />
                 </div>
               </div>
             </SidebarGroup>
             <SidebarGroup>
-              <SidebarGroupLabel>Current Run</SidebarGroupLabel>
+              <SidebarGroupLabel>Evals</SidebarGroupLabel>
               <SidebarMenu>
                 {data.currentEvals.map((e) => {
                   return (
-                    <SidebarItem
+                    <EvalSidebarItem
                       key={`current-${e.name}`}
-                      filepath={e.filepath}
                       name={e.name}
                       score={e.score}
                       state={e.state}
@@ -144,25 +136,6 @@ export default function App() {
                 })}
               </SidebarMenu>
             </SidebarGroup>
-            {data.archivedEvals.length > 0 && (
-              <SidebarGroup>
-                <SidebarGroupLabel>Previous Runs</SidebarGroupLabel>
-                <SidebarMenu>
-                  {data.archivedEvals.map((e) => {
-                    return (
-                      <SidebarItem
-                        key={`archived-${e.name}`}
-                        filepath={e.filepath}
-                        name={e.name}
-                        score={e.score}
-                        state={e.state}
-                        evalStatus={e.evalStatus}
-                      />
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroup>
-            )}
           </SidebarContent>
         </Sidebar>
         <Outlet />
@@ -171,20 +144,14 @@ export default function App() {
   );
 }
 
-const SidebarItem = (props: {
-  filepath: string;
+const EvalSidebarItem = (props: {
   name: string;
   state: ScoreState;
   score: number;
-  evalStatus: "success" | "fail";
+  evalStatus: Db.EvalStatus;
 }) => {
-  let isRunning = false;
-
   const testServer = useContext(TestServerStateContext);
 
-  if (testServer.state.type === "running") {
-    isRunning = testServer.isRunningFilepath(props.filepath);
-  }
   return (
     <SidebarMenuItem key={props.name}>
       <NavLink
@@ -202,8 +169,9 @@ const SidebarItem = (props: {
         <Score
           score={props.score}
           state={props.state}
-          isRunning={isRunning}
+          isRunning={testServer.isRunningEvalName(props.name)}
           evalStatus={props.evalStatus}
+          resultStatus={undefined}
         />
       </NavLink>
     </SidebarMenuItem>

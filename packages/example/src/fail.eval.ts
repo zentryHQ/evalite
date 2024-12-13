@@ -1,5 +1,6 @@
 import { Factuality, Levenshtein } from "autoevals";
 import { evalite } from "evalite";
+import { setTimeout } from "node:timers/promises";
 
 evalite("Failure", {
   data: async () => [
@@ -8,6 +9,7 @@ evalite("Failure", {
     },
   ],
   task: async (input) => {
+    await setTimeout(500);
     throw new Error("Fail");
   },
   scorers: [],

@@ -71,7 +71,8 @@ export default function Page() {
 
   const serverState = useContext(TestServerStateContext);
 
-  const isRunning = serverState.isRunningFilepath(evaluation.filepath);
+  const isRunning =
+    serverState.isRunningEvalName(name) && evaluation.created_at === timestamp;
 
   const [searchParams] = useSearchParams();
 
@@ -120,6 +121,7 @@ export default function Page() {
                     score={result.score}
                     state={getScoreState(result.score, prevResult?.score)}
                     evalStatus={evaluation.status}
+                    resultStatus={result.status}
                   />
                 </BreadcrumbItem>
                 <Separator orientation="vertical" className="mx-1 h-4" />
@@ -240,6 +242,7 @@ export default function Page() {
                         )?.score
                       )}
                       evalStatus={evaluation.status}
+                      resultStatus={result.status}
                     />
                   </MainBodySection>
                   {score.metadata && (
