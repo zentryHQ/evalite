@@ -12,6 +12,7 @@
     "evalite": "workspace:*",
     "strip-ansi": "^7.1.0",
     "autoevals": "^0.0.108",
+    "@ai-sdk/openai": "^1.0.8",
     "ai": "^4.0.11"
   }
 }

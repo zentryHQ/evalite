@@ -81,8 +81,9 @@ export const evalite = <TInput, TExpected = TInput>(
   return describe(evalName, async () => {
     const dataset = await opts.data();
 
-    for (const [order, data] of Object.entries(dataset)) {
-      it(`${evalName} ${order}`, { concurrent: true }, async ({ task }) => {
+    it.concurrent.for(dataset.map((d, index) => ({ ...d, index })))(
+      evalName,
+      async (data, { task }) => {
         task.meta.evalite = {
           duration: undefined,
           initialResult: {
@@ -90,7 +91,7 @@ export const evalite = <TInput, TExpected = TInput>(
             filepath: task.file.filepath,
             input: data.input,
             expected: data.expected,
-            order: Number(order),
+            order: data.index,
           },
         };
         const start = performance.now();
@@ -109,7 +110,7 @@ export const evalite = <TInput, TExpected = TInput>(
             result: {
               evalName: evalName,
               filepath: task.file.filepath,
-              order: Number(order),
+              order: data.index,
               duration,
               expected: data.expected,
               input: data.input,
@@ -125,7 +126,7 @@ export const evalite = <TInput, TExpected = TInput>(
             result: {
               evalName: evalName,
               filepath: task.file.filepath,
-              order: Number(order),
+              order: data.index,
               duration: Math.round(performance.now() - start),
               expected: data.expected,
               input: data.input,
@@ -138,8 +139,8 @@ export const evalite = <TInput, TExpected = TInput>(
           };
           throw e;
         }
-      });
-    }
+      }
+    );
   });
 };
 
