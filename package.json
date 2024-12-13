@@ -10,6 +10,7 @@
   "private": true,
   "scripts": {
     "dev": "turbo watch dev",
+    "docs:dev": "turbo watch dev --filter=evalite-docs",
     "wsl:dev": "pnpm run -r --parallel dev",
     "ci": "turbo build test lint after-build",
     "build": "turbo build after-build",

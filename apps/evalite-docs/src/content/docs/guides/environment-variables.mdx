@@ -1,0 +1,51 @@
+---
+title: Environment Variables
+---
+
+import { Steps } from "@astrojs/starlight/components";
+
+To call your LLM from a third-party service, you'll likely need some environment variables to keep your API keys safe.
+
+Since **Evalite is based on Vitest**, it should already pick them up from your `vite.config.ts`.
+
+## Setting Up Env Variables
+
+If you don't have Vitest set up, here's how to do it:
+
+<Steps>
+
+1. Create a `.env` file in the root of your project:
+
+   ```
+   OPENAI_API_KEY=your-api-key
+   ```
+
+2. Add `.env` to your `.gitignore`, if it's not already there
+
+   ```
+   .env
+   ```
+
+3. Install `dotenv`:
+
+   ```bash
+   pnpm add -D dotenv
+   ```
+
+4. Add a `vite.config.ts` file:
+
+   ```ts
+   // vite.config.ts
+
+   import { defineConfig } from "vite/config";
+
+   export default defineConfig({
+     test: {
+       setupFiles: ["dotenv/config"],
+     },
+   });
+   ```
+
+</Steps>
+
+Now, your environment variables will be available in your evals.

@@ -8,18 +8,42 @@ export default defineConfig({
       title: "Evalite",
       social: {
         github: "https://github.com/mattpocock/evalite",
+        discord: "https://mattpocock.com/ai-discord",
       },
       sidebar: [
         {
-          label: "Guides",
+          label: "Getting Started",
           items: [
-            // Each item here is one entry in the navigation menu.
-            { label: "Example Guide", slug: "guides/example" },
+            {
+              label: "Quickstart",
+              slug: "quickstart",
+            },
           ],
         },
         {
-          label: "Reference",
-          autogenerate: { directory: "reference" },
+          label: "Guides",
+          items: [
+            {
+              label: "Environment Variables",
+              slug: "guides/environment-variables",
+            },
+            {
+              label: "Scorers",
+              slug: "guides/scorers",
+            },
+            {
+              label: "Traces",
+              slug: "guides/traces",
+            },
+            {
+              label: "Streams",
+              slug: "guides/streams",
+            },
+          ],
+        },
+        {
+          label: "Examples",
+          items: [{ label: "AI SDK", slug: "examples/ai-sdk" }],
         },
       ],
     }),
