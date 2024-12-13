@@ -301,6 +301,7 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
       const evaluation = getEvalByName(opts.db, {
         name: req.query.name,
         timestamp: req.query.timestamp,
+        statuses: ["fail", "success"],
       });
 
       if (!evaluation) {

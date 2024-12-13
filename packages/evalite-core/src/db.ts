@@ -477,6 +477,7 @@ export const getEvalByName = (
   opts: {
     name: string;
     timestamp?: string;
+    statuses?: Db.EvalStatus[];
   }
 ) => {
   return db
@@ -485,6 +486,7 @@ export const getEvalByName = (
     SELECT * FROM evals
     WHERE name = @name
     ${opts.timestamp ? "AND created_at = @timestamp" : ""}
+    ${opts.statuses ? `AND status IN (${opts.statuses.map((s) => `'${s}'`).join(",")})` : ""}
     ORDER BY created_at DESC
     LIMIT 1
   `

@@ -31,10 +31,13 @@ evalite("Content generation", {
       {
         input: "Write a tweet about how to add TypeScript to a React app.",
       },
+      {
+        input:
+          "Write a tweet about assertion functions (using the asserts keyword).",
+      },
     ];
   },
   task: async (input) => {
-    await setTimeout(4000);
     const result = await generateText({
       model: traceAISDKModel(cacheModel(openai("gpt-4o-mini"), storage)),
       prompt: input,
@@ -44,7 +47,7 @@ evalite("Content generation", {
         Return only the tweet.
         Do not use emojis.
         Never use hashtags.
-        Do not use exclamation marks.
+        Do not use exclamation marks in the text of the tweet.
         Use code examples if needed.
         Prefer using pnpm over npm or yarn.
 
@@ -91,6 +94,14 @@ evalite("Content generation", {
       name: "No Hashtags",
       scorer: ({ output }) => {
         return output.includes("#") ? 0 : 1;
+      },
+    }),
+    createScorer({
+      name: "No Exclamation Marks",
+      description: "Ensures the output contains no exclamation marks.",
+      scorer: ({ output }) => {
+        const codeOutsideCodeBlocks = output.replace(/```[\s\S]*?```/g, "");
+        return codeOutsideCodeBlocks.includes("!") ? 0 : 1;
       },
     }),
     createScorer({
