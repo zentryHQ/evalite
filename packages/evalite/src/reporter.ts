@@ -607,21 +607,13 @@ export default class EvaliteReporter extends BasicReporter {
   onTestFilePrepare(file: RunnerTestFile) {}
   onTestFileFinished(file: RunnerTestFile) {}
 
+  // Taken from https://github.com/vitest-dev/vitest/blob/4e60333dc7235704f96314c34ca510e3901fe61f/packages/vitest/src/node/reporters/task-parser.ts
   override onTaskUpdate(packs: TaskResultPack[]) {
-    const startingTestFiles: RunnerTestFile[] = [];
-    const finishedTestFiles: RunnerTestFile[] = [];
-
     const startingTests: Test[] = [];
     const finishedTests: Test[] = [];
 
     for (const pack of packs) {
       const task = this.ctx.state.idMap.get(pack[0]);
-
-      if (task?.type === "suite" && "filepath" in task && task.result?.state) {
-        if (task?.result?.state === "run") {
-          startingTestFiles.push(task);
-        }
-      }
 
       if (task?.type === "test") {
         if (task.result?.state === "run") {
@@ -633,9 +625,7 @@ export default class EvaliteReporter extends BasicReporter {
     }
 
     finishedTests.forEach((test) => this.onTestFinished(test));
-    finishedTestFiles.forEach((file) => this.onTestFileFinished(file));
 
-    startingTestFiles.forEach((file) => this.onTestFilePrepare(file));
     startingTests.forEach((test) => this.onTestStart(test));
 
     super.onTaskUpdate(packs);
