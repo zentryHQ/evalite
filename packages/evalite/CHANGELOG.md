@@ -1,5 +1,13 @@
 # evalite
 
+## 0.6.2
+
+### Patch Changes
+
+- 04c0c96: Runs now report as soon as they are complete. Failures are now reported on individual runs instead of on the entire eval.
+- Updated dependencies [04c0c96]
+  - @evalite/core@0.4.2
+
 ## 0.6.1
 
 ### Patch Changes
