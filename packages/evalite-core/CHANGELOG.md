@@ -1,5 +1,11 @@
 # @evalite/core
 
+## 0.4.2
+
+### Patch Changes
+
+- 04c0c96: Runs now report as soon as they are complete. Failures are now reported on individual runs instead of on the entire eval.
+
 ## 0.4.1
 
 ### Patch Changes
