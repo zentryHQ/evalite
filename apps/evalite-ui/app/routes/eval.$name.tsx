@@ -161,8 +161,25 @@ export default function Page() {
           </div>
         </div>
 
+        {history.length > 1 && (
+          <div className="mb-10">
+            <h2 className="mb-4 font-medium text-lg text-gray-600">History</h2>
+            {history.length > 1 && (
+              <MyLineChart
+                data={history}
+                onDotClick={({ date }) => {
+                  if (date === mostRecentDate) {
+                    setSearch({});
+                  } else {
+                    setSearch({ timestamp: date });
+                  }
+                }}
+              />
+            )}
+          </div>
+        )}
         {evaluationWithoutLayoutShift?.status === "fail" && (
-          <div className="flex gap-4 px-4">
+          <div className="flex gap-4 px-4 my-14">
             <div className="flex-shrink-0">
               <XCircleIcon className="text-red-500 size-7" />
             </div>
@@ -170,144 +187,136 @@ export default function Page() {
               <h3 className="font-semibold text-gray-700 mb-1 text-lg">
                 Evaluation Failed
               </h3>
-              <p>This is likely because of an exception from your code.</p>
+              <p>At least one of the runs produced an unexpected error.</p>
               <p>Check the terminal for more information.</p>
             </div>
           </div>
         )}
-        <div className="">
-          {history.length > 1 && (
-            <div className="mb-10">
-              <h2 className="mb-4 font-medium text-lg text-gray-600">
-                History
-              </h2>
-              {history.length > 1 && (
-                <MyLineChart
-                  data={history}
-                  onDotClick={({ date }) => {
-                    if (date === mostRecentDate) {
-                      setSearch({});
-                    } else {
-                      setSearch({ timestamp: date });
-                    }
-                  }}
-                />
-              )}
-            </div>
-          )}
-          {evaluationWithoutLayoutShift && (
-            <>
-              <h2 className="mb-4 font-medium text-lg text-gray-600">
-                Results
-              </h2>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Input</TableHead>
-                    <TableHead>Output</TableHead>
-                    {showExpectedColumn && <TableHead>Expected</TableHead>}
-                    {evaluationWithoutLayoutShift.results[0]?.scores.map(
-                      (scorer, index) => (
-                        <TableHead
-                          key={scorer.name}
-                          className={cn(index === 0 && "border-l")}
-                        >
-                          {scorer.name}
-                        </TableHead>
-                      )
-                    )}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {evaluationWithoutLayoutShift.results.map((result, index) => {
-                    const Wrapper = (props: { children: React.ReactNode }) => (
-                      <NavLink
-                        prefetch="intent"
-                        to={`trace/${index}${timestamp ? `?timestamp=${timestamp}` : ""}`}
-                        preventScrollReset
-                        className={({ isActive }) => {
-                          return cn("block h-full p-4", isActive && "active");
-                        }}
+        {evaluationWithoutLayoutShift && (
+          <>
+            <h2 className="mb-4 font-medium text-lg text-gray-600">Results</h2>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Input</TableHead>
+                  <TableHead>Output</TableHead>
+                  {showExpectedColumn && <TableHead>Expected</TableHead>}
+                  {evaluationWithoutLayoutShift.results[0]?.scores.length ===
+                    0 && <TableHead className="border-l">Score</TableHead>}
+                  {evaluationWithoutLayoutShift.results[0]?.scores.map(
+                    (scorer, index) => (
+                      <TableHead
+                        key={scorer.name}
+                        className={cn(index === 0 && "border-l")}
                       >
-                        {props.children}
-                      </NavLink>
-                    );
-                    return (
-                      <TableRow
-                        key={JSON.stringify(result.input)}
-                        className={cn("has-[.active]:bg-gray-100")}
-                      >
+                        {scorer.name}
+                      </TableHead>
+                    )
+                  )}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {evaluationWithoutLayoutShift.results.map((result, index) => {
+                  const Wrapper = (props: { children: React.ReactNode }) => (
+                    <NavLink
+                      prefetch="intent"
+                      to={`trace/${index}${timestamp ? `?timestamp=${timestamp}` : ""}`}
+                      preventScrollReset
+                      className={({ isActive }) => {
+                        return cn("block h-full p-4", isActive && "active");
+                      }}
+                    >
+                      {props.children}
+                    </NavLink>
+                  );
+                  return (
+                    <TableRow
+                      key={JSON.stringify(result.input)}
+                      className={cn("has-[.active]:bg-gray-100")}
+                    >
+                      <td className="align-top">
+                        <DisplayInput
+                          className={cn(
+                            isRunningEval && "opacity-25",
+                            "transition-opacity"
+                          )}
+                          input={result.input}
+                          shouldTruncateText
+                          Wrapper={Wrapper}
+                        />
+                      </td>
+                      <td className="align-top">
+                        <DisplayInput
+                          className={cn(
+                            isRunningEval && "opacity-25",
+                            "transition-opacity"
+                          )}
+                          input={result.output}
+                          shouldTruncateText
+                          Wrapper={Wrapper}
+                        />
+                      </td>
+                      {showExpectedColumn && (
                         <td className="align-top">
                           <DisplayInput
                             className={cn(
                               isRunningEval && "opacity-25",
                               "transition-opacity"
                             )}
-                            input={result.input}
+                            input={result.expected}
                             shouldTruncateText
                             Wrapper={Wrapper}
                           />
                         </td>
-                        <td className="align-top">
-                          <DisplayInput
-                            className={cn(
-                              isRunningEval && "opacity-25",
-                              "transition-opacity"
-                            )}
-                            input={result.output}
-                            shouldTruncateText
-                            Wrapper={Wrapper}
-                          />
-                        </td>
-                        {showExpectedColumn && (
-                          <td className="align-top">
-                            <DisplayInput
-                              className={cn(
-                                isRunningEval && "opacity-25",
-                                "transition-opacity"
-                              )}
-                              input={result.expected}
-                              shouldTruncateText
-                              Wrapper={Wrapper}
+                      )}
+                      {result.scores.length === 0 && (
+                        <td className="border-l">
+                          <Wrapper>
+                            <Score
+                              score={0}
+                              isRunning={isRunningEval}
+                              resultStatus={result.status}
+                              evalStatus={possiblyRunningEvaluation.status}
+                              state={"first"}
                             />
+                          </Wrapper>
+                        </td>
+                      )}
+                      {result.scores.map((scorer, index) => {
+                        const scoreInPreviousEvaluation =
+                          prevEvaluation?.results
+                            .find((r) => r.input === result.input)
+                            ?.scores.find((s) => s.name === scorer.name);
+                        return (
+                          <td
+                            key={scorer.id}
+                            className={cn(
+                              index === 0 && "border-l",
+                              "align-top"
+                            )}
+                          >
+                            <Wrapper>
+                              <Score
+                                score={scorer.score}
+                                isRunning={isRunningEval}
+                                resultStatus={result.status}
+                                evalStatus={possiblyRunningEvaluation.status}
+                                state={getScoreState(
+                                  scorer.score,
+                                  scoreInPreviousEvaluation?.score
+                                )}
+                              />
+                            </Wrapper>
                           </td>
-                        )}
-                        {result.scores.map((scorer, index) => {
-                          const scoreInPreviousEvaluation =
-                            prevEvaluation?.results
-                              .find((r) => r.input === result.input)
-                              ?.scores.find((s) => s.name === scorer.name);
-                          return (
-                            <td
-                              key={scorer.id}
-                              className={cn(
-                                index === 0 && "border-l",
-                                "align-top"
-                              )}
-                            >
-                              <Wrapper>
-                                <Score
-                                  score={scorer.score}
-                                  isRunning={isRunningEval}
-                                  resultStatus={result.status}
-                                  evalStatus={possiblyRunningEvaluation.status}
-                                  state={getScoreState(
-                                    scorer.score,
-                                    scoreInPreviousEvaluation?.score
-                                  )}
-                                />
-                              </Wrapper>
-                            </td>
-                          );
-                        })}
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </>
-          )}
-        </div>
+                        );
+                      })}
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </>
+        )}
       </InnerPageLayout>
       <div
         className={cn(

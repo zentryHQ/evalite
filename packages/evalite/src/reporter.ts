@@ -225,7 +225,7 @@ export default class EvaliteReporter extends BasicReporter {
                   .prepare<{}, { id: number }>(
                     `
                     UPDATE results
-                    SET output = @output, duration = @duration
+                    SET output = @output, duration = @duration, status = @status
                     WHERE id = @id
                   `
                   )
@@ -233,6 +233,7 @@ export default class EvaliteReporter extends BasicReporter {
                     id: existingResultId,
                     output: JSON.stringify(event.result.output),
                     duration: event.result.duration,
+                    status: event.result.status,
                   });
               } else {
                 // Create new record
@@ -251,7 +252,7 @@ export default class EvaliteReporter extends BasicReporter {
                     output: JSON.stringify(event.result.output),
                     duration: event.result.duration,
                     status: event.result.status,
-                  })!.lastInsertRowid;
+                  }).lastInsertRowid;
               }
 
               // Save the scores
