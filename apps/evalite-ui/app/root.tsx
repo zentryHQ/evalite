@@ -115,6 +115,7 @@ export default function App() {
                     state={getScoreState(data.score, data.prevScore)}
                     iconClassName="size-4"
                     evalStatus={data.evalStatus}
+                    resultStatus={undefined}
                   />
                 </div>
               </div>
@@ -170,6 +171,7 @@ const EvalSidebarItem = (props: {
           state={props.state}
           isRunning={testServer.isRunningEvalName(props.name)}
           evalStatus={props.evalStatus}
+          resultStatus={undefined}
         />
       </NavLink>
     </SidebarMenuItem>

@@ -63,10 +63,17 @@ export const createDatabase = (url: string): BetterSqlite3.Database => {
     );
   `);
 
-  // Add status key
+  // Add status key to evals table
   try {
     db.exec(
       `ALTER TABLE evals ADD COLUMN status TEXT NOT NULL DEFAULT 'success';`
+    );
+  } catch (e) {}
+
+  // Add status key to results table
+  try {
+    db.exec(
+      `ALTER TABLE results ADD COLUMN status TEXT NOT NULL DEFAULT 'success';`
     );
   } catch (e) {}
 
@@ -101,6 +108,7 @@ export declare namespace Db {
     expected?: unknown;
     created_at: string;
     col_order: number;
+    status: Evalite.ResultStatus;
   };
 
   export type Score = {

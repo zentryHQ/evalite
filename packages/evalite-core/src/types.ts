@@ -26,11 +26,14 @@ export declare namespace Evalite {
     expected?: unknown;
   }
 
+  export type ResultStatus = "success" | "fail";
+
   export interface Result extends InitialResult {
     output: unknown;
     scores: Score[];
     duration: number;
     traces: Trace[];
+    status: ResultStatus;
   }
 
   export type Score = {

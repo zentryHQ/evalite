@@ -121,6 +121,7 @@ export default function Page() {
                     score={result.score}
                     state={getScoreState(result.score, prevResult?.score)}
                     evalStatus={evaluation.status}
+                    resultStatus={result.status}
                   />
                 </BreadcrumbItem>
                 <Separator orientation="vertical" className="mx-1 h-4" />
@@ -241,6 +242,7 @@ export default function Page() {
                         )?.score
                       )}
                       evalStatus={evaluation.status}
+                      resultStatus={result.status}
                     />
                   </MainBodySection>
                   {score.metadata && (

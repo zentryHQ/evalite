@@ -15,6 +15,7 @@ export const Score = (props: {
   state: ScoreState;
   isRunning: boolean;
   evalStatus: Db.EvalStatus;
+  resultStatus: Db.Result["status"] | undefined;
   iconClassName?: string;
 }) => {
   const isRunning = props.isRunning || props.evalStatus === "running";
@@ -38,7 +39,7 @@ export const Score = (props: {
                 )}
               />
             );
-          case props.evalStatus === "fail":
+          case props.evalStatus === "fail" || props.resultStatus === "fail":
             return (
               <XCircleIcon
                 className={cn("size-3 text-red-500", props.iconClassName)}

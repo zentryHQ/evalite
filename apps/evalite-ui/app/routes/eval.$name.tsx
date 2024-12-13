@@ -136,6 +136,7 @@ export default function Page() {
               isRunning={isRunningEval}
               score={evalScore}
               state={getScoreState(evalScore, prevScore)}
+              resultStatus={undefined}
             ></Score>
             <Separator orientation="vertical" className="h-4 mx-4" />
             <span>{formatTime(possiblyRunningEvaluation.duration)}</span>
@@ -174,149 +175,139 @@ export default function Page() {
             </div>
           </div>
         )}
-        {evaluationWithoutLayoutShift?.status === "success" && (
-          <div className="">
-            {history.length > 1 && (
-              <div className="mb-10">
-                <h2 className="mb-4 font-medium text-lg text-gray-600">
-                  History
-                </h2>
-                {history.length > 1 && (
-                  <MyLineChart
-                    data={history}
-                    onDotClick={({ date }) => {
-                      if (date === mostRecentDate) {
-                        setSearch({});
-                      } else {
-                        setSearch({ timestamp: date });
-                      }
-                    }}
-                  />
-                )}
-              </div>
-            )}
-            {evaluationWithoutLayoutShift && (
-              <>
-                <h2 className="mb-4 font-medium text-lg text-gray-600">
-                  Results
-                </h2>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Input</TableHead>
-                      <TableHead>Output</TableHead>
-                      {showExpectedColumn && <TableHead>Expected</TableHead>}
-                      {evaluationWithoutLayoutShift.results[0]?.scores.map(
-                        (scorer, index) => (
-                          <TableHead
-                            key={scorer.name}
-                            className={cn(index === 0 && "border-l")}
-                          >
-                            {scorer.name}
-                          </TableHead>
-                        )
-                      )}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {evaluationWithoutLayoutShift.results.map(
-                      (result, index) => {
-                        const Wrapper = (props: {
-                          children: React.ReactNode;
-                        }) => (
-                          <NavLink
-                            prefetch="intent"
-                            to={`trace/${index}${timestamp ? `?timestamp=${timestamp}` : ""}`}
-                            preventScrollReset
-                            className={({ isActive }) => {
-                              return cn(
-                                "block h-full p-4",
-                                isActive && "active"
-                              );
-                            }}
-                          >
-                            {props.children}
-                          </NavLink>
-                        );
-                        return (
-                          <TableRow
-                            key={JSON.stringify(result.input)}
-                            className={cn("has-[.active]:bg-gray-100")}
-                          >
-                            <td className="align-top">
-                              <DisplayInput
-                                className={cn(
-                                  isRunningEval && "opacity-25",
-                                  "transition-opacity"
-                                )}
-                                input={result.input}
-                                shouldTruncateText
-                                Wrapper={Wrapper}
-                              />
-                            </td>
-                            <td className="align-top">
-                              <DisplayInput
-                                className={cn(
-                                  isRunningEval && "opacity-25",
-                                  "transition-opacity"
-                                )}
-                                input={result.output}
-                                shouldTruncateText
-                                Wrapper={Wrapper}
-                              />
-                            </td>
-                            {showExpectedColumn && (
-                              <td className="align-top">
-                                <DisplayInput
-                                  className={cn(
-                                    isRunningEval && "opacity-25",
-                                    "transition-opacity"
-                                  )}
-                                  input={result.expected}
-                                  shouldTruncateText
-                                  Wrapper={Wrapper}
-                                />
-                              </td>
-                            )}
-                            {result.scores.map((scorer, index) => {
-                              const scoreInPreviousEvaluation =
-                                prevEvaluation?.results
-                                  .find((r) => r.input === result.input)
-                                  ?.scores.find((s) => s.name === scorer.name);
-                              return (
-                                <td
-                                  key={scorer.id}
-                                  className={cn(
-                                    index === 0 && "border-l",
-                                    "align-top"
-                                  )}
-                                >
-                                  <Wrapper>
-                                    <Score
-                                      score={scorer.score}
-                                      isRunning={isRunningEval}
-                                      evalStatus={
-                                        possiblyRunningEvaluation.status
-                                      }
-                                      state={getScoreState(
-                                        scorer.score,
-                                        scoreInPreviousEvaluation?.score
-                                      )}
-                                    />
-                                  </Wrapper>
-                                </td>
-                              );
-                            })}
-                          </TableRow>
-                        );
-                      }
+        <div className="">
+          {history.length > 1 && (
+            <div className="mb-10">
+              <h2 className="mb-4 font-medium text-lg text-gray-600">
+                History
+              </h2>
+              {history.length > 1 && (
+                <MyLineChart
+                  data={history}
+                  onDotClick={({ date }) => {
+                    if (date === mostRecentDate) {
+                      setSearch({});
+                    } else {
+                      setSearch({ timestamp: date });
+                    }
+                  }}
+                />
+              )}
+            </div>
+          )}
+          {evaluationWithoutLayoutShift && (
+            <>
+              <h2 className="mb-4 font-medium text-lg text-gray-600">
+                Results
+              </h2>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Input</TableHead>
+                    <TableHead>Output</TableHead>
+                    {showExpectedColumn && <TableHead>Expected</TableHead>}
+                    {evaluationWithoutLayoutShift.results[0]?.scores.map(
+                      (scorer, index) => (
+                        <TableHead
+                          key={scorer.name}
+                          className={cn(index === 0 && "border-l")}
+                        >
+                          {scorer.name}
+                        </TableHead>
+                      )
                     )}
-                  </TableBody>
-                </Table>
-              </>
-            )}
-          </div>
-        )}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {evaluationWithoutLayoutShift.results.map((result, index) => {
+                    const Wrapper = (props: { children: React.ReactNode }) => (
+                      <NavLink
+                        prefetch="intent"
+                        to={`trace/${index}${timestamp ? `?timestamp=${timestamp}` : ""}`}
+                        preventScrollReset
+                        className={({ isActive }) => {
+                          return cn("block h-full p-4", isActive && "active");
+                        }}
+                      >
+                        {props.children}
+                      </NavLink>
+                    );
+                    return (
+                      <TableRow
+                        key={JSON.stringify(result.input)}
+                        className={cn("has-[.active]:bg-gray-100")}
+                      >
+                        <td className="align-top">
+                          <DisplayInput
+                            className={cn(
+                              isRunningEval && "opacity-25",
+                              "transition-opacity"
+                            )}
+                            input={result.input}
+                            shouldTruncateText
+                            Wrapper={Wrapper}
+                          />
+                        </td>
+                        <td className="align-top">
+                          <DisplayInput
+                            className={cn(
+                              isRunningEval && "opacity-25",
+                              "transition-opacity"
+                            )}
+                            input={result.output}
+                            shouldTruncateText
+                            Wrapper={Wrapper}
+                          />
+                        </td>
+                        {showExpectedColumn && (
+                          <td className="align-top">
+                            <DisplayInput
+                              className={cn(
+                                isRunningEval && "opacity-25",
+                                "transition-opacity"
+                              )}
+                              input={result.expected}
+                              shouldTruncateText
+                              Wrapper={Wrapper}
+                            />
+                          </td>
+                        )}
+                        {result.scores.map((scorer, index) => {
+                          const scoreInPreviousEvaluation =
+                            prevEvaluation?.results
+                              .find((r) => r.input === result.input)
+                              ?.scores.find((s) => s.name === scorer.name);
+                          return (
+                            <td
+                              key={scorer.id}
+                              className={cn(
+                                index === 0 && "border-l",
+                                "align-top"
+                              )}
+                            >
+                              <Wrapper>
+                                <Score
+                                  score={scorer.score}
+                                  isRunning={isRunningEval}
+                                  resultStatus={result.status}
+                                  evalStatus={possiblyRunningEvaluation.status}
+                                  state={getScoreState(
+                                    scorer.score,
+                                    scoreInPreviousEvaluation?.score
+                                  )}
+                                />
+                              </Wrapper>
+                            </td>
+                          );
+                        })}
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </>
+          )}
+        </div>
       </InnerPageLayout>
       <div
         className={cn(

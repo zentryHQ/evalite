@@ -239,8 +239,8 @@ export default class EvaliteReporter extends BasicReporter {
                 existingResultId = this.opts.db
                   .prepare<{}, { id: number }>(
                     `
-                    INSERT INTO results (eval_id, col_order, input, expected, output, duration)
-                    VALUES (@eval_id, @col_order, @input, @expected, @output, @duration)
+                    INSERT INTO results (eval_id, col_order, input, expected, output, duration, status)
+                    VALUES (@eval_id, @col_order, @input, @expected, @output, @duration, @status)
                   `
                   )
                   .run({
@@ -250,6 +250,7 @@ export default class EvaliteReporter extends BasicReporter {
                     expected: JSON.stringify(event.result.expected),
                     output: JSON.stringify(event.result.output),
                     duration: event.result.duration,
+                    status: event.result.status,
                   })!.lastInsertRowid;
               }
 
@@ -303,9 +304,12 @@ export default class EvaliteReporter extends BasicReporter {
               }
 
               const allResults = this.opts.db
-                .prepare<{ eval_id: number | bigint }, { id: number }>(
+                .prepare<
+                  { eval_id: number | bigint },
+                  { id: number; status: Evalite.ResultStatus }
+                >(
                   `
-                  SELECT id
+                  SELECT id, status
                   FROM results
                   WHERE eval_id = @eval_id
                 `
@@ -337,7 +341,12 @@ export default class EvaliteReporter extends BasicReporter {
                     WHERE id = @id
                   `
                   )
-                  .run({ id: evalId, status: "success" });
+                  .run({
+                    id: evalId,
+                    status: allResults.some((r) => r.status === "fail")
+                      ? "fail"
+                      : "success",
+                  });
               }
 
               this.updateState({

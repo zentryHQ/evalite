@@ -98,26 +98,46 @@ export const evalite = <TInput, TExpected = TInput>(
         const traces: Evalite.Trace[] = [];
         reportTraceLocalStorage.enterWith((trace) => traces.push(trace));
 
-        const { output, scores, duration } = await runTask({
-          expected: data.expected,
-          input: data.input,
-          scores: opts.scorers,
-          task: opts.task,
-        });
-        task.meta.evalite = {
-          result: {
-            evalName: evalName,
-            filepath: task.file.filepath,
-            order: Number(order),
-            duration,
+        try {
+          const { output, scores, duration } = await runTask({
             expected: data.expected,
             input: data.input,
-            output,
-            scores,
-            traces,
-          },
-          duration: Math.round(performance.now() - start),
-        };
+            scores: opts.scorers,
+            task: opts.task,
+          });
+          task.meta.evalite = {
+            result: {
+              evalName: evalName,
+              filepath: task.file.filepath,
+              order: Number(order),
+              duration,
+              expected: data.expected,
+              input: data.input,
+              output,
+              scores,
+              traces,
+              status: "success",
+            },
+            duration: Math.round(performance.now() - start),
+          };
+        } catch (e) {
+          task.meta.evalite = {
+            result: {
+              evalName: evalName,
+              filepath: task.file.filepath,
+              order: Number(order),
+              duration: Math.round(performance.now() - start),
+              expected: data.expected,
+              input: data.input,
+              output: e,
+              scores: [],
+              traces,
+              status: "fail",
+            },
+            duration: Math.round(performance.now() - start),
+          };
+          throw e;
+        }
       });
     }
   });
