@@ -1,5 +1,18 @@
 import { type Evalite } from "@evalite/core";
-import { saveRun, type Db, type SQLiteDatabase } from "@evalite/core/db";
+import {
+  createEvalIfNotExists,
+  createRun,
+  findResultByEvalIdAndOrder,
+  getAllResultsForEval,
+  insertResult,
+  insertScore,
+  insertTrace,
+  saveRun,
+  updateEvalStatusAndDuration,
+  updateResult,
+  type Db,
+  type SQLiteDatabase,
+} from "@evalite/core/db";
 import { getTests } from "@vitest/runner/utils";
 import { table } from "table";
 import c from "tinyrainbow";
@@ -49,63 +62,8 @@ type ReporterEvent =
       initialResult: Evalite.InitialResult;
     };
 
-const createEvalIfNotExists = (
-  db: SQLiteDatabase,
-  opts: {
-    runId: number | bigint;
-    name: string;
-    filepath: string;
-  }
-): number | bigint => {
-  let evaluationId: number | bigint | undefined = db
-    .prepare<{ name: string; runId: number | bigint }, { id: number }>(
-      `
-        SELECT id
-        FROM evals
-        WHERE name = @name AND run_id = @runId
-      `
-    )
-    .get({ name: opts.name, runId: opts.runId })?.id;
-
-  if (!evaluationId) {
-    evaluationId = db
-      .prepare<{}, { id: number }>(
-        `
-          INSERT INTO evals (run_id, name, filepath, duration, status)
-          VALUES (@runId, @name, @filepath, @duration, @status)
-        `
-      )
-      .run({
-        runId: opts.runId,
-        name: opts.name,
-        filepath: opts.filepath,
-        duration: 0,
-        status: "running",
-      }).lastInsertRowid;
-  }
-
-  return evaluationId;
-};
-
-const createRun = (
-  db: SQLiteDatabase,
-  opts: {
-    runType: Evalite.RunType;
-  }
-): number | bigint => {
-  return db
-    .prepare<{ runType: Evalite.RunType }, { id: number }>(
-      `
-          INSERT INTO runs (runType)
-          VALUES (@runType)
-        `
-    )
-    .run({ runType: opts.runType }).lastInsertRowid;
-};
-
 export default class EvaliteReporter extends BasicReporter {
   private opts: EvaliteReporterOptions;
-  private lastRunTypeLogged: Evalite.RunType = "full";
   private state: Evalite.ServerState = { type: "idle" };
 
   // private server: Server;
@@ -128,7 +86,6 @@ export default class EvaliteReporter extends BasicReporter {
       filepaths: this.ctx.state.getFiles().map((f) => f.filepath),
       runType: "full",
     });
-    this.lastRunTypeLogged = "full";
   }
 
   override onWatcherStart(files?: RunnerTestFile[], errors?: unknown[]): void {
@@ -154,31 +111,28 @@ export default class EvaliteReporter extends BasicReporter {
             {
               const runId =
                 this.state.runId ??
-                createRun(this.opts.db, {
+                createRun({
+                  db: this.opts.db,
                   runType: this.state.runType,
                 });
 
-              const evalId = createEvalIfNotExists(this.opts.db, {
+              const evalId = createEvalIfNotExists({
+                db: this.opts.db,
                 filepath: event.initialResult.filepath,
                 name: event.initialResult.evalName,
-                runId: runId,
+                runId,
               });
 
-              const resultId = this.opts.db
-                .prepare<{}, { id: number }>(
-                  `
-                  INSERT INTO results (eval_id, col_order, input, expected, duration, output)
-                  VALUES (@eval_id, @col_order, @input, @expected, @duration, @output)
-                `
-                )
-                .run({
-                  eval_id: evalId,
-                  col_order: event.initialResult.order,
-                  input: JSON.stringify(event.initialResult.input),
-                  expected: JSON.stringify(event.initialResult.expected),
-                  output: JSON.stringify(null),
-                  duration: 0,
-                }).lastInsertRowid;
+              const resultId = insertResult({
+                db: this.opts.db,
+                evalId,
+                order: event.initialResult.order,
+                input: event.initialResult.input,
+                expected: event.initialResult.expected,
+                output: null,
+                duration: 0,
+                status: "running",
+              });
 
               this.updateState({
                 ...this.state,
@@ -196,126 +150,77 @@ export default class EvaliteReporter extends BasicReporter {
             {
               const runId =
                 this.state.runId ??
-                createRun(this.opts.db, {
+                createRun({
+                  db: this.opts.db,
                   runType: this.state.runType,
                 });
 
-              const evalId = createEvalIfNotExists(this.opts.db, {
+              const evalId = createEvalIfNotExists({
+                db: this.opts.db,
                 filepath: event.result.filepath,
                 name: event.result.evalName,
-                runId: runId,
+                runId,
               });
 
-              let existingResultId: number | bigint | undefined = this.opts.db
-                .prepare<{}, { id: number }>(
-                  `
-                  SELECT id
-                  FROM results
-                  WHERE eval_id = @eval_id AND col_order = @col_order
-                `
-                )
-                .get({
-                  eval_id: evalId,
-                  col_order: event.result.order,
-                })?.id;
+              let existingResultId: number | bigint | undefined =
+                findResultByEvalIdAndOrder({
+                  db: this.opts.db,
+                  evalId,
+                  order: event.result.order,
+                });
 
               if (existingResultId) {
-                // Update existing record with new info
-                this.opts.db
-                  .prepare<{}, { id: number }>(
-                    `
-                    UPDATE results
-                    SET output = @output, duration = @duration, status = @status
-                    WHERE id = @id
-                  `
-                  )
-                  .run({
-                    id: existingResultId,
-                    output: JSON.stringify(event.result.output),
-                    duration: event.result.duration,
-                    status: event.result.status,
-                  });
+                updateResult({
+                  db: this.opts.db,
+                  resultId: existingResultId,
+                  output: event.result.output,
+                  duration: event.result.duration,
+                  status: event.result.status,
+                });
               } else {
-                // Create new record
-                existingResultId = this.opts.db
-                  .prepare<{}, { id: number }>(
-                    `
-                    INSERT INTO results (eval_id, col_order, input, expected, output, duration, status)
-                    VALUES (@eval_id, @col_order, @input, @expected, @output, @duration, @status)
-                  `
-                  )
-                  .run({
-                    eval_id: evalId,
-                    col_order: event.result.order,
-                    input: JSON.stringify(event.result.input),
-                    expected: JSON.stringify(event.result.expected),
-                    output: JSON.stringify(event.result.output),
-                    duration: event.result.duration,
-                    status: event.result.status,
-                  }).lastInsertRowid;
+                existingResultId = insertResult({
+                  db: this.opts.db,
+                  evalId,
+                  order: event.result.order,
+                  input: event.result.input,
+                  expected: event.result.expected,
+                  output: event.result.output,
+                  duration: event.result.duration,
+                  status: event.result.status,
+                });
               }
 
-              // Save the scores
               for (const score of event.result.scores) {
-                this.opts.db
-                  .prepare<
-                    {
-                      result_id: number | bigint;
-                      description: string | undefined;
-                      name: string;
-                      score: number;
-                      metadata: string;
-                    },
-                    { id: number }
-                  >(
-                    `
-                    INSERT INTO scores (result_id, name, score, metadata, description)
-                    VALUES (@result_id, @name, @score, @metadata, @description)
-                  `
-                  )
-                  .run({
-                    result_id: existingResultId,
-                    description: score.description,
-                    name: score.name,
-                    score: score.score ?? 0,
-                    metadata: JSON.stringify(score.metadata),
-                  });
+                insertScore({
+                  db: this.opts.db,
+                  resultId: existingResultId,
+                  description: score.description,
+                  name: score.name,
+                  score: score.score ?? 0,
+                  metadata: score.metadata,
+                });
               }
-              // Save the traces
+
               let traceOrder = 0;
               for (const trace of event.result.traces) {
                 traceOrder++;
-                this.opts.db
-                  .prepare<{}, { id: number }>(
-                    `
-                    INSERT INTO traces (result_id, input, output, start_time, end_time, prompt_tokens, completion_tokens, col_order)
-                    VALUES (@result_id, @input, @output, @start_time, @end_time, @prompt_tokens, @completion_tokens, @col_order)
-                  `
-                  )
-                  .run({
-                    result_id: existingResultId,
-                    input: JSON.stringify(trace.input),
-                    output: JSON.stringify(trace.output),
-                    start_time: Math.round(trace.start),
-                    end_time: Math.round(trace.end),
-                    prompt_tokens: trace.usage?.promptTokens,
-                    completion_tokens: trace.usage?.completionTokens,
-                    col_order: traceOrder,
-                  });
+                insertTrace({
+                  db: this.opts.db,
+                  resultId: existingResultId,
+                  input: trace.input,
+                  output: trace.output,
+                  start: trace.start,
+                  end: trace.end,
+                  promptTokens: trace.usage?.promptTokens,
+                  completionTokens: trace.usage?.completionTokens,
+                  order: traceOrder,
+                });
               }
 
-              const allResults = this.opts.db
-                .prepare<
-                  { eval_id: number | bigint },
-                  { id: number; status: Evalite.ResultStatus }
-                >(
-                  `
-                  SELECT id, status
-                  FROM results
-                  WHERE eval_id = @eval_id
-                `
-                )
-                .all({ eval_id: evalId });
+              const allResults = getAllResultsForEval({
+                db: this.opts.db,
+                evalId,
+              });
 
               const resultIdsRunning = this.state.resultIdsRunning.filter(
                 (id) => id !== existingResultId
@@ -331,24 +236,13 @@ export default class EvaliteReporter extends BasicReporter {
 
               // Update the eval status and duration
               if (isEvalComplete) {
-                this.opts.db
-                  .prepare<
-                    { id: number | bigint; status: Db.EvalStatus },
-                    { id: number }
-                  >(
-                    `
-                    UPDATE evals
-                    SET status = @status,
-                    duration = (SELECT MAX(duration) FROM results WHERE eval_id = @id)
-                    WHERE id = @id
-                  `
-                  )
-                  .run({
-                    id: evalId,
-                    status: allResults.some((r) => r.status === "fail")
-                      ? "fail"
-                      : "success",
-                  });
+                updateEvalStatusAndDuration({
+                  db: this.opts.db,
+                  evalId,
+                  status: allResults.some((r) => r.status === "fail")
+                    ? "fail"
+                    : "success",
+                });
               }
 
               this.updateState({
@@ -390,7 +284,6 @@ export default class EvaliteReporter extends BasicReporter {
       filepaths: files,
       runType: "partial",
     });
-    this.lastRunTypeLogged = "partial";
     super.onWatcherRerun(files, trigger);
   }
 
