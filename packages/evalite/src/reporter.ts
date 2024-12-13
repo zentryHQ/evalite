@@ -329,7 +329,7 @@ export default class EvaliteReporter extends BasicReporter {
                 (result) => !resultIdsRunning.includes(result.id)
               );
 
-              // Update the eval status
+              // Update the eval status and duration
               if (isEvalComplete) {
                 this.opts.db
                   .prepare<
@@ -338,7 +338,8 @@ export default class EvaliteReporter extends BasicReporter {
                   >(
                     `
                     UPDATE evals
-                    SET status = @status
+                    SET status = @status,
+                    duration = (SELECT MAX(duration) FROM results WHERE eval_id = @id)
                     WHERE id = @id
                   `
                   )
