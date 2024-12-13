@@ -15,6 +15,10 @@ export default defineConfig({
           label: "Getting Started",
           items: [
             {
+              label: "What Is Evalite?",
+              slug: "what-is-evalite",
+            },
+            {
               label: "Quickstart",
               slug: "quickstart",
             },
