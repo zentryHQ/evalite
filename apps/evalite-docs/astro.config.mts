@@ -6,6 +6,11 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "Evalite",
+      favicon: "/favicon.ico",
+      editLink: {
+        baseUrl:
+          "https://github.com/mattpocock/evalite/edit/main/apps/evalite-docs",
+      },
       social: {
         github: "https://github.com/mattpocock/evalite",
         discord: "https://mattpocock.com/ai-discord",
@@ -13,7 +18,6 @@ export default defineConfig({
       logo: {
         light: "./src/assets/logo-light.svg",
         dark: "./src/assets/logo-dark.svg",
-        replacesTitle: true,
       },
       sidebar: [
         {
