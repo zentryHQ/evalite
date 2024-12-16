@@ -16,50 +16,50 @@ export default defineConfig({
           tag: "meta",
           attrs: {
             property: "og:url",
+            content: "https://evalite.dev",
           },
-          content: "https://evalite.dev",
         },
         {
           tag: "meta",
           attrs: {
             property: "og:image",
+            content: "https://evalite.dev/og-image.jpg",
           },
-          content: "https://evalite.dev/og-image.jpg",
         },
         {
           tag: "meta",
           attrs: {
             property: "og:image:width",
+            content: "1280",
           },
-          content: "1280",
         },
         {
           tag: "meta",
           attrs: {
             property: "og:image:height",
+            content: "640",
           },
-          content: "640",
         },
         {
           tag: "meta",
           attrs: {
             property: "og:image:alt",
+            content: "Evalite Logo",
           },
-          content: "Evalite Logo",
         },
         {
           tag: "meta",
           attrs: {
             name: "twitter:card",
+            content: "summary_large_image",
           },
-          content: "summary_large_image",
         },
         {
           tag: "meta",
           attrs: {
             name: "twitter:image",
+            content: "https://evalite.dev/og-image.jpg",
           },
-          content: "https://evalite.dev/og-image.jpg",
         },
       ],
       social: {
