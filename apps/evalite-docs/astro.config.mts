@@ -15,9 +15,16 @@ export default defineConfig({
         {
           tag: "meta",
           attrs: {
+            property: "og:url",
+          },
+          content: "https://evalite.dev",
+        },
+        {
+          tag: "meta",
+          attrs: {
             property: "og:image",
           },
-          content: "/og-image.jpg",
+          content: "https://evalite.dev/og-image.jpg",
         },
         {
           tag: "meta",
@@ -52,7 +59,7 @@ export default defineConfig({
           attrs: {
             name: "twitter:image",
           },
-          content: "/og-image.jpg",
+          content: "https://evalite.dev/og-image.jpg",
         },
       ],
       social: {
