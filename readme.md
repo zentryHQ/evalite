@@ -1,6 +1,6 @@
 ![Evalite: the TypeScript-native, local-first tool for testing LLM-powered apps.](https://raw.githubusercontent.com/mattpocock/evalite/refs/heads/main/repo-card.jpg)
 
-- [View the docs](./packages/evalite/readme.md)
+- [View the docs](https://www.evalite.dev/)
 - [Join the Discord](https://www.mattpocock.com/ai-discord)
 
 ## Contributing

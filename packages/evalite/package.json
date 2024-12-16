@@ -3,7 +3,7 @@
   "version": "0.6.2",
   "type": "module",
   "description": "Test your LLM-powered apps with a TypeScript-native, Vitest-based eval runner. No API key required.",
-  "homepage": "https://github.com/mattpocock/evalite",
+  "homepage": "https://evalite.dev",
   "keywords": [
     "ai",
     "evals",
