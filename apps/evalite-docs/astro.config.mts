@@ -11,6 +11,50 @@ export default defineConfig({
         baseUrl:
           "https://github.com/mattpocock/evalite/edit/main/apps/evalite-docs",
       },
+      head: [
+        {
+          tag: "meta",
+          attrs: {
+            property: "og:image",
+          },
+          content: "/og-image.jpg",
+        },
+        {
+          tag: "meta",
+          attrs: {
+            property: "og:image:width",
+          },
+          content: "1280",
+        },
+        {
+          tag: "meta",
+          attrs: {
+            property: "og:image:height",
+          },
+          content: "640",
+        },
+        {
+          tag: "meta",
+          attrs: {
+            property: "og:image:alt",
+          },
+          content: "Evalite Logo",
+        },
+        {
+          tag: "meta",
+          attrs: {
+            name: "twitter:card",
+          },
+          content: "summary_large_image",
+        },
+        {
+          tag: "meta",
+          attrs: {
+            name: "twitter:image",
+          },
+          content: "/og-image.jpg",
+        },
+      ],
       social: {
         github: "https://github.com/mattpocock/evalite",
         discord: "https://mattpocock.com/ai-discord",
