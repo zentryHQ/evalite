@@ -1,0 +1,31 @@
+---
+title: CLI
+---
+
+## Watch Mode
+
+You can run Evalite in watch mode by running `evalite watch`:
+
+```bash
+evalite watch
+```
+
+This will watch for changes to your `.eval.ts` files and re-run the evals when they change.
+
+> [!IMPORTANT]
+>
+> I strongly recommend implementing a caching layer in your LLM calls when using watch mode. This will keep your evals running fast and avoid burning through your API credits.
+
+## Running Specific Files
+
+You can run specific files by passing them as arguments:
+
+```bash
+evalite my-eval.eval.ts
+```
+
+This also works for `watch` mode:
+
+```bash
+evalite watch my-eval.eval.ts
+```
