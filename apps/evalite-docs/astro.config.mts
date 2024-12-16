@@ -10,6 +10,11 @@ export default defineConfig({
         github: "https://github.com/mattpocock/evalite",
         discord: "https://mattpocock.com/ai-discord",
       },
+      logo: {
+        light: "./src/assets/logo-light.svg",
+        dark: "./src/assets/logo-dark.svg",
+        replacesTitle: true,
+      },
       sidebar: [
         {
           label: "Getting Started",
