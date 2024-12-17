@@ -107,6 +107,10 @@ export default defineConfig({
               label: "CLI",
               slug: "guides/cli",
             },
+            {
+              label: "Customizing The UI",
+              slug: "guides/customizing-the-ui",
+            },
           ],
         },
         {
