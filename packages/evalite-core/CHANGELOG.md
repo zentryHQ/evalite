@@ -1,5 +1,11 @@
 # @evalite/core
 
+## 0.5.0
+
+### Minor Changes
+
+- 4f3d446: Added experimental_customColumns to allow for customizing the columns shown by the UI.
+
 ## 0.4.2
 
 ### Patch Changes
