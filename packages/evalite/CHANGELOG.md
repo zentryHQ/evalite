@@ -1,5 +1,11 @@
 # evalite
 
+## 0.7.1
+
+### Patch Changes
+
+- b3beda6: Fixed an issue where evals within the same file were not being run concurrently.
+
 ## 0.7.0
 
 ### Minor Changes
