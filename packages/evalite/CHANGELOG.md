@@ -1,5 +1,11 @@
 # evalite
 
+## 0.7.2
+
+### Patch Changes
+
+- f26eaaa: Run the data function as soon as evalite is called for maximum concurrency.
+
 ## 0.7.1
 
 ### Patch Changes
