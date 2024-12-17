@@ -86,9 +86,11 @@ export const evalite = <TInput, TExpected = TInput>(
   evalName: string,
   opts: Evalite.RunnerOpts<TInput, TExpected>
 ) => {
-  return describe.concurrent(evalName, async () => {
-    const dataset = await opts.data();
-
+  // Eagerly run the promise before the dataset for
+  // maximum concurrency
+  const datasetPromise = opts.data();
+  return describe(evalName, async () => {
+    const dataset = await datasetPromise;
     it.concurrent.for(dataset.map((d, index) => ({ ...d, index })))(
       evalName,
       async (data, { task }) => {
