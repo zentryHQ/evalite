@@ -86,7 +86,7 @@ export const evalite = <TInput, TExpected = TInput>(
   evalName: string,
   opts: Evalite.RunnerOpts<TInput, TExpected>
 ) => {
-  return describe(evalName, async () => {
+  return describe.concurrent(evalName, async () => {
     const dataset = await opts.data();
 
     it.concurrent.for(dataset.map((d, index) => ({ ...d, index })))(
