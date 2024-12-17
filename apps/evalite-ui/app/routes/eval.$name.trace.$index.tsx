@@ -9,7 +9,7 @@ import {
 } from "@remix-run/react";
 import { SidebarCloseIcon } from "lucide-react";
 import type React from "react";
-import { useContext } from "react";
+import { Fragment, useContext } from "react";
 import { DisplayInput } from "~/components/display-input";
 import { getScoreState, Score } from "~/components/score";
 import {
@@ -23,7 +23,7 @@ import { Separator } from "~/components/ui/separator";
 import { SidebarContent, SidebarHeader } from "~/components/ui/sidebar";
 import { cn } from "~/lib/utils";
 import { TestServerStateContext } from "~/use-subscribe-to-socket";
-import { formatTime } from "~/utils";
+import { formatTime, isArrayOfRenderedColumns } from "~/utils";
 
 const MainBodySection = ({
   title,
@@ -223,9 +223,24 @@ export default function Page() {
                   input={result.output}
                 ></DisplayInput>
               </MainBodySection>
+              {isArrayOfRenderedColumns(result.rendered_columns) &&
+                result.rendered_columns.map((column) => (
+                  <Fragment key={column.label}>
+                    <MainBodySeparator />
+                    <MainBodySection
+                      title={column.label}
+                      description={undefined}
+                    >
+                      <DisplayInput
+                        shouldTruncateText={false}
+                        input={column.value}
+                      ></DisplayInput>
+                    </MainBodySection>
+                  </Fragment>
+                ))}
 
               {result.scores.map((score) => (
-                <>
+                <Fragment key={score.name}>
                   <MainBodySeparator />
                   <MainBodySection
                     key={score.name}
@@ -245,15 +260,15 @@ export default function Page() {
                       resultStatus={result.status}
                     />
                   </MainBodySection>
-                  {score.metadata && (
+                  {score.metadata ? (
                     <>
                       <DisplayInput
                         shouldTruncateText={false}
                         input={score.metadata}
                       ></DisplayInput>
                     </>
-                  )}
-                </>
+                  ) : null}
+                </Fragment>
               ))}
             </>
           )}

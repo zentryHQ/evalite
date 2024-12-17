@@ -132,6 +132,7 @@ export default class EvaliteReporter extends BasicReporter {
                 output: null,
                 duration: 0,
                 status: "running",
+                renderedColumns: [],
               });
 
               this.updateState({
@@ -176,6 +177,7 @@ export default class EvaliteReporter extends BasicReporter {
                   output: event.result.output,
                   duration: event.result.duration,
                   status: event.result.status,
+                  renderedColumns: event.result.renderedColumns,
                 });
               } else {
                 existingResultId = insertResult({
@@ -187,6 +189,7 @@ export default class EvaliteReporter extends BasicReporter {
                   output: event.result.output,
                   duration: event.result.duration,
                   status: event.result.status,
+                  renderedColumns: event.result.renderedColumns,
                 });
               }
 

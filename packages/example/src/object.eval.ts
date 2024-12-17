@@ -32,4 +32,24 @@ evalite("Test Objects", {
       },
     }),
   ],
+  experimental_customColumns: async ({ input, output, expected }) => {
+    return [
+      {
+        label: "Input",
+        value: input,
+      },
+      {
+        label: "Output A",
+        value: (output as any).a,
+      },
+      {
+        label: "Output B",
+        value: (output as any).b,
+      },
+      {
+        label: "Output C",
+        value: (output as any).c,
+      },
+    ];
+  },
 });

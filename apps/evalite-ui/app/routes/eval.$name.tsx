@@ -26,7 +26,7 @@ import {
 } from "~/components/ui/table";
 import { cn } from "~/lib/utils";
 import { TestServerStateContext } from "~/use-subscribe-to-socket";
-import { formatTime } from "~/utils";
+import { formatTime, isArrayOfRenderedColumns } from "~/utils";
 
 export const meta: MetaFunction<typeof clientLoader> = (args) => {
   return [
@@ -198,11 +198,29 @@ export default function Page() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Input</TableHead>
-                  <TableHead>Output</TableHead>
-                  {showExpectedColumn && <TableHead>Expected</TableHead>}
-                  {evaluationWithoutLayoutShift.results[0]?.scores.length ===
-                    0 && <TableHead className="border-l">Score</TableHead>}
+                  {isArrayOfRenderedColumns(
+                    evaluationWithoutLayoutShift.results[0]?.rendered_columns
+                  ) ? (
+                    <>
+                      {evaluationWithoutLayoutShift.results[0].rendered_columns.map(
+                        (column) => (
+                          <TableHead key={column.label}>
+                            {column.label}
+                          </TableHead>
+                        )
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <TableHead>Input</TableHead>
+                      <TableHead>Output</TableHead>
+                      {showExpectedColumn && <TableHead>Expected</TableHead>}
+                      {evaluationWithoutLayoutShift.results[0]?.scores
+                        .length === 0 && (
+                        <TableHead className="border-l">Score</TableHead>
+                      )}
+                    </>
+                  )}
                   {evaluationWithoutLayoutShift.results[0]?.scores.map(
                     (scorer, index) => (
                       <TableHead
@@ -234,41 +252,62 @@ export default function Page() {
                       key={JSON.stringify(result.input)}
                       className={cn("has-[.active]:bg-gray-100")}
                     >
-                      <td className="align-top">
-                        <DisplayInput
-                          className={cn(
-                            isRunningEval && "opacity-25",
-                            "transition-opacity"
+                      {isArrayOfRenderedColumns(result.rendered_columns) ? (
+                        <>
+                          {result.rendered_columns.map((column) => (
+                            <td className="align-top">
+                              <DisplayInput
+                                className={cn(
+                                  isRunningEval && "opacity-25",
+                                  "transition-opacity"
+                                )}
+                                input={column.value}
+                                shouldTruncateText
+                                Wrapper={Wrapper}
+                              />
+                            </td>
+                          ))}
+                        </>
+                      ) : (
+                        <>
+                          <td className="align-top">
+                            <DisplayInput
+                              className={cn(
+                                isRunningEval && "opacity-25",
+                                "transition-opacity"
+                              )}
+                              input={result.input}
+                              shouldTruncateText
+                              Wrapper={Wrapper}
+                            />
+                          </td>
+                          <td className="align-top">
+                            <DisplayInput
+                              className={cn(
+                                isRunningEval && "opacity-25",
+                                "transition-opacity"
+                              )}
+                              input={result.output}
+                              shouldTruncateText
+                              Wrapper={Wrapper}
+                            />
+                          </td>
+                          {showExpectedColumn && (
+                            <td className="align-top">
+                              <DisplayInput
+                                className={cn(
+                                  isRunningEval && "opacity-25",
+                                  "transition-opacity"
+                                )}
+                                input={result.expected}
+                                shouldTruncateText
+                                Wrapper={Wrapper}
+                              />
+                            </td>
                           )}
-                          input={result.input}
-                          shouldTruncateText
-                          Wrapper={Wrapper}
-                        />
-                      </td>
-                      <td className="align-top">
-                        <DisplayInput
-                          className={cn(
-                            isRunningEval && "opacity-25",
-                            "transition-opacity"
-                          )}
-                          input={result.output}
-                          shouldTruncateText
-                          Wrapper={Wrapper}
-                        />
-                      </td>
-                      {showExpectedColumn && (
-                        <td className="align-top">
-                          <DisplayInput
-                            className={cn(
-                              isRunningEval && "opacity-25",
-                              "transition-opacity"
-                            )}
-                            input={result.expected}
-                            shouldTruncateText
-                            Wrapper={Wrapper}
-                          />
-                        </td>
+                        </>
                       )}
+
                       {result.scores.length === 0 && (
                         <td className="border-l">
                           <Wrapper>

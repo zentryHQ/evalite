@@ -28,12 +28,18 @@ export declare namespace Evalite {
 
   export type ResultStatus = "success" | "fail";
 
+  export type RenderedColumn = {
+    label: string;
+    value: unknown;
+  };
+
   export interface Result extends InitialResult {
     output: unknown;
     scores: Score[];
     duration: number;
     traces: Trace[];
     status: ResultStatus;
+    renderedColumns: RenderedColumn[];
   }
 
   export type Score = {
@@ -78,6 +84,9 @@ export declare namespace Evalite {
     data: () => MaybePromise<{ input: TInput; expected?: TExpected }[]>;
     task: Task<TInput, TExpected>;
     scorers: Scorer<TInput, TExpected>[];
+    experimental_customColumns?: (
+      opts: ScoreInput<TInput, TExpected>
+    ) => MaybePromise<RenderedColumn[]>;
   };
 
   export interface Trace {

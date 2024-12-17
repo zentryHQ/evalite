@@ -46,18 +46,25 @@ const executeTask = async <TInput, TExpected>(
   return taskResultOrStream;
 };
 
-const runTask = async <TInput, TExpected>(opts: {
-  input: TInput;
-  expected: TExpected | undefined;
-  task: Evalite.Task<TInput, TExpected>;
-  scores: Evalite.Scorer<TInput, TExpected>[];
-}) => {
+const runTask = async <TInput, TExpected>(
+  opts: {
+    input: TInput;
+    expected: TExpected | undefined;
+  } & Omit<Evalite.RunnerOpts<TInput, TExpected>, "data">
+) => {
   const start = performance.now();
   const output = await executeTask(opts.task, opts.input);
   const duration = Math.round(performance.now() - start);
 
+  const experimental_columns =
+    (await opts.experimental_customColumns?.({
+      input: opts.input,
+      output,
+      expected: opts.expected,
+    })) || [];
+
   const scores = await Promise.all(
-    opts.scores.map(
+    opts.scorers.map(
       async (scorer) =>
         await scorer({
           input: opts.input,
@@ -71,6 +78,7 @@ const runTask = async <TInput, TExpected>(opts: {
     output,
     scores,
     duration,
+    experimental_columns,
   };
 };
 
@@ -100,12 +108,14 @@ export const evalite = <TInput, TExpected = TInput>(
         reportTraceLocalStorage.enterWith((trace) => traces.push(trace));
 
         try {
-          const { output, scores, duration } = await runTask({
-            expected: data.expected,
-            input: data.input,
-            scores: opts.scorers,
-            task: opts.task,
-          });
+          const { output, scores, duration, experimental_columns } =
+            await runTask({
+              expected: data.expected,
+              input: data.input,
+              scorers: opts.scorers,
+              task: opts.task,
+              experimental_customColumns: opts.experimental_customColumns,
+            });
           task.meta.evalite = {
             result: {
               evalName: evalName,
@@ -118,6 +128,7 @@ export const evalite = <TInput, TExpected = TInput>(
               scores,
               traces,
               status: "success",
+              renderedColumns: experimental_columns,
             },
             duration: Math.round(performance.now() - start),
           };
@@ -134,6 +145,7 @@ export const evalite = <TInput, TExpected = TInput>(
               scores: [],
               traces,
               status: "fail",
+              renderedColumns: [],
             },
             duration: Math.round(performance.now() - start),
           };

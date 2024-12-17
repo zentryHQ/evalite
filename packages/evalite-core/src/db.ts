@@ -77,6 +77,11 @@ export const createDatabase = (url: string): BetterSqlite3.Database => {
     );
   } catch (e) {}
 
+  // Add rendered_columns key to results table
+  try {
+    db.exec(`ALTER TABLE results ADD COLUMN rendered_columns TEXT`);
+  } catch (e) {}
+
   return db;
 };
 
@@ -109,6 +114,7 @@ export declare namespace Db {
     created_at: string;
     col_order: number;
     status: Evalite.ResultStatus;
+    rendered_columns?: unknown;
   };
 
   export type Score = {
@@ -133,7 +139,9 @@ export declare namespace Db {
     col_order: number;
   };
 }
-
+/**
+ * @deprecated
+ */
 export const saveRun = (
   db: BetterSqlite3.Database,
   {
@@ -340,7 +348,9 @@ export const getResults = (db: BetterSqlite3.Database, evalIds: number[]) => {
   `
     )
     .all()
-    .map((r) => jsonParseFields(r, ["input", "output", "expected"]));
+    .map((r) =>
+      jsonParseFields(r, ["input", "output", "expected", "rendered_columns"])
+    );
 };
 
 export const getScores = (db: BetterSqlite3.Database, resultIds: number[]) => {
@@ -571,6 +581,7 @@ export const insertResult = ({
   output,
   duration,
   status,
+  renderedColumns,
 }: {
   db: SQLiteDatabase;
   evalId: number | bigint;
@@ -580,11 +591,12 @@ export const insertResult = ({
   output: unknown;
   duration: number;
   status: string;
+  renderedColumns: unknown;
 }): number | bigint => {
   return db
     .prepare(
-      `INSERT INTO results (eval_id, col_order, input, expected, output, duration, status)
-       VALUES (@eval_id, @col_order, @input, @expected, @output, @duration, @status)`
+      `INSERT INTO results (eval_id, col_order, input, expected, output, duration, status, rendered_columns)
+       VALUES (@eval_id, @col_order, @input, @expected, @output, @duration, @status, @rendered_columns)`
     )
     .run({
       eval_id: evalId,
@@ -594,6 +606,7 @@ export const insertResult = ({
       output: JSON.stringify(output),
       duration,
       status,
+      rendered_columns: JSON.stringify(renderedColumns),
     }).lastInsertRowid;
 };
 
@@ -603,22 +616,29 @@ export const updateResult = ({
   output,
   duration,
   status,
+  renderedColumns,
 }: {
   db: SQLiteDatabase;
   resultId: number | bigint;
   output: unknown;
   duration: number;
   status: string;
+  renderedColumns: unknown;
 }) => {
   db.prepare(
     `UPDATE results
-     SET output = @output, duration = @duration, status = @status
+     SET
+      output = @output,
+      duration = @duration,
+      status = @status,
+      rendered_columns = @rendered_columns
      WHERE id = @id`
   ).run({
     id: resultId,
     output: JSON.stringify(output),
     duration,
     status,
+    rendered_columns: JSON.stringify(renderedColumns),
   });
 };
 

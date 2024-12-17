@@ -27,6 +27,7 @@ describe("getEvalsAverageScores", () => {
                     evalite: {
                       duration: 100,
                       result: {
+                        renderedColumns: [],
                         status: "success",
                         evalName: "task 1",
                         filepath: "/path/to/file",
