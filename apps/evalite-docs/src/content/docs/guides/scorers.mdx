@@ -16,14 +16,14 @@ import { createScorer } from "evalite";
 const containsParis = createScorer<string>({
   name: "Contains Paris",
   description: "Checks if the output contains the word 'Paris'.",
-  score: (output) => {
+  score: ({ output }) => {
     return output.includes("Paris") ? 1 : 0;
   },
 });
 
 evalite("My Eval", {
   data: async () => {
-    return [{ input: "Hello", output: "Hello World!" }];
+    return [{ input: "Hello" }];
   },
   task: async (input) => {
     return input + " World!";
@@ -33,6 +33,25 @@ evalite("My Eval", {
 ```
 
 The `name` and `description` of the scorer will be displayed in the Evalite UI.
+
+### Score Properties
+
+The `score` function receives three properties on the object passed:
+
+```ts
+import { createScorer } from "evalite";
+
+const containsParis = createScorer({
+  name: "Contains Paris",
+  description: "Checks if the output contains the word 'Paris'.",
+  score: ({ input, output, expected }) => {
+    // input comes from `data`
+    // expected also comes from `data`
+    // output is the output of `task`
+    return output.includes("Paris") ? 1 : 0;
+  },
+});
+```
 
 ## Type Arguments
 
