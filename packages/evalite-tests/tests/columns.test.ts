@@ -31,3 +31,22 @@ it("Should allow you to render columns based on the input and output", async () 
     ],
   });
 });
+
+it("Should show in the terminal UI", async () => {
+  using fixture = loadFixture("columns");
+
+  const captured = captureStdout();
+
+  await runVitest({
+    cwd: fixture.dir,
+    path: undefined,
+    testOutputWritable: captured.writable,
+    mode: "run-once-and-exit",
+  });
+
+  const output = captured.getOutput();
+
+  expect(output).toContain("Input First");
+  expect(output).toContain("Expected Last");
+  expect(output).toContain("Output Last");
+});

@@ -408,8 +408,27 @@ export default class EvaliteReporter extends BasicReporter {
           .filter((t) => typeof t.meta.evalite?.result === "object")
           .map((t) => t.meta.evalite!.result!)
           .map((result) => ({
-            input: result.input,
-            output: result.output,
+            columns:
+              result.renderedColumns.length > 0
+                ? result.renderedColumns
+                : [
+                    {
+                      label: "Input",
+                      value: result.input,
+                    },
+                    // ...(result.expected
+                    //   ? [
+                    //       {
+                    //         label: "Expected",
+                    //         value: result.expected,
+                    //       },
+                    //     ]
+                    //   : []),
+                    {
+                      label: "Output",
+                      value: result.output,
+                    },
+                  ],
             score: average(result.scores, (s) => s.score ?? 0),
           }))
       );
@@ -417,9 +436,11 @@ export default class EvaliteReporter extends BasicReporter {
   }
 
   private renderTable(
-    props: {
-      input: unknown;
-      output: unknown;
+    rows: {
+      columns: {
+        label: string;
+        value: unknown;
+      }[];
       score: number;
     }[]
   ) {
@@ -432,42 +453,45 @@ export default class EvaliteReporter extends BasicReporter {
     const availableInnerSpace =
       availableColumns - columnsWritableWidth - scoreWidth;
 
-    const colWidth = Math.min(Math.floor(availableInnerSpace / 2), 80);
+    const columns = rows[0]?.columns;
+
+    if (!columns) {
+      return;
+    }
+
+    const colWidth = Math.min(
+      Math.floor(availableInnerSpace / columns.length),
+      80
+    );
 
     this.ctx.logger.log(
       table(
         [
           [
-            c.cyan(c.bold("Input")),
-            c.cyan(c.bold("Output")),
+            ...columns.map((col) => c.cyan(c.bold(col.label))),
             c.cyan(c.bold("Score")),
           ],
-          ...props.map((p) => [
-            typeof p.input === "object"
-              ? inspect(p.input, {
-                  colors: true,
-                  depth: null,
-                  breakLength: colWidth,
-                  numericSeparator: true,
-                  compact: true,
-                })
-              : p.input,
-            typeof p.output === "object"
-              ? inspect(p.output, {
-                  colors: true,
-                  depth: null,
-                  breakLength: colWidth,
-                  numericSeparator: true,
-                  compact: true,
-                })
-              : p.output,
-            displayScore(p.score),
+          ...rows.map((row) => [
+            ...row.columns.map((col) => {
+              return typeof col.value === "object"
+                ? inspect(col.value, {
+                    colors: true,
+                    depth: null,
+                    breakLength: colWidth,
+                    numericSeparator: true,
+                    compact: true,
+                  })
+                : col.value;
+            }),
+            displayScore(row.score),
           ]),
         ],
         {
           columns: [
-            { width: colWidth, wrapWord: typeof props[0]?.input === "string" },
-            { width: colWidth, wrapWord: typeof props[0]?.output === "string" },
+            ...columns.map((col) => ({
+              width: colWidth,
+              wrapWord: typeof col.value === "string",
+            })),
             { width: scoreWidth },
           ],
         }
