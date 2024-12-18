@@ -1,5 +1,12 @@
 # evalite
 
+## 0.7.3
+
+### Patch Changes
+
+- 9cdb9b8: Made experimental_customColumns show in the TUI.
+- 032bd16: Fixed an issue where testTimeout (and other config options) could not be overwritten by the user.
+
 ## 0.7.2
 
 ### Patch Changes
