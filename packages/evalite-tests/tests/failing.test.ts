@@ -13,7 +13,6 @@ it("Should report a failing test", async () => {
     path: undefined,
     testOutputWritable: captured.writable,
     mode: "run-once-and-exit",
-    testTimeout: 3000,
   });
 
   expect(captured.getOutput()).toContain("failing-test.eval.ts");
@@ -33,7 +32,6 @@ it("Should save the result AND eval as failed in the database", async () => {
     path: undefined,
     testOutputWritable: captured.writable,
     mode: "run-once-and-exit",
-    testTimeout: 3000,
   });
 
   const db = createDatabase(fixture.dbLocation);

@@ -13,7 +13,6 @@ export const runVitest = async (opts: {
   cwd: string | undefined;
   testOutputWritable?: Writable;
   mode: "watch-for-file-changes" | "run-once-and-exit";
-  testTimeout?: number;
 }) => {
   const dbLocation = path.join(opts.cwd ?? "", DB_LOCATION);
   await mkdir(path.dirname(dbLocation), { recursive: true });
@@ -35,12 +34,9 @@ export const runVitest = async (opts: {
   const vitest = await createVitest(
     "test",
     {
+      // Everything passed here cannot be overridden
       root: opts.cwd,
-      include: ["**/*.eval.{js,ts}"],
       watch: opts.mode === "watch-for-file-changes",
-      sequence: {
-        concurrent: true,
-      },
       reporters: [
         new EvaliteReporter({
           logNewState: (newState) => {
@@ -51,9 +47,23 @@ export const runVitest = async (opts: {
           db: db,
         }),
       ],
-      testTimeout: opts.testTimeout ?? 30_000,
     },
-    {},
+    {
+      plugins: [
+        {
+          name: "evalite-config-plugin",
+          // Everything inside this config CAN be overridden
+          config(config) {
+            config.test ??= {};
+            config.test.testTimeout ??= 30_000;
+            config.test.include ??= ["**/*.eval.ts"];
+
+            config.test.sequence ??= {};
+            config.test.sequence.concurrent ??= true;
+          },
+        },
+      ],
+    },
     {
       stdout: opts.testOutputWritable || process.stdout,
       stderr: opts.testOutputWritable || process.stderr,
