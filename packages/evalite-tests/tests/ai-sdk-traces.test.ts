@@ -1,9 +1,9 @@
 import { createDatabase, getEvalsAsRecord } from "@evalite/core/db";
 import { runVitest } from "evalite/runner";
-import { expect, it } from "vitest";
+import { assert, expect, it } from "vitest";
 import { captureStdout, loadFixture } from "./test-utils.js";
 
-it("Should report traces from traceAISDKModel", async () => {
+it("Should report traces from generateText using traceAISDKModel", async () => {
   using fixture = loadFixture("ai-sdk-traces");
 
   const captured = captureStdout();
@@ -20,4 +20,28 @@ it("Should report traces from traceAISDKModel", async () => {
   const evals = await getEvalsAsRecord(db);
 
   expect(evals["AI SDK Traces"]![0]?.results[0]?.traces).toHaveLength(1);
+});
+
+it("Should report traces from streamText using traceAISDKModel", async () => {
+  using fixture = loadFixture("ai-sdk-traces-stream");
+
+  const captured = captureStdout();
+
+  await runVitest({
+    cwd: fixture.dir,
+    path: undefined,
+    testOutputWritable: captured.writable,
+    mode: "run-once-and-exit",
+  });
+
+  const db = createDatabase(fixture.dbLocation);
+
+  const evals = await getEvalsAsRecord(db);
+
+  const traces = evals["AI SDK Traces"]![0]?.results[0]?.traces;
+
+  assert(traces?.[0], "Expected a trace to be reported");
+
+  expect(traces?.[0].completion_tokens).toEqual(10);
+  expect(traces?.[0].prompt_tokens).toEqual(3);
 });
