@@ -20,6 +20,20 @@ it("Should report traces from generateText using traceAISDKModel", async () => {
   const evals = await getEvalsAsRecord(db);
 
   expect(evals["AI SDK Traces"]![0]?.results[0]?.traces).toHaveLength(1);
+
+  const trace = evals["AI SDK Traces"]![0]?.results[0]?.traces[0];
+
+  expect(trace?.output).toMatchObject({
+    text: "Hello, world!",
+    toolCalls: [
+      {
+        args: "{}",
+        toolCallId: "abc",
+        toolCallType: "function",
+        toolName: "myToolCall",
+      },
+    ],
+  });
 });
 
 it("Should report traces from streamText using traceAISDKModel", async () => {

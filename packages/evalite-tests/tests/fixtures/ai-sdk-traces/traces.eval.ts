@@ -10,6 +10,14 @@ const model = new MockLanguageModelV1({
     finishReason: "stop",
     usage: { promptTokens: 10, completionTokens: 20 },
     text: `Hello, world!`,
+    toolCalls: [
+      {
+        args: "{}",
+        toolCallId: "abc",
+        toolCallType: "function",
+        toolName: "myToolCall",
+      },
+    ],
   }),
 });
 

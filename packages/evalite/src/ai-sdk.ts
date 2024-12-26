@@ -6,6 +6,63 @@ import {
 } from "ai";
 import { reportTrace, shouldReportTrace } from "./traces.js";
 
+const handlePromptContent = (
+  content: LanguageModelV1CallOptions["prompt"][number]["content"][number]
+): unknown => {
+  if (typeof content === "string") {
+    return {
+      type: "text" as const,
+      text: content,
+    };
+  }
+  if (content.type === "text") {
+    return {
+      type: "text" as const,
+      text: content.text,
+    };
+  }
+
+  if (content.type === "tool-call") {
+    return {
+      type: "tool-call" as const,
+      toolName: content.toolName,
+      args: content.args,
+      toolCallId: content.toolCallId,
+    };
+  }
+
+  if (content.type === "tool-result") {
+    return {
+      type: "tool-result" as const,
+      toolCallId: content.toolCallId,
+      result: content.result,
+      toolName: content.toolName,
+      isError: content.isError,
+      content: content.content?.map((content) => {
+        if (content.type === "text") {
+          return {
+            type: "text" as const,
+            text: content.text,
+          };
+        }
+
+        if (content.type === "image") {
+          throw new Error(
+            `Unsupported content type: ${content.type}. Not supported yet.`
+          );
+        }
+      }),
+    };
+  }
+
+  // Unsupported content types are image and file
+  content.type satisfies "image" | "file";
+
+  throw new Error(
+    `Unsupported content type: ${content.type}. Not supported yet.`
+  );
+};
+
 const processPromptForTracing = (
   prompt: LanguageModelV1CallOptions["prompt"]
 ) => {
@@ -17,18 +74,7 @@ const processPromptForTracing = (
       };
     }
 
-    const content = prompt.content.map((content) => {
-      if (content.type !== "text") {
-        throw new Error(
-          `Unsupported content type: ${content.type}. Only text is currently supported by traceAISDKModel.`
-        );
-      }
-
-      return {
-        type: "text" as const,
-        text: content.text,
-      };
-    });
+    const content = prompt.content.map(handlePromptContent);
 
     return {
       role: prompt.role,
@@ -48,7 +94,10 @@ export const traceAISDKModel = (model: LanguageModelV1): LanguageModelV1 => {
         const end = performance.now();
 
         reportTrace({
-          output: generated.text ?? "",
+          output: {
+            text: generated.text ?? "",
+            toolCalls: generated.toolCalls,
+          },
           input: processPromptForTracing(opts.params.prompt),
           usage: generated.usage,
           start,
