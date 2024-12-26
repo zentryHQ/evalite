@@ -1,5 +1,13 @@
 # evalite
 
+## 0.7.4
+
+### Patch Changes
+
+- 7307a99: Made traceAISDKModel work with streamText.
+- 6063c34: Fixed an issue where the user could override the include, mode or browser options.
+- 77063eb: Made traceAISDK not fail on tool calls.
+
 ## 0.7.3
 
 ### Patch Changes
