@@ -34,8 +34,10 @@ export const runVitest = async (opts: {
   const vitest = await createVitest(
     "test",
     {
-      // Everything passed here cannot be overridden
+      // Everything passed here cannot be
+      // overridden by the user
       root: opts.cwd,
+      include: ["**/*.eval.ts"],
       watch: opts.mode === "watch-for-file-changes",
       reporters: [
         new EvaliteReporter({
@@ -47,6 +49,8 @@ export const runVitest = async (opts: {
           db: db,
         }),
       ],
+      mode: "test",
+      browser: undefined,
     },
     {
       plugins: [
@@ -56,7 +60,6 @@ export const runVitest = async (opts: {
           config(config) {
             config.test ??= {};
             config.test.testTimeout ??= 30_000;
-            config.test.include ??= ["**/*.eval.ts"];
 
             config.test.sequence ??= {};
             config.test.sequence.concurrent ??= true;
