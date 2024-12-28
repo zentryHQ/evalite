@@ -8,7 +8,7 @@ import { expect, it } from "vitest";
 import { captureStdout, loadFixture } from "./test-utils.js";
 
 it("Should save files returned from task() in node_modules", async () => {
-  const fixture = loadFixture("files");
+  using fixture = loadFixture("files");
 
   const captured = captureStdout();
 
@@ -89,10 +89,10 @@ it("Should save files reported in traces", async () => {
   });
 });
 
-it.todo("Should show the url in the CLI output");
+it.todo("Should show the url in the CLI table");
 
 it("Should let users add files to data().input and data().expected", async () => {
-  const fixture = loadFixture("files");
+  using fixture = loadFixture("files");
 
   const captured = captureStdout();
 

@@ -16,7 +16,7 @@ export const createEvaliteFileIfNeeded = async (opts: {
   rootDir: string;
   input: unknown;
 }) => {
-  if (!Buffer.isBuffer(opts.input)) {
+  if (!(opts.input instanceof Uint8Array)) {
     return opts.input;
   }
 

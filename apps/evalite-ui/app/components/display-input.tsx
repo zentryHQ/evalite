@@ -105,7 +105,7 @@ export const DisplayEvaliteFile = ({ file }: { file: Evalite.File }) => {
   // Images
   if (["png", "jpg", "jpeg", "gif", "svg", "webp"].includes(extension)) {
     return (
-      <img src={serveFile(file.path)} alt="Evalite file" className="h-16" />
+      <img src={serveFile(file.path)} alt="Evalite file" className="max-h-32" />
     );
   }
 
