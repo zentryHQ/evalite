@@ -377,6 +377,31 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
     },
   });
 
+  server.route<{
+    Querystring: {
+      path: string;
+    };
+  }>({
+    method: "GET",
+    url: "/api/file",
+    schema: {
+      querystring: {
+        type: "object",
+        properties: {
+          path: { type: "string" },
+        },
+        required: ["path"],
+      },
+    },
+    handler: async (req, res) => {
+      const filePath = req.query.path;
+
+      const parsed = path.parse(filePath);
+
+      return res.sendFile(parsed.base, parsed.dir);
+    },
+  });
+
   return {
     updateState: websockets.updateState,
     start: (port: number) => {

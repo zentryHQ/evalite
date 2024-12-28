@@ -5,6 +5,7 @@ import { createHash } from "crypto";
 import { AsyncLocalStorage } from "async_hooks";
 import path from "path";
 import { mkdir, writeFile } from "fs/promises";
+import { writeFileQueueLocalStorage } from "./write-file-queue-local-storage.js";
 
 declare module "vitest" {
   interface TaskMeta {
@@ -211,44 +212,4 @@ export const createScorer = <TInput, TExpected = TInput>(opts: {
   };
 };
 
-const writeFileQueueLocalStorage = new AsyncLocalStorage<
-  (path: string, buffer: Buffer) => void
->();
-
-export type EvaliteFile = {
-  __EvaliteFile: true;
-  path: string;
-};
-
-export const EvaliteFile = {
-  fromBuffer: (buffer: Buffer, extension: string): EvaliteFile => {
-    const hash = createHash("sha256").update(buffer).digest("hex");
-
-    console.log(hash);
-
-    const filesDirectory = path.join(inject("cwd"), FILES_LOCATION);
-    const writeFileQueue = writeFileQueueLocalStorage.getStore();
-
-    if (!writeFileQueue) throw new Error("writeFileQueue not set");
-
-    const filePath = path.join(filesDirectory, `${hash}.${extension}`);
-
-    writeFileQueue(filePath, buffer);
-
-    return EvaliteFile.fromPath(filePath);
-  },
-  fromPath: (path: string): EvaliteFile => {
-    return {
-      __EvaliteFile: true,
-      path,
-    };
-  },
-  isEvaliteFile: (file: unknown): file is EvaliteFile => {
-    return (
-      typeof file === "object" &&
-      file !== null &&
-      "__EvaliteFile" in file &&
-      file.__EvaliteFile === true
-    );
-  },
-};
+export * from "./evalite-file.js";

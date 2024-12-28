@@ -109,4 +109,9 @@ export declare namespace Evalite {
     type: "text";
     text: string;
   };
+
+  export type File = {
+    __EvaliteFile: true;
+    path: string;
+  };
 }

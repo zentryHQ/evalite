@@ -1,5 +1,4 @@
 import type { Evalite } from "@evalite/core";
-import { DEFAULT_SERVER_PORT } from "@evalite/core/constants";
 import { useNavigate } from "@remix-run/react";
 import { createContext, useEffect, useMemo, useState } from "react";
 
@@ -21,9 +20,7 @@ export const useSubscribeToTestServer = (serverState: Evalite.ServerState) => {
   }, [state, navigate]);
 
   useEffect(() => {
-    const socket = new WebSocket(
-      `ws://localhost:${DEFAULT_SERVER_PORT}/api/socket`
-    );
+    const socket = new WebSocket(`ws://localhost:${3006}/api/socket`);
 
     socket.onmessage = (event) => {
       const newState: Evalite.ServerState = JSON.parse(event.data);
