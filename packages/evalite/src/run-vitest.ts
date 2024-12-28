@@ -1,4 +1,8 @@
-import { DB_LOCATION, DEFAULT_SERVER_PORT } from "@evalite/core";
+import {
+  DB_LOCATION,
+  DEFAULT_SERVER_PORT,
+  FILES_LOCATION,
+} from "@evalite/core";
 import { createDatabase } from "@evalite/core/db";
 import { createServer } from "@evalite/core/server";
 import { createHash } from "crypto";
@@ -8,6 +12,12 @@ import { Writable } from "stream";
 import { createVitest, registerConsoleShortcuts } from "vitest/node";
 import EvaliteReporter from "./reporter.js";
 
+declare module "vitest" {
+  export interface ProvidedContext {
+    cwd: string;
+  }
+}
+
 export const runVitest = async (opts: {
   path: string | undefined;
   cwd: string | undefined;
@@ -15,7 +25,9 @@ export const runVitest = async (opts: {
   mode: "watch-for-file-changes" | "run-once-and-exit";
 }) => {
   const dbLocation = path.join(opts.cwd ?? "", DB_LOCATION);
+  const filesLocation = path.join(opts.cwd ?? "", FILES_LOCATION);
   await mkdir(path.dirname(dbLocation), { recursive: true });
+  await mkdir(filesLocation, { recursive: true });
 
   const db = createDatabase(dbLocation);
   const filters = opts.path ? [opts.path] : undefined;
@@ -72,6 +84,8 @@ export const runVitest = async (opts: {
       stderr: opts.testOutputWritable || process.stderr,
     }
   );
+
+  vitest.provide("cwd", opts.cwd ?? "");
 
   await vitest.start(filters);
 
