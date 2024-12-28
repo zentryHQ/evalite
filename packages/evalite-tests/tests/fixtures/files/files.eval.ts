@@ -1,8 +1,6 @@
-import { evalite, EvaliteFile } from "evalite";
-import { Levenshtein } from "autoevals";
-import { setTimeout } from "node:timers/promises";
-import { readFileSync } from "node:fs";
+import { evalite } from "evalite";
 import { reportTrace } from "evalite/traces";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 
 evalite("Files", {
@@ -14,10 +12,22 @@ evalite("Files", {
     ];
   },
   task: async (input) => {
-    return EvaliteFile.fromBuffer(
-      readFileSync(path.join(import.meta.dirname, "test.png")),
-      "png"
-    );
+    return readFileSync(path.join(import.meta.dirname, "test.png"));
+  },
+  scorers: [],
+});
+
+evalite("FilesInInput", {
+  data: () => {
+    return [
+      {
+        input: readFileSync(path.join(import.meta.dirname, "test.png")),
+        expected: readFileSync(path.join(import.meta.dirname, "test.png")),
+      },
+    ];
+  },
+  task: async (input) => {
+    return "abc" as any;
   },
   scorers: [],
 });
@@ -36,10 +46,7 @@ evalite("FilesWithTraces", {
       start: 0,
       end: 3,
       input: "abc",
-      output: EvaliteFile.fromBuffer(
-        readFileSync(path.join(import.meta.dirname, "test.png")),
-        "png"
-      ),
+      output: readFileSync(path.join(import.meta.dirname, "test.png")),
     });
     return input + "def";
   },
