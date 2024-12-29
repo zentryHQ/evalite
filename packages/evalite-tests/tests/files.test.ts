@@ -119,15 +119,11 @@ it("Should let users add files to data().input and data().expected", async () =>
 
   const evals = await getEvalsAsRecord(db);
 
-  expect(evals).toMatchObject({
-    FilesInInput: [
+  expect(evals.FilesInInput![0]).toMatchObject({
+    results: [
       {
-        results: [
-          {
-            input: EvaliteFile.fromPath(filePath),
-            expected: EvaliteFile.fromPath(filePath),
-          },
-        ],
+        input: EvaliteFile.fromPath(filePath),
+        expected: EvaliteFile.fromPath(filePath),
       },
     ],
   });
