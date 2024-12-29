@@ -1,11 +1,11 @@
 import React, { useState, useRef, useLayoutEffect, Fragment } from "react";
 import ReactMarkdown from "react-markdown";
 import { Button } from "./ui/button";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, DownloadIcon, FileIcon } from "lucide-react";
 import { JSONTree } from "react-json-tree";
 import { isEvaliteFile } from "@evalite/core/utils";
 import type { Evalite } from "@evalite/core";
-import { serveFile } from "@evalite/core/sdk";
+import { downloadFile, serveFile } from "@evalite/core/sdk";
 
 const MAX_HEIGHT = 240;
 
@@ -127,7 +127,14 @@ export const DisplayEvaliteFile = ({ file }: { file: Evalite.File }) => {
     );
   }
 
-  return <a href={`file://${file.path}`}>{file.path}</a>;
+  return (
+    <Button asChild className="uppercase" variant={"secondary"} size={"sm"}>
+      <a href={downloadFile(file.path)}>
+        <DownloadIcon className="size-4" />
+        <span>.{extension}</span>
+      </a>
+    </Button>
+  );
 };
 
 export const DisplayInput = (props: {

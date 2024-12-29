@@ -380,6 +380,7 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
   server.route<{
     Querystring: {
       path: string;
+      download?: boolean;
     };
   }>({
     method: "GET",
@@ -389,6 +390,7 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
         type: "object",
         properties: {
           path: { type: "string" },
+          download: { type: "boolean" },
         },
         required: ["path"],
       },
@@ -397,6 +399,15 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
       const filePath = req.query.path;
 
       const parsed = path.parse(filePath);
+
+      if (req.query.download) {
+        return res
+          .header(
+            "content-disposition",
+            `attachment; filename="${parsed.base}"`
+          )
+          .sendFile(parsed.base, parsed.dir);
+      }
 
       return res.sendFile(parsed.base, parsed.dir);
     },
