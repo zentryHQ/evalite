@@ -10,6 +10,7 @@
     "typescript",
     "vitest"
   ],
+  "main": "./tsconfig-warning/index.js",
   "bugs": {
     "url": "https://github.com/mattpocock/evalite/issues"
   },
@@ -22,7 +23,8 @@
     "evalite": "./dist/bin.js"
   },
   "files": [
-    "./dist/*"
+    "./dist/*",
+    "./tsconfig-warning/*"
   ],
   "scripts": {
     "dev": "tsc -w",
