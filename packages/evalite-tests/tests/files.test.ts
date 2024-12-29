@@ -89,7 +89,21 @@ it("Should save files reported in traces", async () => {
   });
 });
 
-it.todo("Should show the url in the CLI table");
+it("Should show the url in the CLI table", async () => {
+  using fixture = loadFixture("files");
+
+  const captured = captureStdout();
+
+  await runVitest({
+    cwd: fixture.dir,
+    mode: "run-once-and-exit",
+    testOutputWritable: captured.writable,
+    path: "files-1.eval.ts",
+  });
+
+  expect(captured.getOutput()).toContain(`.png`);
+  expect(captured.getOutput()).not.toContain(`__EvaliteFile`);
+});
 
 it("Should let users add files to data().input and data().expected", async () => {
   using fixture = loadFixture("files");
