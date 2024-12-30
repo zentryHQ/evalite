@@ -1,5 +1,11 @@
 # @evalite/core
 
+## 0.6.0
+
+### Minor Changes
+
+- 7734024: Evalite is now multi-modal! Pass Uint8Arrays into data.expected, data.input or the result of task() to display them in the UI.
+
 ## 0.5.0
 
 ### Minor Changes

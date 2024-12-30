@@ -1,5 +1,17 @@
 # evalite
 
+## 0.8.0
+
+### Minor Changes
+
+- 7734024: Evalite is now multi-modal! Pass Uint8Arrays into data.expected, data.input or the result of task() to display them in the UI.
+
+### Patch Changes
+
+- bc7b27d: Added a warning for folks with out-of-date tsconfigs.
+- Updated dependencies [7734024]
+  - @evalite/core@0.6.0
+
 ## 0.7.4
 
 ### Patch Changes
