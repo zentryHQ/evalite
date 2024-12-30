@@ -646,7 +646,7 @@ export const updateResult = ({
     status,
     rendered_columns: JSON.stringify(renderedColumns),
     input: JSON.stringify(input),
-    expected: JSON.stringify(output),
+    expected: JSON.stringify(expected),
   });
 };
 
