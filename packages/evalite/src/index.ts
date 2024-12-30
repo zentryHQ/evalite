@@ -144,13 +144,15 @@ export const evalite = <TInput, TExpected = TInput>(
               experimental_customColumns: opts.experimental_customColumns,
             });
 
-          const [outputWithFiles, tracesWithFiles] = await Promise.all([
-            createEvaliteFileIfNeeded({
-              rootDir,
-              input: output,
-            }),
-            handleFilesInTraces(rootDir, traces),
-          ]);
+          const [outputWithFiles, tracesWithFiles, renderedColumns] =
+            await Promise.all([
+              createEvaliteFileIfNeeded({
+                rootDir,
+                input: output,
+              }),
+              handleFilesInTraces(rootDir, traces),
+              handleFilesInColumns(rootDir, experimental_columns),
+            ]);
 
           task.meta.evalite = {
             result: {
@@ -164,7 +166,7 @@ export const evalite = <TInput, TExpected = TInput>(
               scores,
               traces: tracesWithFiles,
               status: "success",
-              renderedColumns: experimental_columns,
+              renderedColumns,
             },
             duration: Math.round(performance.now() - start),
           };
@@ -229,6 +231,24 @@ export const createScorer = <TInput, TExpected = TInput>(opts: {
 };
 
 export * from "./evalite-file.js";
+
+const handleFilesInColumns = async (
+  rootDir: string,
+  columns: Evalite.RenderedColumn[]
+) => {
+  return await Promise.all(
+    columns.map(async (column) => {
+      const file = await createEvaliteFileIfNeeded({
+        rootDir,
+        input: column.value,
+      });
+      return {
+        ...column,
+        value: file,
+      };
+    })
+  );
+};
 
 const handleFilesInTraces = async (
   rootDir: string,

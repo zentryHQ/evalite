@@ -142,3 +142,45 @@ it("Should let users add files to data().input and data().expected", async () =>
     ],
   });
 });
+
+it("Should let users add files to experimental_customColumns", async () => {
+  using fixture = loadFixture("files");
+
+  const captured = captureStdout();
+
+  await runVitest({
+    cwd: fixture.dir,
+    path: undefined,
+    testOutputWritable: captured.writable,
+    mode: "run-once-and-exit",
+  });
+
+  const dir = path.join(fixture.dir, FILES_LOCATION);
+
+  const files = await readdir(dir);
+
+  expect(files).toHaveLength(1);
+
+  const filePath = path.join(dir, files[0]!);
+
+  const file = await readFile(filePath);
+
+  expect(file).toBeTruthy();
+
+  const db = createDatabase(fixture.dbLocation);
+
+  const evals = await getEvalsAsRecord(db);
+
+  expect(evals.FilesWithColumns![0]).toMatchObject({
+    results: [
+      {
+        rendered_columns: [
+          {
+            label: "Column",
+            value: EvaliteFile.fromPath(filePath),
+          },
+        ],
+      },
+    ],
+  });
+});
