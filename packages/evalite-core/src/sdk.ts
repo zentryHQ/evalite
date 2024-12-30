@@ -67,3 +67,11 @@ export const getResult = async (opts: {
   const res = await fetch(`${BASE_URL}/api/eval/result?${params.toString()}`);
   return res.json() as any;
 };
+
+export const serveFile = (filepath: string) => {
+  return `${BASE_URL}/api/file?path=${filepath}`;
+};
+
+export const downloadFile = (filepath: string) => {
+  return `${BASE_URL}/api/file?path=${filepath}&download=true`;
+};

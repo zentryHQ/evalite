@@ -377,6 +377,42 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
     },
   });
 
+  server.route<{
+    Querystring: {
+      path: string;
+      download?: boolean;
+    };
+  }>({
+    method: "GET",
+    url: "/api/file",
+    schema: {
+      querystring: {
+        type: "object",
+        properties: {
+          path: { type: "string" },
+          download: { type: "boolean" },
+        },
+        required: ["path"],
+      },
+    },
+    handler: async (req, res) => {
+      const filePath = req.query.path;
+
+      const parsed = path.parse(filePath);
+
+      if (req.query.download) {
+        return res
+          .header(
+            "content-disposition",
+            `attachment; filename="${parsed.base}"`
+          )
+          .sendFile(parsed.base, parsed.dir);
+      }
+
+      return res.sendFile(parsed.base, parsed.dir);
+    },
+  });
+
   return {
     updateState: websockets.updateState,
     start: (port: number) => {

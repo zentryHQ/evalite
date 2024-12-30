@@ -617,11 +617,15 @@ export const updateResult = ({
   duration,
   status,
   renderedColumns,
+  input,
+  expected,
 }: {
   db: SQLiteDatabase;
   resultId: number | bigint;
   output: unknown;
   duration: number;
+  input: unknown;
+  expected: unknown;
   status: string;
   renderedColumns: unknown;
 }) => {
@@ -630,6 +634,8 @@ export const updateResult = ({
      SET
       output = @output,
       duration = @duration,
+      input = @input,
+      expected = @expected,
       status = @status,
       rendered_columns = @rendered_columns
      WHERE id = @id`
@@ -639,6 +645,8 @@ export const updateResult = ({
     duration,
     status,
     rendered_columns: JSON.stringify(renderedColumns),
+    input: JSON.stringify(input),
+    expected: JSON.stringify(expected),
   });
 };
 

@@ -1,6 +1,10 @@
-import type { Evalite } from "@evalite/core";
-import { describe, it } from "vitest";
+import { FILES_LOCATION, type Evalite } from "@evalite/core";
+import { mkdir, writeFile } from "fs/promises";
+import path from "path";
+import { describe, inject, it } from "vitest";
 import { reportTraceLocalStorage } from "./traces.js";
+import { writeFileQueueLocalStorage } from "./write-file-queue-local-storage.js";
+import { createEvaliteFileIfNeeded } from "./utils.js";
 
 declare module "vitest" {
   interface TaskMeta {
@@ -94,20 +98,41 @@ export const evalite = <TInput, TExpected = TInput>(
     it.concurrent.for(dataset.map((d, index) => ({ ...d, index })))(
       evalName,
       async (data, { task }) => {
+        const cwd = inject("cwd");
+
+        const rootDir = path.join(cwd, FILES_LOCATION);
+
         task.meta.evalite = {
           duration: undefined,
           initialResult: {
             evalName: evalName,
             filepath: task.file.filepath,
-            input: data.input,
-            expected: data.expected,
             order: data.index,
           },
         };
+
         const start = performance.now();
+
+        const filePromises: Promise<void>[] = [];
+
+        writeFileQueueLocalStorage.enterWith(async (filePath, buffer) => {
+          const func = async () => {
+            await mkdir(path.dirname(filePath), { recursive: true });
+            await writeFile(filePath, buffer);
+          };
+
+          const promise = func();
+
+          filePromises.push(promise);
+        });
 
         const traces: Evalite.Trace[] = [];
         reportTraceLocalStorage.enterWith((trace) => traces.push(trace));
+
+        const [input, expected] = await Promise.all([
+          createEvaliteFileIfNeeded({ rootDir, input: data.input }),
+          createEvaliteFileIfNeeded({ rootDir, input: data.expected }),
+        ]);
 
         try {
           const { output, scores, duration, experimental_columns } =
@@ -118,19 +143,30 @@ export const evalite = <TInput, TExpected = TInput>(
               task: opts.task,
               experimental_customColumns: opts.experimental_customColumns,
             });
+
+          const [outputWithFiles, tracesWithFiles, renderedColumns] =
+            await Promise.all([
+              createEvaliteFileIfNeeded({
+                rootDir,
+                input: output,
+              }),
+              handleFilesInTraces(rootDir, traces),
+              handleFilesInColumns(rootDir, experimental_columns),
+            ]);
+
           task.meta.evalite = {
             result: {
               evalName: evalName,
               filepath: task.file.filepath,
               order: data.index,
               duration,
-              expected: data.expected,
-              input: data.input,
-              output,
+              expected: expected,
+              input: input,
+              output: outputWithFiles,
               scores,
-              traces,
+              traces: tracesWithFiles,
               status: "success",
-              renderedColumns: experimental_columns,
+              renderedColumns,
             },
             duration: Math.round(performance.now() - start),
           };
@@ -141,11 +177,11 @@ export const evalite = <TInput, TExpected = TInput>(
               filepath: task.file.filepath,
               order: data.index,
               duration: Math.round(performance.now() - start),
-              expected: data.expected,
-              input: data.input,
+              expected: expected,
+              input: input,
               output: e,
               scores: [],
-              traces,
+              traces: await handleFilesInTraces(rootDir, traces),
               status: "fail",
               renderedColumns: [],
             },
@@ -153,6 +189,8 @@ export const evalite = <TInput, TExpected = TInput>(
           };
           throw e;
         }
+
+        await Promise.all(filePromises);
       }
     );
   });
@@ -190,4 +228,49 @@ export const createScorer = <TInput, TExpected = TInput>(opts: {
       score,
     };
   };
+};
+
+export * from "./evalite-file.js";
+
+const handleFilesInColumns = async (
+  rootDir: string,
+  columns: Evalite.RenderedColumn[]
+) => {
+  return await Promise.all(
+    columns.map(async (column) => {
+      const file = await createEvaliteFileIfNeeded({
+        rootDir,
+        input: column.value,
+      });
+      return {
+        ...column,
+        value: file,
+      };
+    })
+  );
+};
+
+const handleFilesInTraces = async (
+  rootDir: string,
+  traces: Evalite.Trace[]
+) => {
+  return await Promise.all(
+    traces.map(async (trace) => {
+      const [input, output] = await Promise.all([
+        createEvaliteFileIfNeeded({
+          rootDir,
+          input: trace.input,
+        }),
+        createEvaliteFileIfNeeded({
+          rootDir,
+          input: trace.output,
+        }),
+      ]);
+      return {
+        ...trace,
+        input,
+        output,
+      };
+    })
+  );
 };

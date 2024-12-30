@@ -20,6 +20,7 @@ import { inspect } from "util";
 import type { RunnerTask, RunnerTestFile, TaskResultPack, Test } from "vitest";
 import { BasicReporter } from "vitest/reporters";
 import { average } from "./utils.js";
+import { isEvaliteFile } from "@evalite/core/utils";
 
 export interface EvaliteReporterOptions {
   isWatching: boolean;
@@ -127,8 +128,8 @@ export default class EvaliteReporter extends BasicReporter {
                 db: this.opts.db,
                 evalId,
                 order: event.initialResult.order,
-                input: event.initialResult.input,
-                expected: event.initialResult.expected,
+                input: "",
+                expected: "",
                 output: null,
                 duration: 0,
                 status: "running",
@@ -178,6 +179,8 @@ export default class EvaliteReporter extends BasicReporter {
                   duration: event.result.duration,
                   status: event.result.status,
                   renderedColumns: event.result.renderedColumns,
+                  input: event.result.input,
+                  expected: event.result.expected,
                 });
               } else {
                 existingResultId = insertResult({
@@ -410,11 +413,14 @@ export default class EvaliteReporter extends BasicReporter {
           .map((result) => ({
             columns:
               result.renderedColumns.length > 0
-                ? result.renderedColumns
+                ? result.renderedColumns.map((col) => ({
+                    label: col.label,
+                    value: renderMaybeEvaliteFile(col.value),
+                  }))
                 : [
                     {
                       label: "Input",
-                      value: result.input,
+                      value: renderMaybeEvaliteFile(result.input),
                     },
                     // ...(result.expected
                     //   ? [
@@ -426,7 +432,7 @@ export default class EvaliteReporter extends BasicReporter {
                     //   : []),
                     {
                       label: "Output",
-                      value: result.output,
+                      value: renderMaybeEvaliteFile(result.output),
                     },
                   ],
             score: average(result.scores, (s) => s.score ?? 0),
@@ -562,4 +568,12 @@ const displayScore = (_score: number) => {
   } else {
     return c.bold(c.red(percentageScore + "%"));
   }
+};
+
+const renderMaybeEvaliteFile = (input: unknown) => {
+  if (isEvaliteFile(input)) {
+    return input.path;
+  }
+
+  return input;
 };

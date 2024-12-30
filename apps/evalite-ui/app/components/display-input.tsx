@@ -1,8 +1,11 @@
 import React, { useState, useRef, useLayoutEffect, Fragment } from "react";
 import ReactMarkdown from "react-markdown";
 import { Button } from "./ui/button";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, DownloadIcon, FileIcon } from "lucide-react";
 import { JSONTree } from "react-json-tree";
+import { isEvaliteFile } from "@evalite/core/utils";
+import type { Evalite } from "@evalite/core";
+import { downloadFile, serveFile } from "@evalite/core/sdk";
 
 const MAX_HEIGHT = 240;
 
@@ -96,6 +99,44 @@ const DisplayJSON = ({ input }: { input: object }) => {
   );
 };
 
+export const DisplayEvaliteFile = ({ file }: { file: Evalite.File }) => {
+  const extension = file.path.split(".").pop()!;
+
+  // Images
+  if (["png", "jpg", "jpeg", "gif", "svg", "webp"].includes(extension)) {
+    return (
+      <img src={serveFile(file.path)} alt="Evalite file" className="max-h-32" />
+    );
+  }
+
+  // Videos
+  if (["mp4", "webm", "ogg"].includes(extension)) {
+    return (
+      <video controls>
+        <source src={serveFile(file.path)} type={`video/${extension}`} />
+      </video>
+    );
+  }
+
+  // Audio
+  if (["mp3", "wav", "ogg"].includes(extension)) {
+    return (
+      <audio controls>
+        <source src={serveFile(file.path)} type={`audio/${extension}`} />
+      </audio>
+    );
+  }
+
+  return (
+    <Button asChild className="uppercase" variant={"secondary"} size={"sm"}>
+      <a href={downloadFile(file.path)}>
+        <DownloadIcon className="size-4" />
+        <span>.{extension}</span>
+      </a>
+    </Button>
+  );
+};
+
 export const DisplayInput = (props: {
   input: unknown;
   shouldTruncateText: boolean;
@@ -111,6 +152,14 @@ export const DisplayInput = (props: {
         className={props.className}
         shouldTruncateText={props.shouldTruncateText}
       />
+    );
+  }
+
+  if (isEvaliteFile(props.input)) {
+    return (
+      <Wrapper className={props.className}>
+        <DisplayEvaliteFile file={props.input} />
+      </Wrapper>
     );
   }
 
