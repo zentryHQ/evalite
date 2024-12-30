@@ -131,6 +131,8 @@ it("Should let users add files to data().input and data().expected", async () =>
 
   const db = createDatabase(fixture.dbLocation);
 
+  console.log(captured.getOutput());
+
   const evals = await getEvalsAsRecord(db);
 
   expect(evals.FilesInInput![0]).toMatchObject({

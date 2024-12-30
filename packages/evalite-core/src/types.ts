@@ -22,8 +22,6 @@ export declare namespace Evalite {
     evalName: string;
     filepath: string;
     order: number;
-    input: unknown;
-    expected?: unknown;
   }
 
   export type ResultStatus = "success" | "fail";
@@ -34,6 +32,22 @@ export declare namespace Evalite {
   };
 
   export interface Result extends InitialResult {
+    /**
+     * Technically, input and expected are known at the start
+     * of the evaluation. But because they may be files, they
+     * need to be saved asynchronously.
+     *
+     * This is why they are only included in the final result.
+     */
+    input: unknown;
+    expected?: unknown;
+    /**
+     * Technically, input and expected are known at the start
+     * of the evaluation. But because they may be files, they
+     * need to be saved asynchronously.
+     *
+     * This is why they are only included in the final result.
+     */
     output: unknown;
     scores: Score[];
     duration: number;

@@ -102,21 +102,15 @@ export const evalite = <TInput, TExpected = TInput>(
 
         const rootDir = path.join(cwd, FILES_LOCATION);
 
-        const [input, expected] = await Promise.all([
-          createEvaliteFileIfNeeded({ rootDir, input: data.input }),
-          createEvaliteFileIfNeeded({ rootDir, input: data.expected }),
-        ]);
-
         task.meta.evalite = {
           duration: undefined,
           initialResult: {
             evalName: evalName,
             filepath: task.file.filepath,
-            input: input,
-            expected: expected,
             order: data.index,
           },
         };
+
         const start = performance.now();
 
         const filePromises: Promise<void>[] = [];
@@ -134,6 +128,11 @@ export const evalite = <TInput, TExpected = TInput>(
 
         const traces: Evalite.Trace[] = [];
         reportTraceLocalStorage.enterWith((trace) => traces.push(trace));
+
+        const [input, expected] = await Promise.all([
+          createEvaliteFileIfNeeded({ rootDir, input: data.input }),
+          createEvaliteFileIfNeeded({ rootDir, input: data.expected }),
+        ]);
 
         try {
           const { output, scores, duration, experimental_columns } =
