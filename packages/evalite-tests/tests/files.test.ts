@@ -171,8 +171,6 @@ it("Should let users add files to experimental_customColumns", async () => {
 
   const evals = await getEvalsAsRecord(db);
 
-  console.dir(evals, { depth: null });
-
   expect(evals.FilesWithColumns![0]).toMatchObject({
     results: [
       {
