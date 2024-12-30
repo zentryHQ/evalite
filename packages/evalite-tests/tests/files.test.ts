@@ -133,6 +133,8 @@ it("Should let users add files to data().input and data().expected", async () =>
 
   const evals = await getEvalsAsRecord(db);
 
+  console.log(captured.getOutput());
+
   expect(evals.FilesInInput![0]).toMatchObject({
     results: [
       {
