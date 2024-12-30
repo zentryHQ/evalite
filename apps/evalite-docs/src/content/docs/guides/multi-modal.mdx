@@ -62,8 +62,17 @@ evalite("My Eval", {
       output: readFileSync("path/to/file.jpg"),
     });
 
-    // 4. ...and returned from the task itself.
+    // 4. ...returned from the task itself...
     return readFileSync("path/to/new-file.jpg", input);
+  },
+  experimental_customColumns: async () => {
+    return [
+      {
+        label: "File",
+        // 5. ...and returned from customColumns:
+        value: readFileSync("path/to/new-file.jpg", input),
+      },
+    ];
   },
   scorers: [],
 });
