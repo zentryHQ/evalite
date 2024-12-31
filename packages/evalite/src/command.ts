@@ -23,8 +23,8 @@ program
   });
 
 program
-  .command("<path>")
+  .argument("[path]", "path to eval file")
   .description("Run evals at specified path once and exit")
-  .action((path) => {
+  .action((path: string | undefined) => {
     runVitest({ path, cwd: undefined, mode: "run-once-and-exit" });
   });
