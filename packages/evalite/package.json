@@ -28,7 +28,8 @@
   ],
   "scripts": {
     "dev": "tsc -w",
-    "build": "tsc && chmod +x ./dist/bin.js"
+    "build": "tsc && chmod +x ./dist/bin.js",
+    "test": "vitest run"
   },
   "exports": {
     ".": "./dist/index.js",
