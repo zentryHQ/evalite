@@ -1,5 +1,11 @@
 # evalite
 
+## 0.8.1
+
+### Patch Changes
+
+- 5ac19c5: Fixed a bug where `evalite [path]` would not run the path specified.
+
 ## 0.8.0
 
 ### Minor Changes
