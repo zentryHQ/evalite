@@ -1,5 +1,14 @@
 # evalite
 
+## 0.8.2
+
+### Patch Changes
+
+- 5676b2a: Improved the display of inputs and outputs in traces when custom columns are used.
+- 12dd7fc: Re-exported the Evalite type from the 'evalite' package so users don't have to download @evalite/core to access it.
+- Updated dependencies [5676b2a]
+  - @evalite/core@0.6.1
+
 ## 0.8.1
 
 ### Patch Changes
