@@ -1,3 +1,4 @@
+import type { Evalite } from "@evalite/core";
 import { getResult } from "@evalite/core/sdk";
 import { sum } from "@evalite/core/utils";
 import {
@@ -98,6 +99,37 @@ export default function Page() {
           completion_tokens: sum(result.traces, (t) => t.completion_tokens),
         }
       : undefined;
+
+  const hasCustomColumns = isArrayOfRenderedColumns(result.rendered_columns);
+
+  const inputOutputSection = (
+    <>
+      <MainBodySection title="Input">
+        <DisplayInput
+          shouldTruncateText={false}
+          input={result.input}
+        ></DisplayInput>
+      </MainBodySection>
+      <MainBodySeparator />
+      {result.expected ? (
+        <>
+          <MainBodySection title="Expected">
+            <DisplayInput
+              shouldTruncateText={false}
+              input={result.expected}
+            ></DisplayInput>
+          </MainBodySection>
+          <MainBodySeparator />
+        </>
+      ) : null}
+      <MainBodySection title="Output">
+        <DisplayInput
+          shouldTruncateText={false}
+          input={result.output}
+        ></DisplayInput>
+      </MainBodySection>
+    </>
+  );
   return (
     <>
       <SidebarHeader>
@@ -199,45 +231,24 @@ export default function Page() {
                   <MainBodySeparator />
                 </>
               )}
-              <MainBodySection title="Input">
-                <DisplayInput
-                  shouldTruncateText={false}
-                  input={result.input}
-                ></DisplayInput>
-              </MainBodySection>
-              <MainBodySeparator />
-              {result.expected ? (
-                <>
-                  <MainBodySection title="Expected">
-                    <DisplayInput
-                      shouldTruncateText={false}
-                      input={result.expected}
-                    ></DisplayInput>
-                  </MainBodySection>
-                  <MainBodySeparator />
-                </>
-              ) : null}
-              <MainBodySection title="Output">
-                <DisplayInput
-                  shouldTruncateText={false}
-                  input={result.output}
-                ></DisplayInput>
-              </MainBodySection>
-              {isArrayOfRenderedColumns(result.rendered_columns) &&
-                result.rendered_columns.map((column) => (
-                  <Fragment key={column.label}>
-                    <MainBodySeparator />
-                    <MainBodySection
-                      title={column.label}
-                      description={undefined}
-                    >
-                      <DisplayInput
-                        shouldTruncateText={false}
-                        input={column.value}
-                      ></DisplayInput>
-                    </MainBodySection>
-                  </Fragment>
-                ))}
+              {!hasCustomColumns && inputOutputSection}
+              {hasCustomColumns &&
+                (result.rendered_columns as Evalite.RenderedColumn[]).map(
+                  (column, index) => (
+                    <Fragment key={column.label}>
+                      {index > 0 && <MainBodySeparator />}
+                      <MainBodySection
+                        title={column.label}
+                        description={undefined}
+                      >
+                        <DisplayInput
+                          shouldTruncateText={false}
+                          input={column.value}
+                        ></DisplayInput>
+                      </MainBodySection>
+                    </Fragment>
+                  )
+                )}
 
               {result.scores.map((score) => (
                 <Fragment key={score.name}>
@@ -270,6 +281,13 @@ export default function Page() {
                   ) : null}
                 </Fragment>
               ))}
+
+              {hasCustomColumns && (
+                <>
+                  <MainBodySeparator />
+                  {inputOutputSection}
+                </>
+              )}
             </>
           )}
           {traceBeingViewed && (
