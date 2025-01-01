@@ -274,3 +274,5 @@ const handleFilesInTraces = async (
     })
   );
 };
+
+export type { Evalite };
