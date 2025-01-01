@@ -1,5 +1,5 @@
 import { describe, expect, it, vitest } from "vitest";
-import { createProgram } from "./command";
+import { createProgram } from "./command.js";
 
 describe("createCommand", () => {
   it("evalite without path", async () => {
