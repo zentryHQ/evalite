@@ -1,5 +1,11 @@
 # @evalite/core
 
+## 0.6.1
+
+### Patch Changes
+
+- 5676b2a: Improved the display of inputs and outputs in traces when custom columns are used.
+
 ## 0.6.0
 
 ### Minor Changes
