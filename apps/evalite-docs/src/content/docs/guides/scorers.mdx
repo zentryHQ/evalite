@@ -16,7 +16,7 @@ import { createScorer } from "evalite";
 const containsParis = createScorer<string>({
   name: "Contains Paris",
   description: "Checks if the output contains the word 'Paris'.",
-  score: ({ output }) => {
+  scorer: ({ output }) => {
     return output.includes("Paris") ? 1 : 0;
   },
 });
@@ -44,7 +44,7 @@ import { createScorer } from "evalite";
 const containsParis = createScorer({
   name: "Contains Paris",
   description: "Checks if the output contains the word 'Paris'.",
-  score: ({ input, output, expected }) => {
+  scorer: ({ input, output, expected }) => {
     // input comes from `data`
     // expected also comes from `data`
     // output is the output of `task`
@@ -66,7 +66,7 @@ const containsParis = createScorer<
 >({
   name: "Contains Paris",
   description: "Checks if the output contains the word 'Paris'.",
-  score: (output) => {
+  scorer: (output) => {
     // output is typed as string!
     return output.includes("Paris") ? 1 : 0;
   },
@@ -83,7 +83,7 @@ import { createScorer } from "evalite";
 const containsParis = createScorer<string>({
   name: "Contains Paris",
   description: "Checks if the output contains the word 'Paris'.",
-  score: (output) => {
+  scorer: (output) => {
     return {
       score: output.includes("Paris") ? 1 : 0,
       metadata: {
