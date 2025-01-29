@@ -1,11 +1,16 @@
 import { Command } from "commander";
 import { runVitest } from "./run-vitest.js";
 
+import { createRequire } from "node:module";
+const packageJson = createRequire(import.meta.url)("../package.json") as typeof import("../package.json");
+
 export const createProgram = (commands: {
   watch: (path: string | undefined) => void;
   runOnceAtPath: (path: string | undefined) => void;
 }) => {
   const program = new Command();
+
+  program.version(packageJson.version);
 
   program
     .description("Run evals once and exit")
