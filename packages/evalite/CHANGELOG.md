@@ -1,5 +1,11 @@
 # evalite
 
+## 0.8.3
+
+### Patch Changes
+
+- c49c460: Add --version flag
+
 ## 0.8.2
 
 ### Patch Changes
