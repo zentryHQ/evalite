@@ -117,7 +117,7 @@ function registerEvalite<TInput, TExpected = TInput>(
         const cwd = inject("cwd");
 
         const rootDir = path.join(cwd, FILES_LOCATION);
-        
+
         task.meta.evalite = {
           duration: undefined,
           initialResult: {
@@ -144,12 +144,12 @@ function registerEvalite<TInput, TExpected = TInput>(
 
         const traces: Evalite.Trace[] = [];
         reportTraceLocalStorage.enterWith((trace) => traces.push(trace));
-        
+
         const [input, expected] = await Promise.all([
           createEvaliteFileIfNeeded({ rootDir, input: data.input }),
           createEvaliteFileIfNeeded({ rootDir, input: data.expected }),
         ]);
-        
+
         try {
           const { output, scores, duration, experimental_columns } =
             await runTask({
@@ -159,16 +159,16 @@ function registerEvalite<TInput, TExpected = TInput>(
               task: opts.task,
               experimental_customColumns: opts.experimental_customColumns,
             });
-          
-            const [outputWithFiles, tracesWithFiles, renderedColumns] =
-            await Promise.all([
-              createEvaliteFileIfNeeded({
-                rootDir,
-                input: output,
-              }),
-              handleFilesInTraces(rootDir, traces),
-              handleFilesInColumns(rootDir, experimental_columns),
-            ]);
+
+          const [outputWithFiles, tracesWithFiles, renderedColumns] =
+          await Promise.all([
+            createEvaliteFileIfNeeded({
+              rootDir,
+              input: output,
+            }),
+            handleFilesInTraces(rootDir, traces),
+            handleFilesInColumns(rootDir, experimental_columns),
+          ]);
 
           task.meta.evalite = {
             result: {
