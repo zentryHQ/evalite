@@ -89,11 +89,27 @@ const runTask = async <TInput, TExpected>(
 export const evalite = <TInput, TExpected = TInput>(
   evalName: string,
   opts: Evalite.RunnerOpts<TInput, TExpected>
-) => {
+) => registerEvalite(describe, evalName, opts);
+
+evalite.only = <TInput, TExpected = TInput>(
+  evalName: string,
+  opts: Evalite.RunnerOpts<TInput, TExpected>
+) => registerEvalite(describe.only, evalName, opts);
+
+evalite.skip = <TInput, TExpected = TInput>(
+  evalName: string,
+  opts: Evalite.RunnerOpts<TInput, TExpected>
+) => registerEvalite(describe.skip, evalName, opts);
+
+function registerEvalite<TInput, TExpected = TInput>(
+  describeFn: typeof describe.only | typeof describe.skip | typeof describe,
+  evalName: string,
+  opts: Evalite.RunnerOpts<TInput, TExpected>
+) {
   // Eagerly run the promise before the dataset for
   // maximum concurrency
   const datasetPromise = opts.data();
-  return describe(evalName, async () => {
+  return describeFn(evalName, async () => {
     const dataset = await datasetPromise;
     it.concurrent.for(dataset.map((d, index) => ({ ...d, index })))(
       evalName,
@@ -101,7 +117,7 @@ export const evalite = <TInput, TExpected = TInput>(
         const cwd = inject("cwd");
 
         const rootDir = path.join(cwd, FILES_LOCATION);
-
+        
         task.meta.evalite = {
           duration: undefined,
           initialResult: {
@@ -128,12 +144,12 @@ export const evalite = <TInput, TExpected = TInput>(
 
         const traces: Evalite.Trace[] = [];
         reportTraceLocalStorage.enterWith((trace) => traces.push(trace));
-
+        
         const [input, expected] = await Promise.all([
           createEvaliteFileIfNeeded({ rootDir, input: data.input }),
           createEvaliteFileIfNeeded({ rootDir, input: data.expected }),
         ]);
-
+        
         try {
           const { output, scores, duration, experimental_columns } =
             await runTask({
@@ -143,8 +159,8 @@ export const evalite = <TInput, TExpected = TInput>(
               task: opts.task,
               experimental_customColumns: opts.experimental_customColumns,
             });
-
-          const [outputWithFiles, tracesWithFiles, renderedColumns] =
+          
+            const [outputWithFiles, tracesWithFiles, renderedColumns] =
             await Promise.all([
               createEvaliteFileIfNeeded({
                 rootDir,
