@@ -161,14 +161,14 @@ function registerEvalite<TInput, TExpected = TInput>(
             });
 
           const [outputWithFiles, tracesWithFiles, renderedColumns] =
-          await Promise.all([
-            createEvaliteFileIfNeeded({
-              rootDir,
-              input: output,
-            }),
-            handleFilesInTraces(rootDir, traces),
-            handleFilesInColumns(rootDir, experimental_columns),
-          ]);
+            await Promise.all([
+              createEvaliteFileIfNeeded({
+                rootDir,
+                input: output,
+              }),
+              handleFilesInTraces(rootDir, traces),
+              handleFilesInColumns(rootDir, experimental_columns),
+            ]);
 
           task.meta.evalite = {
             result: {
