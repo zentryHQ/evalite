@@ -2,4 +2,4 @@
 "evalite": patch
 ---
 
-adds support for missing evalite.skip() and evalite.only()
+adds support for missing evalite.skip()
