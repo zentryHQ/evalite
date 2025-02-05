@@ -40,25 +40,3 @@ it("should not call opts.data() for a skipped test", async () => {
   expect(output).toContain("opts.data() called in Regular Test");
   expect(output).not.toContain("opts.data() called in Skipped Test");
 });
-
-it("should call opts.data() 3 times when running 3 only tests", async () => {
-  // Load the fixture where 3 evalite.only tests log when opts.data() is called.
-  const fixture = loadFixture("test-modifiers-only");
-  const captured = captureStdout();
-
-  await runVitest({
-    cwd: fixture.dir,
-    path: undefined,
-    testOutputWritable: captured.writable,
-    mode: "run-once-and-exit",
-  });
-
-  const output = captured.getOutput();
-  const count1 = (output.match(/opts\.data\(\) called in Only Test 1/g) || []).length;
-  const count2 = (output.match(/opts\.data\(\) called in Only Test 2/g) || []).length;
-  const count3 = (output.match(/opts\.data\(\) called in Only Test 3/g) || []).length;
-  expect(count1).toBe(1);
-  expect(count2).toBe(1);
-  expect(count3).toBe(1);
-  expect(output).not.toContain("opts.data() called in Non Only Test");
-}); 

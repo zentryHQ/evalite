@@ -91,56 +91,18 @@ export const evalite = <TInput, TExpected = TInput>(
   opts: Evalite.RunnerOpts<TInput, TExpected>
 ) => registerEvalite(evalName, opts);
 
-evalite.only = <TInput, TExpected = TInput>(
-  evalName: string,
-  opts: Evalite.RunnerOpts<TInput, TExpected>
-) => {
-  return registerEvalite(evalName, opts, { modifier: "only"});
-}
-
 evalite.skip = <TInput, TExpected = TInput>(
   evalName: string,
   opts: Evalite.RunnerOpts<TInput, TExpected>
 ) => registerEvalite(evalName, opts, { modifier: "skip"});
-
-// Global registry of evalite modifiers for the current batch.
-const modifierBatch: Array<"only" | "skip" | undefined> = [];
-let shouldFlushModifierBatch = false;
 
 function registerEvalite<TInput, TExpected = TInput>(
   evalName: string,
   opts: Evalite.RunnerOpts<TInput, TExpected>,
   vitestOpts: { modifier?: "only" | "skip" } = {}
 ) {
-  
-  const describeFn = vitestOpts.modifier === "only"
-    ? describe.only : vitestOpts.modifier === "skip"
-    ? describe.skip : describe;
-
-  if (shouldFlushModifierBatch) {
-    modifierBatch.length = 0;
-    shouldFlushModifierBatch = false;
-  }
-
-  // Register the modifier for this evalite.
-  modifierBatch.push(vitestOpts.modifier);
-
-  // Instead of immediately invoking opts.data(), defer this until
-  // after all evalite registrations are complete. This allows us to check
-  // whether any evalite was marked as "only" in this batch, and then if so,
-  // non-only testers will simply resolve to an empty dataset.
-  const datasetPromise = new Promise<ReturnType<typeof opts.data>>(resolve => {
-    setTimeout(() => {
-      // Once we start reading from these, don't allow any more in this batch.
-      shouldFlushModifierBatch = true;
-      const hasOnly = modifierBatch.includes("only");
-      if (hasOnly && vitestOpts.modifier !== "only" || vitestOpts.modifier === "skip") {
-        resolve([]);
-      } else {
-        resolve(opts.data());
-      }
-    }, 0);
-  });
+  const describeFn = vitestOpts.modifier === "skip" ? describe.skip : describe;
+  const datasetPromise = vitestOpts.modifier === "skip" ? Promise.resolve([]) : opts.data();
 
   return describeFn(evalName, async () => {
     const dataset = await datasetPromise;
