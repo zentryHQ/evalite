@@ -1,5 +1,11 @@
 # evalite
 
+## 0.8.4
+
+### Patch Changes
+
+- 775b521: Adds support for missing `evalite.experimental_skip()`
+
 ## 0.8.3
 
 ### Patch Changes
