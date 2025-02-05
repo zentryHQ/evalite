@@ -1,0 +1,16 @@
+---
+title: Skipping Evals
+---
+
+Evalite has an `experimental_skip` modifier that you can use to skip a test.
+
+```ts
+evalite.experimental_skip("My Eval", {
+  data: () => [],
+  task: () => {},
+});
+```
+
+This will skip the test and not run it.
+
+This is currently in an experimental state, since it doesn't yet display in the Evalite UI.

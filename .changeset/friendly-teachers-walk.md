@@ -2,4 +2,4 @@
 "evalite": patch
 ---
 
-adds support for missing evalite.skip()
+Adds support for missing `evalite.experimental_skip()`

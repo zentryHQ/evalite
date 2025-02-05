@@ -112,6 +112,10 @@ export default defineConfig({
               slug: "guides/cli",
             },
             {
+              label: "Skipping Evals",
+              slug: "guides/skipping",
+            },
+            {
               label: "Customizing The UI",
               slug: "guides/customizing-the-ui",
             },

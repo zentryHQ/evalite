@@ -91,10 +91,10 @@ export const evalite = <TInput, TExpected = TInput>(
   opts: Evalite.RunnerOpts<TInput, TExpected>
 ) => registerEvalite(evalName, opts);
 
-evalite.skip = <TInput, TExpected = TInput>(
+evalite.experimental_skip = <TInput, TExpected = TInput>(
   evalName: string,
   opts: Evalite.RunnerOpts<TInput, TExpected>
-) => registerEvalite(evalName, opts, { modifier: "skip"});
+) => registerEvalite(evalName, opts, { modifier: "skip" });
 
 function registerEvalite<TInput, TExpected = TInput>(
   evalName: string,
@@ -102,7 +102,8 @@ function registerEvalite<TInput, TExpected = TInput>(
   vitestOpts: { modifier?: "only" | "skip" } = {}
 ) {
   const describeFn = vitestOpts.modifier === "skip" ? describe.skip : describe;
-  const datasetPromise = vitestOpts.modifier === "skip" ? Promise.resolve([]) : opts.data();
+  const datasetPromise =
+    vitestOpts.modifier === "skip" ? Promise.resolve([]) : opts.data();
 
   return describeFn(evalName, async () => {
     const dataset = await datasetPromise;
@@ -205,7 +206,7 @@ function registerEvalite<TInput, TExpected = TInput>(
       }
     );
   });
-};
+}
 
 export const createScorer = <TInput, TExpected = TInput>(opts: {
   name: string;
