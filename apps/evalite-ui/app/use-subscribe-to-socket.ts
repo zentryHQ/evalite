@@ -1,5 +1,5 @@
 import type { Evalite } from "@evalite/core";
-import { useNavigate } from "@remix-run/react";
+import { useNavigate } from "@tanstack/react-router";
 import { createContext, useEffect, useMemo, useState } from "react";
 
 export const TestServerStateContext = createContext<
@@ -13,9 +13,9 @@ export const useSubscribeToTestServer = (serverState: Evalite.ServerState) => {
 
   useEffect(() => {
     // Reload fetchers when the server state changes
-    navigate(window.location, {
-      preventScrollReset: true,
+    navigate({
       replace: true,
+      resetScroll: false,
     });
   }, [state, navigate]);
 
