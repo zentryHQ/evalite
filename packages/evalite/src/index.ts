@@ -89,11 +89,22 @@ const runTask = async <TInput, TExpected>(
 export const evalite = <TInput, TExpected = TInput>(
   evalName: string,
   opts: Evalite.RunnerOpts<TInput, TExpected>
-) => {
-  // Eagerly run the promise before the dataset for
-  // maximum concurrency
-  const datasetPromise = opts.data();
-  return describe(evalName, async () => {
+) => registerEvalite(evalName, opts);
+
+evalite.skip = <TInput, TExpected = TInput>(
+  evalName: string,
+  opts: Evalite.RunnerOpts<TInput, TExpected>
+) => registerEvalite(evalName, opts, { modifier: "skip"});
+
+function registerEvalite<TInput, TExpected = TInput>(
+  evalName: string,
+  opts: Evalite.RunnerOpts<TInput, TExpected>,
+  vitestOpts: { modifier?: "only" | "skip" } = {}
+) {
+  const describeFn = vitestOpts.modifier === "skip" ? describe.skip : describe;
+  const datasetPromise = vitestOpts.modifier === "skip" ? Promise.resolve([]) : opts.data();
+
+  return describeFn(evalName, async () => {
     const dataset = await datasetPromise;
     it.concurrent.for(dataset.map((d, index) => ({ ...d, index })))(
       evalName,
