@@ -9,13 +9,11 @@ import {
 export const getMenuItemsQueryOptions = queryOptions({
   queryKey: ["menu-items"] as const,
   queryFn: getMenuItems,
-  staleTime: Infinity,
 });
 
 export const getServerStateQueryOptions = queryOptions({
   queryKey: ["server-state"] as const,
   queryFn: getServerState,
-  staleTime: Infinity,
 });
 
 export const getEvalByNameQueryOptions = (
@@ -25,7 +23,6 @@ export const getEvalByNameQueryOptions = (
   queryOptions({
     queryKey: ["eval-by-name", name, timestamp] as const,
     queryFn: () => getEvalByName(name, timestamp),
-    staleTime: Infinity,
   });
 
 export const getResultQueryOptions = (opts: {
@@ -36,5 +33,4 @@ export const getResultQueryOptions = (opts: {
   queryOptions({
     queryKey: ["result", opts] as const,
     queryFn: () => getResult(opts),
-    staleTime: Infinity,
   });

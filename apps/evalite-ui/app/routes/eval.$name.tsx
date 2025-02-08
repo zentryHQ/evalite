@@ -21,7 +21,7 @@ import {
 } from "~/components/ui/table";
 import { cn } from "~/lib/utils";
 import { formatTime, isArrayOfRenderedColumns } from "~/utils";
-import { useServerStateUtils } from "~/data/use-server-state-utils";
+import { useServerStateUtils } from "~/hooks/use-server-state-utils";
 import {
   getEvalByNameQueryOptions,
   getServerStateQueryOptions,

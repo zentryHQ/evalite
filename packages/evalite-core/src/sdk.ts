@@ -3,8 +3,10 @@ import type { Evalite } from "./types.js";
 
 const BASE_URL = "http://localhost:3006";
 
-export const getServerState = async (): Promise<Evalite.ServerState> => {
-  const res = await fetch(`${BASE_URL}/api/server-state`);
+export const getServerState = async (fetchOpts?: {
+  signal?: AbortSignal;
+}): Promise<Evalite.ServerState> => {
+  const res = await fetch(`${BASE_URL}/api/server-state`, fetchOpts);
   return res.json() as any;
 };
 
@@ -23,7 +25,9 @@ export type GetMenuItemsResult = {
   evalStatus: Db.EvalStatus;
 };
 
-export const getMenuItems = async (): Promise<GetMenuItemsResult> => {
+export const getMenuItems = async (fetchOpts?: {
+  signal?: AbortSignal;
+}): Promise<GetMenuItemsResult> => {
   const res = await fetch(`${BASE_URL}/api/menu-items`);
   return res.json() as any;
 };
@@ -41,7 +45,8 @@ export type GetEvalByNameResult = {
 
 export const getEvalByName = async (
   name: string,
-  timestamp: string | null | undefined
+  timestamp: string | null | undefined,
+  fetchOpts?: { signal?: AbortSignal }
 ): Promise<GetEvalByNameResult> => {
   const params = new URLSearchParams({ name, timestamp: timestamp || "" });
   const res = await fetch(`${BASE_URL}/api/eval?${params.toString()}`);
@@ -54,17 +59,23 @@ export type GetResultResult = {
   evaluation: Db.Eval;
 };
 
-export const getResult = async (opts: {
-  evalName: string;
-  evalTimestamp: string | null | undefined;
-  resultIndex: string;
-}): Promise<GetResultResult> => {
+export const getResult = async (
+  opts: {
+    evalName: string;
+    evalTimestamp: string | null | undefined;
+    resultIndex: string;
+  },
+  fetchOpts?: { signal?: AbortSignal }
+): Promise<GetResultResult> => {
   const params = new URLSearchParams({
     name: opts.evalName,
     index: opts.resultIndex,
     timestamp: opts.evalTimestamp || "",
   });
-  const res = await fetch(`${BASE_URL}/api/eval/result?${params.toString()}`);
+  const res = await fetch(
+    `${BASE_URL}/api/eval/result?${params.toString()}`,
+    fetchOpts
+  );
   return res.json() as any;
 };
 

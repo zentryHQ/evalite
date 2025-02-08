@@ -12,11 +12,6 @@ export const useServerStateUtils = (state: Evalite.ServerState) => {
     const isRunningEvalName = (name: string) =>
       state.type === "running" && state.evalNamesRunning.includes(name);
 
-    const isRunningResultId = (resultId: number | bigint) => {
-      return (
-        state.type === "running" && state.resultIdsRunning.includes(resultId)
-      );
-    };
     return {
       isRunningFilepath,
       isRunningEvalName,

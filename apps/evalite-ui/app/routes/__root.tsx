@@ -13,7 +13,7 @@ import {
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
-import { useSubscribeToTestServer } from "~/data/use-subscribe-to-socket";
+import { useSubscribeToSocket } from "~/data/use-subscribe-to-socket";
 import {
   Sidebar,
   SidebarContent,
@@ -32,7 +32,7 @@ import {
   getMenuItemsQueryOptions,
   getServerStateQueryOptions,
 } from "~/data/queries";
-import { useServerStateUtils } from "~/data/use-server-state-utils";
+import { useServerStateUtils } from "~/hooks/use-server-state-utils";
 
 const getMenuItemsWithSelect = queryOptions({
   ...getMenuItemsQueryOptions,
@@ -66,9 +66,18 @@ export const Route = createRootRouteWithContext<{
 });
 
 export default function App() {
-  const [evalState, serverState] = useSuspenseQueries({
+  const [
+    {
+      data: { currentEvals, score, prevScore, evalStatus },
+    },
+    { data: serverState },
+  ] = useSuspenseQueries({
     queries: [getMenuItemsWithSelect, getServerStateQueryOptions],
   });
+
+  const queryClient = useQueryClient();
+
+  useSubscribeToSocket(queryClient);
 
   return (
     <SidebarProvider>
@@ -90,14 +99,11 @@ export default function App() {
               </p>
               <div className="text-gray-600 font-medium text-2xl">
                 <Score
-                  isRunning={serverState.data.type === "running"}
-                  score={evalState.data.score}
-                  state={getScoreState(
-                    evalState.data.score,
-                    evalState.data.prevScore
-                  )}
+                  isRunning={serverState.type === "running"}
+                  score={score}
+                  state={getScoreState(score, prevScore)}
                   iconClassName="size-4"
-                  evalStatus={evalState.data.evalStatus}
+                  evalStatus={evalStatus}
                   resultStatus={undefined}
                 />
               </div>
@@ -106,7 +112,7 @@ export default function App() {
           <SidebarGroup>
             <SidebarGroupLabel>Evals</SidebarGroupLabel>
             <SidebarMenu>
-              {evalState.data.currentEvals.map((e) => {
+              {currentEvals.map((e) => {
                 return (
                   <EvalSidebarItem
                     key={`current-${e.name}`}
@@ -134,11 +140,8 @@ const EvalSidebarItem = (props: {
   score: number;
   evalStatus: Db.EvalStatus;
 }) => {
-  const queryClient = useQueryClient();
   const serverState = useSuspenseQuery(getServerStateQueryOptions);
   const serverStateUtils = useServerStateUtils(serverState.data);
-
-  useSubscribeToTestServer(queryClient);
 
   return (
     <SidebarMenuItem key={props.name}>

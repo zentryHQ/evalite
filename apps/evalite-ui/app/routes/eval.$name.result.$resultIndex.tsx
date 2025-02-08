@@ -25,7 +25,7 @@ import {
   getServerStateQueryOptions,
 } from "~/data/queries";
 import { useSuspenseQueries } from "@tanstack/react-query";
-import { useServerStateUtils } from "~/data/use-server-state-utils";
+import { useServerStateUtils } from "~/hooks/use-server-state-utils";
 
 const searchSchema = z.object({
   trace: z.number().optional(),
