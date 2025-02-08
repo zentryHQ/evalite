@@ -1,4 +1,3 @@
-import { getEvalByName } from "@evalite/core/sdk";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { zodValidator } from "@tanstack/zod-adapter";
@@ -6,7 +5,6 @@ import { average } from "@evalite/core/utils";
 import { Link, Outlet, useMatches } from "@tanstack/react-router";
 import { XCircleIcon } from "lucide-react";
 import type * as React from "react";
-import { useContext } from "react";
 
 import { DisplayInput } from "~/components/display-input";
 import { InnerPageLayout } from "~/components/page-layout";
@@ -22,8 +20,13 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { cn } from "~/lib/utils";
-import { TestServerStateContext } from "~/use-subscribe-to-socket";
 import { formatTime, isArrayOfRenderedColumns } from "~/utils";
+import { useServerStateUtils } from "~/data/use-server-state-utils";
+import {
+  getEvalByNameQueryOptions,
+  getServerStateQueryOptions,
+} from "~/data/queries";
+import { useSuspenseQueries } from "@tanstack/react-query";
 
 const searchSchema = z.object({
   timestamp: z.string().optional(),
@@ -34,8 +37,11 @@ export const Route = createFileRoute("/eval/$name")({
   loaderDeps: ({ search: { timestamp } }) => ({
     timestamp,
   }),
-  loader: async ({ params, deps }) => {
-    const result = await getEvalByName(params.name, deps.timestamp);
+  loader: async ({ context, params, deps }) => {
+    const { queryClient } = context;
+    const result = await queryClient.ensureQueryData(
+      getEvalByNameQueryOptions(params.name, deps.timestamp)
+    );
 
     return result;
   },
@@ -47,11 +53,19 @@ function EvalComponent() {
   const { timestamp } = Route.useSearch();
   const navigate = Route.useNavigate();
 
-  const {
-    evaluation: possiblyRunningEvaluation,
-    prevEvaluation,
-    history,
-  } = Route.useLoaderData();
+  const [
+    {
+      data: { evaluation: possiblyRunningEvaluation, prevEvaluation, history },
+    },
+    { data: serverState },
+  ] = useSuspenseQueries({
+    queries: [
+      getEvalByNameQueryOptions(name, timestamp),
+      getServerStateQueryOptions,
+    ],
+  });
+
+  const serverStateUtils = useServerStateUtils(serverState);
 
   /**
    * There are two evaluations we need to take account of:
@@ -91,8 +105,6 @@ function EvalComponent() {
     evaluationWithoutLayoutShift = possiblyRunningEvaluation;
   }
 
-  const serverState = useContext(TestServerStateContext);
-
   const isResultRoute = useMatches({
     select: (matches) => matches.some((m) => m.routeId.includes("result")),
   });
@@ -111,7 +123,7 @@ function EvalComponent() {
     : undefined;
 
   const isRunningEval =
-    serverState.isRunningEvalName(name) &&
+    serverStateUtils.isRunningEvalName(name) &&
     evaluationWithoutLayoutShift?.created_at === mostRecentDate;
 
   return (

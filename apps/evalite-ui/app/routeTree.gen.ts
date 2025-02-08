@@ -27,15 +27,13 @@ const EvalNameRoute = EvalNameImport.update({
   id: '/eval/$name',
   path: '/eval/$name',
   getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/eval.$name.lazy').then((d) => d.Route))
+} as any)
 
 const EvalNameResultResultIndexRoute = EvalNameResultResultIndexImport.update({
   id: '/result/$resultIndex',
   path: '/result/$resultIndex',
   getParentRoute: () => EvalNameRoute,
-} as any).lazy(() =>
-  import('./routes/eval.$name.result.$resultIndex.lazy').then((d) => d.Route),
-)
+} as any)
 
 // Populate the FileRoutesByPath interface
 

@@ -5,9 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "after-build": "rm -rf ../../packages/evalite-core/dist/ui && cp -r build/client ../../packages/evalite-core/dist/ui",
+    "after-build": "rm -rf ../../packages/evalite-core/dist/ui && cp -r dist ../../packages/evalite-core/dist/ui",
     "dev": "vite",
-    "start": "remix-serve ./build/server/index.js",
     "lint": "tsc",
     "test": "vitest run"
   },
@@ -21,7 +20,10 @@
     "@radix-ui/react-separator": "^1.1.0",
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-tooltip": "^1.1.4",
+    "@tanstack/react-query": "^5.66.0",
+    "@tanstack/react-query-devtools": "^5.66.0",
     "@tanstack/react-router": "^1.99.6",
+    "@tanstack/router-devtools": "^1.99.6",
     "@tanstack/zod-adapter": "^1.99.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

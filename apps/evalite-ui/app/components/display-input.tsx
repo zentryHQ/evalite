@@ -1,7 +1,7 @@
 import React, { useState, useRef, useLayoutEffect, Fragment } from "react";
 import ReactMarkdown from "react-markdown";
 import { Button } from "./ui/button";
-import { ChevronDown, DownloadIcon, FileIcon } from "lucide-react";
+import { ChevronDown, DownloadIcon } from "lucide-react";
 import { JSONTree } from "react-json-tree";
 import { isEvaliteFile } from "@evalite/core/utils";
 import type { Evalite } from "@evalite/core";

@@ -1,11 +1,10 @@
 import type { Evalite } from "@evalite/core";
-import { getResult } from "@evalite/core/sdk";
 import { sum } from "@evalite/core/utils";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 import type React from "react";
 import { SidebarCloseIcon } from "lucide-react";
-import { Fragment, useContext } from "react";
+import { Fragment } from "react";
 import { DisplayInput } from "~/components/display-input";
 import { getScoreState, Score } from "~/components/score";
 import {
@@ -18,10 +17,15 @@ import { LiveDate } from "~/components/ui/live-date";
 import { Separator } from "~/components/ui/separator";
 import { SidebarContent, SidebarHeader } from "~/components/ui/sidebar";
 import { cn } from "~/lib/utils";
-import { TestServerStateContext } from "~/use-subscribe-to-socket";
 import { formatTime, isArrayOfRenderedColumns } from "~/utils";
 
 import { z } from "zod";
+import {
+  getResultQueryOptions,
+  getServerStateQueryOptions,
+} from "~/data/queries";
+import { useSuspenseQueries } from "@tanstack/react-query";
+import { useServerStateUtils } from "~/data/use-server-state-utils";
 
 const searchSchema = z.object({
   trace: z.number().optional(),
@@ -32,14 +36,16 @@ export const Route = createFileRoute("/eval/$name/result/$resultIndex")({
   loaderDeps: ({ search }) => ({
     timestamp: search.timestamp,
   }),
-  loader: async ({ params, deps }) => {
-    const data = await getResult({
-      evalName: params.name!,
-      resultIndex: params.resultIndex!,
-      evalTimestamp: deps.timestamp ?? null,
-    });
+  loader: async ({ params, deps, context }) => {
+    const { queryClient } = context;
 
-    return data;
+    await queryClient.ensureQueryData(
+      getResultQueryOptions({
+        evalName: params.name!,
+        resultIndex: params.resultIndex!,
+        evalTimestamp: deps.timestamp ?? null,
+      })
+    );
   },
   component: ResultComponent,
 });
@@ -65,16 +71,30 @@ const MainBodySection = ({
 );
 
 function ResultComponent() {
-  const { result, prevResult, evaluation } = Route.useLoaderData();
-
   const { name, resultIndex } = Route.useParams();
   const { timestamp, trace: traceIndex } = Route.useSearch();
+  const [
+    {
+      data: { result, prevResult, evaluation },
+    },
+    { data: serverState },
+  ] = useSuspenseQueries({
+    queries: [
+      getResultQueryOptions({
+        evalName: name!,
+        resultIndex: resultIndex!,
+        evalTimestamp: timestamp ?? null,
+      }),
+      getServerStateQueryOptions,
+    ],
+  });
+  const serverStateUtils = useServerStateUtils(serverState);
+
   console.log(traceIndex);
 
-  const serverState = useContext(TestServerStateContext);
-
   const isRunning =
-    serverState.isRunningEvalName(name) && evaluation.created_at === timestamp;
+    serverStateUtils.isRunningEvalName(name) &&
+    evaluation.created_at === timestamp;
 
   const startTime = result.traces[0]?.start_time ?? 0;
   const endTime = result.traces[result.traces.length - 1]?.end_time ?? 0;
