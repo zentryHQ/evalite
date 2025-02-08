@@ -19,5 +19,5 @@ export const useSubscribeToSocket = (queryClient: QueryClient) => {
     return () => {
       socket.close();
     };
-  }, []);
+  }, [queryClient]);
 };
