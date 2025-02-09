@@ -184,12 +184,10 @@ function EvalComponent() {
                 data={history}
                 onDotClick={({ date }) => {
                   if (date === mostRecentDate) {
-                    debugger;
                     navigate({
                       search: {},
                     });
                   } else {
-                    debugger;
                     navigate({
                       search: {
                         timestamp: date,
