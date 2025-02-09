@@ -93,8 +93,6 @@ function ResultComponent() {
   });
   const serverStateUtils = useServerStateUtils(serverState);
 
-  console.log(traceIndex);
-
   const isRunning =
     serverStateUtils.isRunningEvalName(name) &&
     evaluation.created_at === timestamp;
