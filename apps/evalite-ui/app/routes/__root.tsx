@@ -1,19 +1,21 @@
 import {
+  type QueryClient,
+  queryOptions,
+  useQueryClient,
+  useSuspenseQueries,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import {
   createRootRouteWithContext,
   Link,
   Outlet,
 } from "@tanstack/react-router";
-import {
-  type QueryClient,
-  useSuspenseQueries,
-  queryOptions,
-  useSuspenseQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
-import { TanStackRouterDevtools } from "@tanstack/router-devtools";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
-import { useSubscribeToSocket } from "~/data/use-subscribe-to-socket";
+import type { Db } from "@evalite/core/db";
+import { lazy } from "react";
+import Logo from "~/components/logo";
+import { getScoreState, Score, type ScoreState } from "~/components/score";
 import {
   Sidebar,
   SidebarContent,
@@ -24,15 +26,22 @@ import {
   SidebarMenuItem,
   SidebarProvider,
 } from "~/components/ui/sidebar";
-import { getScoreState, Score, type ScoreState } from "~/components/score";
-import "../tailwind.css";
-import Logo from "~/components/logo";
-import type { Db } from "@evalite/core/db";
 import {
   getMenuItemsQueryOptions,
   getServerStateQueryOptions,
 } from "~/data/queries";
+import { useSubscribeToSocket } from "~/data/use-subscribe-to-socket";
 import { useServerStateUtils } from "~/hooks/use-server-state-utils";
+import "../tailwind.css";
+
+const TanStackRouterDevtools =
+  process.env.NODE_ENV === "production"
+    ? () => null
+    : lazy(() =>
+        import("@tanstack/router-devtools").then((res) => ({
+          default: res.TanStackRouterDevtools,
+        }))
+      );
 
 const getMenuItemsWithSelect = queryOptions({
   ...getMenuItemsQueryOptions,
