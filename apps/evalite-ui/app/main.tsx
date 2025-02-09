@@ -19,6 +19,7 @@ const initRouter = () => {
     routeTree,
     scrollRestoration: true,
     context: { queryClient },
+    defaultPreloadStaleTime: 0,
     Wrap: ({ children }) => (
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     ),

@@ -39,13 +39,16 @@ export const Route = createFileRoute("/eval/$name/result/$resultIndex")({
   loader: async ({ params, deps, context }) => {
     const { queryClient } = context;
 
-    await queryClient.ensureQueryData(
-      getResultQueryOptions({
-        evalName: params.name!,
-        resultIndex: params.resultIndex!,
-        evalTimestamp: deps.timestamp ?? null,
-      })
-    );
+    await Promise.all([
+      queryClient.ensureQueryData(
+        getResultQueryOptions({
+          evalName: params.name!,
+          resultIndex: params.resultIndex!,
+          evalTimestamp: deps.timestamp ?? null,
+        })
+      ),
+      queryClient.ensureQueryData(getServerStateQueryOptions),
+    ]);
   },
   component: ResultComponent,
 });
