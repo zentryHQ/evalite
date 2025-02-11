@@ -9,7 +9,7 @@ evalite("Traces", {
   },
   task: async (input) => {
     const start = performance.now();
-    await setTimeout(500);
+    await setTimeout(100);
     reportTrace({
       start,
       end: performance.now(),
@@ -17,7 +17,7 @@ evalite("Traces", {
       input,
     });
     const start2 = performance.now();
-    await setTimeout(600);
+    await setTimeout(200);
     reportTrace({
       start: start2,
       end: performance.now(),
@@ -26,7 +26,7 @@ evalite("Traces", {
     });
 
     const start3 = performance.now();
-    await setTimeout(700);
+    await setTimeout(300);
     reportTrace({
       start: start3,
       end: performance.now(),
