@@ -20,8 +20,6 @@ it("Should set exitCode to 1 if the score is below the threshold", async () => {
     testOutputWritable: captured.writable,
   });
 
-  console.log(captured.getOutput());
-
   expect(captured.getOutput()).toContain("Threshold  50% (failed)");
   expect(exit).toHaveBeenCalledWith(1);
 });
@@ -39,8 +37,6 @@ it("Should pass if the score is at the threshold", async () => {
     testOutputWritable: captured.writable,
   });
 
-  console.log(captured.getOutput());
-
   expect(captured.getOutput()).toContain("Threshold  20% (passed)");
 });
 
@@ -56,8 +52,6 @@ it("Should pass if the score exceeds the threshold", async () => {
     scoreThreshold: 10,
     testOutputWritable: captured.writable,
   });
-
-  console.log(captured.getOutput());
 
   expect(captured.getOutput()).toContain("Threshold  10% (passed)");
 });
