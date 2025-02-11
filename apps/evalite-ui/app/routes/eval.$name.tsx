@@ -1,16 +1,11 @@
-import { getEvalByName } from "@evalite/core/sdk";
+import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
+import { zodValidator } from "@tanstack/zod-adapter";
 import { average } from "@evalite/core/utils";
-import type { MetaFunction } from "@remix-run/node";
-import {
-  Link,
-  NavLink,
-  Outlet,
-  useLoaderData,
-  useSearchParams,
-  type ClientLoaderFunctionArgs,
-} from "@remix-run/react";
+import { Link, Outlet, useMatches } from "@tanstack/react-router";
 import { XCircleIcon } from "lucide-react";
-import React, { useContext } from "react";
+import type * as React from "react";
+
 import { DisplayInput } from "~/components/display-input";
 import { InnerPageLayout } from "~/components/page-layout";
 import { getScoreState, Score } from "~/components/score";
@@ -25,36 +20,54 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { cn } from "~/lib/utils";
-import { TestServerStateContext } from "~/use-subscribe-to-socket";
 import { formatTime, isArrayOfRenderedColumns } from "~/utils";
+import { useServerStateUtils } from "~/hooks/use-server-state-utils";
+import {
+  getEvalByNameQueryOptions,
+  getServerStateQueryOptions,
+} from "~/data/queries";
+import { useSuspenseQueries } from "@tanstack/react-query";
 
-export const meta: MetaFunction<typeof clientLoader> = (args) => {
-  return [
-    { title: `${(args.data as any)?.name} | Evalite` },
-    { name: "description", content: "Welcome to Remix!" },
-  ];
-};
+const searchSchema = z.object({
+  timestamp: z.string().optional(),
+});
 
-export const clientLoader = async (args: ClientLoaderFunctionArgs) => {
-  const searchParams = new URLSearchParams(args.request.url.split("?")[1]);
-  const result = await getEvalByName(
-    args.params.name!,
-    searchParams.get("timestamp")
-  );
+export const Route = createFileRoute("/eval/$name")({
+  validateSearch: zodValidator(searchSchema),
+  loaderDeps: ({ search: { timestamp } }) => ({
+    timestamp,
+  }),
+  loader: async ({ context, params, deps }) => {
+    const { queryClient } = context;
 
-  return {
-    ...result,
-    name: args.params.name!,
-  };
-};
+    await Promise.all([
+      queryClient.ensureQueryData(
+        getEvalByNameQueryOptions(params.name, deps.timestamp)
+      ),
+      queryClient.ensureQueryData(getServerStateQueryOptions),
+    ]);
+  },
+  component: EvalComponent,
+});
 
-export default function Page() {
-  const {
-    name,
-    evaluation: possiblyRunningEvaluation,
-    prevEvaluation,
-    history,
-  } = useLoaderData<typeof clientLoader>();
+function EvalComponent() {
+  const { name } = Route.useParams();
+  const { timestamp } = Route.useSearch();
+  const navigate = Route.useNavigate();
+
+  const [
+    {
+      data: { evaluation: possiblyRunningEvaluation, prevEvaluation, history },
+    },
+    { data: serverState },
+  ] = useSuspenseQueries({
+    queries: [
+      getEvalByNameQueryOptions(name, timestamp),
+      getServerStateQueryOptions,
+    ],
+  });
+
+  const serverStateUtils = useServerStateUtils(serverState);
 
   /**
    * There are two evaluations we need to take account of:
@@ -78,10 +91,7 @@ export default function Page() {
     | typeof possiblyRunningEvaluation
     | undefined;
 
-  const [search, setSearch] = useSearchParams();
-
   const mostRecentDate = history[history.length - 1]?.date;
-  const timestamp = search.get("timestamp");
   const isViewingLatest = !timestamp || timestamp === mostRecentDate;
 
   if (possiblyRunningEvaluation.status === "running" && isViewingLatest) {
@@ -97,14 +107,14 @@ export default function Page() {
     evaluationWithoutLayoutShift = possiblyRunningEvaluation;
   }
 
-  const serverState = useContext(TestServerStateContext);
+  const isResultRoute = useMatches({
+    select: (matches) => matches.some((m) => m.routeId.includes("result")),
+  });
 
   const showExpectedColumn =
     evaluationWithoutLayoutShift?.results.every(
       (result) => result.expected !== null
     ) ?? false;
-
-  const isTraceRoute = location.pathname.includes("trace");
 
   const evalScore = average(possiblyRunningEvaluation.results || [], (r) =>
     average(r.scores, (s) => s.score)
@@ -115,11 +125,13 @@ export default function Page() {
     : undefined;
 
   const isRunningEval =
-    serverState.isRunningEvalName(name) &&
+    serverStateUtils.isRunningEvalName(name) &&
     evaluationWithoutLayoutShift?.created_at === mostRecentDate;
 
   return (
     <>
+      <title>{`${name} | Evalite`}</title>
+      <meta name="description" content={`Welcome to Evalite!`} />
       <InnerPageLayout
         vscodeUrl={`vscode://file${possiblyRunningEvaluation.filepath}`}
         filepath={
@@ -149,8 +161,11 @@ export default function Page() {
               {!isViewingLatest && (
                 <>
                   <Link
-                    to={`/eval/${name}`}
-                    prefetch="intent"
+                    to={"/eval/$name"}
+                    params={{
+                      name,
+                    }}
+                    preload="intent"
                     className="bg-blue-100 uppercase tracking-wide font-medium text-blue-700 px-3 text-xs py-1 -my-1 rounded"
                   >
                     View Latest
@@ -169,9 +184,15 @@ export default function Page() {
                 data={history}
                 onDotClick={({ date }) => {
                   if (date === mostRecentDate) {
-                    setSearch({});
+                    navigate({
+                      search: {},
+                    });
                   } else {
-                    setSearch({ timestamp: date });
+                    navigate({
+                      search: {
+                        timestamp: date,
+                      },
+                    });
                   }
                 }}
               />
@@ -236,16 +257,24 @@ export default function Page() {
               <TableBody>
                 {evaluationWithoutLayoutShift.results.map((result, index) => {
                   const Wrapper = (props: { children: React.ReactNode }) => (
-                    <NavLink
-                      prefetch="intent"
-                      to={`trace/${index}${timestamp ? `?timestamp=${timestamp}` : ""}`}
-                      preventScrollReset
-                      className={({ isActive }) => {
-                        return cn("block h-full p-4", isActive && "active");
+                    <Link
+                      preload="intent"
+                      to={"/eval/$name/result/$resultIndex"}
+                      params={{
+                        name,
+                        resultIndex: index.toString(),
+                      }}
+                      search={{
+                        timestamp: timestamp ?? undefined,
+                      }}
+                      resetScroll={false}
+                      className="block h-full p-4"
+                      activeProps={{
+                        className: "active",
                       }}
                     >
                       {props.children}
-                    </NavLink>
+                    </Link>
                   );
                   return (
                     <TableRow
@@ -362,8 +391,8 @@ export default function Page() {
           "fixed top-0 z-20 h-svh border-l p-2 bg-sidebar overflow-auto",
           "transition-[right] ease-linear shadow-lg duration-300",
           "hidden w-full sm:block sm:right-[-100%] sm:w-[500px] md:w-[600px] lg:w-[800px]",
-          isTraceRoute && "block sm:right-0",
-          !isTraceRoute && ""
+          isResultRoute && "block sm:right-0",
+          !isResultRoute && ""
         )}
       >
         <Outlet />

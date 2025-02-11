@@ -1,16 +1,10 @@
 import type { Evalite } from "@evalite/core";
-import { getResult } from "@evalite/core/sdk";
 import { sum } from "@evalite/core/utils";
-import {
-  Link,
-  NavLink,
-  useLoaderData,
-  useSearchParams,
-  type ClientLoaderFunctionArgs,
-} from "@remix-run/react";
-import { SidebarCloseIcon } from "lucide-react";
+import { Link, createFileRoute } from "@tanstack/react-router";
+import { zodValidator } from "@tanstack/zod-adapter";
 import type React from "react";
-import { Fragment, useContext } from "react";
+import { SidebarCloseIcon } from "lucide-react";
+import { Fragment } from "react";
 import { DisplayInput } from "~/components/display-input";
 import { getScoreState, Score } from "~/components/score";
 import {
@@ -23,8 +17,41 @@ import { LiveDate } from "~/components/ui/live-date";
 import { Separator } from "~/components/ui/separator";
 import { SidebarContent, SidebarHeader } from "~/components/ui/sidebar";
 import { cn } from "~/lib/utils";
-import { TestServerStateContext } from "~/use-subscribe-to-socket";
 import { formatTime, isArrayOfRenderedColumns } from "~/utils";
+
+import { z } from "zod";
+import {
+  getResultQueryOptions,
+  getServerStateQueryOptions,
+} from "~/data/queries";
+import { useSuspenseQueries } from "@tanstack/react-query";
+import { useServerStateUtils } from "~/hooks/use-server-state-utils";
+
+const searchSchema = z.object({
+  trace: z.number().optional(),
+});
+
+export const Route = createFileRoute("/eval/$name/result/$resultIndex")({
+  validateSearch: zodValidator(searchSchema),
+  loaderDeps: ({ search }) => ({
+    timestamp: search.timestamp,
+  }),
+  loader: async ({ params, deps, context }) => {
+    const { queryClient } = context;
+
+    await Promise.all([
+      queryClient.ensureQueryData(
+        getResultQueryOptions({
+          evalName: params.name!,
+          resultIndex: params.resultIndex!,
+          evalTimestamp: deps.timestamp ?? null,
+        })
+      ),
+      queryClient.ensureQueryData(getServerStateQueryOptions),
+    ]);
+  },
+  component: ResultComponent,
+});
 
 const MainBodySection = ({
   title,
@@ -46,46 +73,36 @@ const MainBodySection = ({
   </div>
 );
 
-export const clientLoader = async (args: ClientLoaderFunctionArgs) => {
-  const searchParams = new URLSearchParams(args.request.url.split("?")[1]);
-  const data = await getResult({
-    evalName: args.params.name!,
-    resultIndex: args.params.index!,
-    evalTimestamp: searchParams.get("timestamp"),
+function ResultComponent() {
+  const { name, resultIndex } = Route.useParams();
+  const { timestamp, trace: traceIndex } = Route.useSearch();
+  const [
+    {
+      data: { result, prevResult, evaluation },
+    },
+    { data: serverState },
+  ] = useSuspenseQueries({
+    queries: [
+      getResultQueryOptions({
+        evalName: name!,
+        resultIndex: resultIndex!,
+        evalTimestamp: timestamp ?? null,
+      }),
+      getServerStateQueryOptions,
+    ],
   });
-
-  return {
-    data,
-    name: args.params.name!,
-    resultIndex: args.params.index!,
-    timestamp: searchParams.get("timestamp"),
-  };
-};
-
-export default function Page() {
-  const {
-    data: { result, prevResult, evaluation },
-    name,
-    resultIndex,
-    timestamp,
-  } = useLoaderData<typeof clientLoader>();
-
-  const serverState = useContext(TestServerStateContext);
+  const serverStateUtils = useServerStateUtils(serverState);
 
   const isRunning =
-    serverState.isRunningEvalName(name) && evaluation.created_at === timestamp;
-
-  const [searchParams] = useSearchParams();
+    serverStateUtils.isRunningEvalName(name) &&
+    evaluation.created_at === timestamp;
 
   const startTime = result.traces[0]?.start_time ?? 0;
   const endTime = result.traces[result.traces.length - 1]?.end_time ?? 0;
   const totalTraceDuration = endTime - startTime;
 
-  const traceIndex = searchParams.get("trace");
-
-  const traceBeingViewed = traceIndex
-    ? result.traces[Number(traceIndex)]
-    : null;
+  const traceBeingViewed =
+    traceIndex != null ? result.traces[traceIndex] : null;
 
   const wholeEvalUsage =
     result.traces.length > 0 &&
@@ -136,9 +153,15 @@ export default function Page() {
         <div className="flex items-center gap-3">
           <Button size={"icon"} variant="ghost" asChild>
             <Link
-              to={`/eval/${name}${timestamp ? `?timestamp=${timestamp}` : ""}`}
-              prefetch="intent"
-              preventScrollReset
+              to={"/eval/$name"}
+              params={{
+                name,
+              }}
+              search={{
+                timestamp: timestamp ?? undefined,
+              }}
+              preload="intent"
+              resetScroll={false}
             >
               <SidebarCloseIcon className="size-5 rotate-180" />
             </Link>
@@ -185,10 +208,10 @@ export default function Page() {
             title="Eval"
             startPercent={0}
             endPercent={100}
-            href={`/eval/${name}/trace/${resultIndex}`}
-            isActive={!searchParams.get("trace")}
+            name={name}
+            resultIndex={resultIndex}
           />
-          {result.traces.map((trace, traceIndex) => {
+          {result.traces.map((trace, index) => {
             const startTimeWithinTrace = trace.start_time - startTime;
             const endTimeWithinTrace = trace.end_time - startTime;
 
@@ -197,13 +220,15 @@ export default function Page() {
             const endPercent = (endTimeWithinTrace / totalTraceDuration) * 100;
             return (
               <TraceMenuItem
+                key={index}
                 duration={trace.end_time - trace.start_time}
-                title={`Trace ${traceIndex + 1}`}
-                href={`/eval/${name}/trace/${resultIndex}?trace=${traceIndex}`}
+                title={`Trace ${index + 1}`}
+                name={name}
+                resultIndex={resultIndex}
+                traceIndex={index}
                 endPercent={endPercent}
                 startPercent={startPercent}
-                isActive={searchParams.get("trace") === String(traceIndex)}
-              ></TraceMenuItem>
+              />
             );
           })}
           {result.traces.length === 0 && (
@@ -213,7 +238,7 @@ export default function Page() {
           )}
         </div>
         <div className="flex-grow border-l pl-4">
-          {!searchParams.get("trace") && (
+          {traceBeingViewed == null && (
             <>
               {wholeEvalUsage && (
                 <>
@@ -345,44 +370,59 @@ const TraceMenuItem = (props: {
    * Number between 0 and 100
    */
   endPercent: number;
-  href: string;
-  isActive: boolean;
+  name: string;
+  resultIndex: string;
+  traceIndex?: number;
 }) => {
   const length = props.endPercent - props.startPercent;
 
   return (
-    <NavLink
-      to={props.href}
-      className={cn(
-        "px-2 py-2 hover:bg-gray-100 transition-colors",
-        props.isActive && "bg-gray-200 hover:bg-gray-200"
-      )}
-      prefetch="intent"
-      end
+    <Link
+      to={"/eval/$name/result/$resultIndex"}
+      params={{
+        name: props.name,
+        resultIndex: props.resultIndex,
+      }}
+      search={{
+        trace: props.traceIndex,
+      }}
+      className={"px-2 py-2 hover:bg-gray-100 transition-colors"}
+      activeProps={{
+        className: "bg-gray-200 hover:bg-gray-200",
+      }}
+      activeOptions={{
+        includeSearch: true,
+        exact: true,
+      }}
+      preload="intent"
     >
-      <div className="mb-1 flex items-center justify-between space-x-3">
-        <span className="block text-sm font-medium text-gray-600">
-          {props.title}
-        </span>
-        <span className="text-xs text-gray-600">
-          {formatTime(props.duration)}
-        </span>
-      </div>
-      <div className="relative w-full">
-        <div
-          className={cn(
-            "w-full rounded-full h-1 bg-gray-200 transition-colors",
-            props.isActive && "bg-gray-300"
-          )}
-        ></div>
-        <div
-          className="absolute top-0 w-full rounded-full h-1 bg-gray-500"
-          style={{
-            left: `${props.startPercent}%`,
-            width: `${length}%`,
-          }}
-        ></div>
-      </div>
-    </NavLink>
+      {({ isActive }) => (
+        <>
+          <div className="mb-1 flex items-center justify-between space-x-3">
+            <span className="block text-sm font-medium text-gray-600">
+              {props.title}
+            </span>
+            <span className="text-xs text-gray-600">
+              {formatTime(props.duration)}
+            </span>
+          </div>
+          <div className="relative w-full">
+            <div
+              className={cn(
+                "w-full rounded-full h-1 bg-gray-200 transition-colors",
+                isActive && "bg-gray-300"
+              )}
+            ></div>
+            <div
+              className="absolute top-0 w-full rounded-full h-1 bg-gray-500"
+              style={{
+                left: `${props.startPercent}%`,
+                width: `${length}%`,
+              }}
+            ></div>
+          </div>
+        </>
+      )}
+    </Link>
   );
 };

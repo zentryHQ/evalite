@@ -23,7 +23,7 @@
     },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist", "*.tsbuildinfo", ".next", "build"],
+      "outputs": ["dist", "*.tsbuildinfo", ".next"],
       "cache": true
     },
     "after-build": {
