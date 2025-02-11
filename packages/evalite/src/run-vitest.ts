@@ -43,7 +43,7 @@ export const runVitest = async (opts: {
     server.start(DEFAULT_SERVER_PORT);
   }
 
-  let exitCode = 0;
+  let exitCode: number | undefined = undefined;
 
   const vitest = await createVitest(
     "test",
@@ -105,6 +105,8 @@ export const runVitest = async (opts: {
     dispose();
     await vitest.close();
 
-    process.exit(exitCode);
+    if (typeof exitCode === "number") {
+      process.exit(exitCode);
+    }
   }
 };
