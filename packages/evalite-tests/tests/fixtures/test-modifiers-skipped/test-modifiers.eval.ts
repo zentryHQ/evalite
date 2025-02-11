@@ -11,7 +11,7 @@ evalite("Regular Test", {
   scorers: [],
 });
 
-evalite("Skipped Test", {
+evalite.experimental_skip("Skipped Test", {
   data: () => {
     // This function should not be called because the test is skipped.
     console.log("opts.data() called in Skipped Test");
