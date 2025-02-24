@@ -1,5 +1,11 @@
 # evalite
 
+## 0.9.1
+
+### Patch Changes
+
+- 4ce56fb: Added markdown table visualisation in UI
+
 ## 0.9.0
 
 ### Minor Changes
