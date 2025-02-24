@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { ChevronDown, DownloadIcon } from "lucide-react";
 import { JSONTree } from "react-json-tree";
 import { isEvaliteFile } from "@evalite/core/utils";
+import remarkGfm from "remark-gfm"
 import type { Evalite } from "@evalite/core";
 import { downloadFile, serveFile } from "@evalite/core/sdk";
 
@@ -51,7 +52,9 @@ const DisplayText = ({
             overflow: "hidden",
           }}
         >
-          <ReactMarkdown className="prose prose-sm">{input}</ReactMarkdown>
+          <ReactMarkdown className="prose prose-sm" remarkPlugins={[remarkGfm]}>
+            {input}
+          </ReactMarkdown>
         </div>
       </Wrapper>
       {status === "showing-show-more-button" && shouldTruncateText && (

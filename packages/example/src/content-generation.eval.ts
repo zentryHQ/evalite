@@ -35,6 +35,10 @@ evalite("Content generation", {
         input:
           "Write a tweet about assertion functions (using the asserts keyword).",
       },
+      {
+        input:
+          "Write a simple markdown table with the following columns: Name, Age, City",
+      },
     ];
   },
   task: async (input) => {
