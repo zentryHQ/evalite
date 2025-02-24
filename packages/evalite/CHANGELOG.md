@@ -1,5 +1,17 @@
 # evalite
 
+## 0.9.0
+
+### Minor Changes
+
+- e3aff96: Added `--threshold`, for setting a score threshold for evals. This is useful for running on CI. If the score threshold is not met, it will fail the process.
+
+  ```bash
+  evalite --threshold=50 # Score must be greater than or equal to 50
+
+  evalite watch --threshold=70 # Also works in watch mode
+  ```
+
 ## 0.8.4
 
 ### Patch Changes
