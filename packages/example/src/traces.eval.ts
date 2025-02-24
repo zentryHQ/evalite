@@ -5,7 +5,16 @@ import { setTimeout } from "node:timers/promises";
 
 evalite("Traces", {
   data: async () => {
-    return [{ input: "abc", expected: "abcdef" }];
+    return [
+      { input: "abc", expected: "abcdef" },
+      {
+        input: `
+| table | table | table |
+| --- | --- | --- |
+| Name | Age | City |`,
+        expected: "abcdef",
+      },
+    ];
   },
   task: async (input) => {
     const start = performance.now();
