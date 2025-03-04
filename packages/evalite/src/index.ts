@@ -93,7 +93,7 @@ const runTask = async <TInput, TOutput, TExpected>(
   };
 };
 
-export const evalite = <TInput, TOutput, TExpected>(
+export const evalite = <TInput, TOutput, TExpected = TOutput>(
   evalName: string,
   opts: Evalite.RunnerOpts<TInput, TOutput, TExpected>
 ) => registerEvalite(evalName, opts);
@@ -215,7 +215,7 @@ function registerEvalite<TInput, TOutput, TExpected>(
   });
 }
 
-export const createScorer = <TInput, TOutput, TExpected>(
+export const createScorer = <TInput, TOutput, TExpected = TOutput>(
   opts: Evalite.ScorerOpts<TInput, TOutput, TExpected>
 ): Evalite.Scorer<TInput, TOutput, TExpected> => {
   return async (input: Evalite.ScoreInput<TInput, TOutput, TExpected>) => {

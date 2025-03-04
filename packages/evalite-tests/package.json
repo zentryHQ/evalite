@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vitest",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "lint": "tsc"
   },
   "dependencies": {
     "@evalite/core": "workspace:*",

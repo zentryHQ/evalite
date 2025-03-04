@@ -2,13 +2,19 @@ import { createScorer, evalite } from "evalite";
 import { Levenshtein } from "autoevals";
 import { setTimeout } from "node:timers/promises";
 
-evalite<{ input: string; output?: number }[]>("Basics", {
+type Shape = {
+  input: string;
+  output: number | undefined;
+};
+
+evalite<Shape[], Shape[], Shape[]>("Basics", {
   data: () => {
     return [
       {
         input: [
           {
             input: "abc",
+            output: undefined,
           },
         ],
         expected: [
