@@ -1,6 +1,4 @@
 import { createScorer, evalite } from "evalite";
-import { Levenshtein } from "autoevals";
-import { setTimeout } from "node:timers/promises";
 
 type Shape = {
   input: string;
