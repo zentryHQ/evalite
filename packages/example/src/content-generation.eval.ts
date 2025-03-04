@@ -1,11 +1,10 @@
 import { openai } from "@ai-sdk/openai";
-import { setTimeout } from "node:timers/promises";
 import { generateText } from "ai";
-import { createScorer, evalite } from "evalite";
+import { evalite } from "evalite";
+import { traceAISDKModel } from "evalite/ai-sdk";
 import { createStorage } from "unstorage";
 import fsDriver from "unstorage/drivers/fs";
 import { cacheModel } from "./cache-model";
-import { traceAISDKModel } from "evalite/ai-sdk";
 
 const storage = createStorage({
   driver: (fsDriver as any)({
@@ -94,21 +93,21 @@ evalite("Content generation", {
     return result.text;
   },
   scorers: [
-    createScorer({
+    {
       name: "No Hashtags",
       scorer: ({ output }) => {
         return output.includes("#") ? 0 : 1;
       },
-    }),
-    createScorer({
+    },
+    {
       name: "No Exclamation Marks",
       description: "Ensures the output contains no exclamation marks.",
       scorer: ({ output }) => {
         const codeOutsideCodeBlocks = output.replace(/```[\s\S]*?```/g, "");
         return codeOutsideCodeBlocks.includes("!") ? 0 : 1;
       },
-    }),
-    createScorer({
+    },
+    {
       name: "No React.FC in code examples",
       scorer: ({ output }) => {
         const codeExamples = output.match(/```[\s\S]*?```/g) || [];
@@ -119,6 +118,6 @@ evalite("Content generation", {
 
         return codeExamples.every((code) => !code.includes("React.FC")) ? 1 : 0;
       },
-    }),
+    },
   ],
 });

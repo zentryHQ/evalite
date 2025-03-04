@@ -27,10 +27,10 @@ const joinArrayOfUnknownResults = (results: unknown[]): unknown => {
   }, "");
 };
 
-const executeTask = async <TInput, TExpected>(
-  task: Evalite.Task<TInput, TExpected>,
+const executeTask = async <TInput, TOutput>(
+  task: Evalite.Task<TInput, TOutput>,
   input: TInput
-): Promise<TExpected> => {
+): Promise<TOutput> => {
   const taskResultOrStream = await task(input);
 
   if (
@@ -38,23 +38,23 @@ const executeTask = async <TInput, TExpected>(
     taskResultOrStream &&
     Symbol.asyncIterator in taskResultOrStream
   ) {
-    const chunks: TExpected[] = [];
+    const chunks: TOutput[] = [];
 
     for await (const chunk of taskResultOrStream) {
       chunks.push(chunk);
     }
 
-    return joinArrayOfUnknownResults(chunks) as TExpected;
+    return joinArrayOfUnknownResults(chunks) as TOutput;
   }
 
   return taskResultOrStream;
 };
 
-const runTask = async <TInput, TExpected>(
+const runTask = async <TInput, TOutput, TExpected>(
   opts: {
     input: TInput;
     expected: TExpected | undefined;
-  } & Omit<Evalite.RunnerOpts<TInput, TExpected>, "data">
+  } & Omit<Evalite.RunnerOpts<TInput, TOutput, TExpected>, "data">
 ) => {
   const start = performance.now();
   const output = await executeTask(opts.task, opts.input);
@@ -68,14 +68,21 @@ const runTask = async <TInput, TExpected>(
     })) || [];
 
   const scores = await Promise.all(
-    opts.scorers.map(
-      async (scorer) =>
-        await scorer({
+    opts.scorers.map(async (scorerOrOpts) => {
+      if (typeof scorerOrOpts === "function") {
+        return scorerOrOpts({
           input: opts.input,
           output,
           expected: opts.expected,
-        })
-    )
+        });
+      } else {
+        return createScorer(scorerOrOpts)({
+          input: opts.input,
+          output,
+          expected: opts.expected,
+        });
+      }
+    })
   );
 
   return {
@@ -86,19 +93,19 @@ const runTask = async <TInput, TExpected>(
   };
 };
 
-export const evalite = <TInput, TExpected = TInput>(
+export const evalite = <TInput, TOutput, TExpected>(
   evalName: string,
-  opts: Evalite.RunnerOpts<TInput, TExpected>
+  opts: Evalite.RunnerOpts<TInput, TOutput, TExpected>
 ) => registerEvalite(evalName, opts);
 
-evalite.experimental_skip = <TInput, TExpected = TInput>(
+evalite.experimental_skip = <TInput, TOutput, TExpected>(
   evalName: string,
-  opts: Evalite.RunnerOpts<TInput, TExpected>
+  opts: Evalite.RunnerOpts<TInput, TOutput, TExpected>
 ) => registerEvalite(evalName, opts, { modifier: "skip" });
 
-function registerEvalite<TInput, TExpected = TInput>(
+function registerEvalite<TInput, TOutput, TExpected>(
   evalName: string,
-  opts: Evalite.RunnerOpts<TInput, TExpected>,
+  opts: Evalite.RunnerOpts<TInput, TOutput, TExpected>,
   vitestOpts: { modifier?: "only" | "skip" } = {}
 ) {
   const describeFn = vitestOpts.modifier === "skip" ? describe.skip : describe;
@@ -208,14 +215,10 @@ function registerEvalite<TInput, TExpected = TInput>(
   });
 }
 
-export const createScorer = <TInput, TExpected = TInput>(opts: {
-  name: string;
-  description?: string;
-  scorer: (
-    input: Evalite.ScoreInput<TInput, TExpected>
-  ) => Evalite.MaybePromise<number | Evalite.UserProvidedScoreWithMetadata>;
-}): Evalite.Scorer<TInput, TExpected> => {
-  return async (input: Evalite.ScoreInput<TInput, TExpected>) => {
+export const createScorer = <TInput, TOutput, TExpected>(
+  opts: Evalite.ScorerOpts<TInput, TOutput, TExpected>
+): Evalite.Scorer<TInput, TOutput, TExpected> => {
+  return async (input: Evalite.ScoreInput<TInput, TOutput, TExpected>) => {
     const score = await opts.scorer(input);
 
     if (typeof score === "object") {
