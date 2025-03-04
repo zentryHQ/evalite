@@ -8,12 +8,40 @@ Scorers are used to score the output of your LLM call.
 
 [Autoevals](https://github.com/braintrustdata/autoevals) is a great library of scorers to get you started.
 
-You can create your own using `createScorer`:
+## Inline Scorers
+
+If you don't need your scorer to be reusable, you can define it inline.
+
+```ts
+import { evalite } from "evalite";
+
+evalite("My Eval", {
+  data: async () => {
+    return [{ input: "Hello" }];
+  },
+  task: async (input) => {
+    return input + " World!";
+  },
+  scorers: [
+    {
+      name: "Contains Paris",
+      description: "Checks if the output contains the word 'Paris'.",
+      scorer: ({ output }) => {
+        return output.includes("Paris") ? 1 : 0;
+      },
+    },
+  ],
+});
+```
+
+## Creating Reusable Scorers
+
+If you have a scorer you want to use across multiple files, you can use `createScorer` to create a reusable scorer.
 
 ```ts
 import { createScorer } from "evalite";
 
-const containsParis = createScorer<string>({
+const containsParis = createScorer<string, string>({
   name: "Contains Paris",
   description: "Checks if the output contains the word 'Paris'.",
   scorer: ({ output }) => {
@@ -34,14 +62,14 @@ evalite("My Eval", {
 
 The `name` and `description` of the scorer will be displayed in the Evalite UI.
 
-### Score Properties
+## Score Properties
 
 The `score` function receives three properties on the object passed:
 
 ```ts
 import { createScorer } from "evalite";
 
-const containsParis = createScorer({
+const containsParis = createScorer<string, string>({
   name: "Contains Paris",
   description: "Checks if the output contains the word 'Paris'.",
   scorer: ({ input, output, expected }) => {
@@ -53,25 +81,26 @@ const containsParis = createScorer({
 });
 ```
 
-## Type Arguments
-
-In TypeScript, `createScorer` takes two type arguments, the input and output type:
+These are typed using the three type arguments passed to `createScorer`:
 
 ```ts
 import { createScorer } from "evalite";
 
 const containsParis = createScorer<
-  string, // Input type
-  string // Output type
+  string, // Type of 'input'
+  string, // Type of 'output'
+  string // Type of 'expected'
 >({
-  name: "Contains Paris",
-  description: "Checks if the output contains the word 'Paris'.",
-  scorer: (output) => {
+  name: "Contains Word",
+  description: "Checks if the output contains the specified word.",
+  scorer: ({ output, input, expected }) => {
     // output is typed as string!
-    return output.includes("Paris") ? 1 : 0;
+    return output.includes(expected) ? 1 : 0;
   },
 });
 ```
+
+If `expected` is omitted, it will be inferred from the type of `output`.
 
 ## Scorer Metadata
 
@@ -117,7 +146,7 @@ import { z } from "zod";
 /**
  * Factuality scorer using OpenAI's GPT-4o model.
  */
-export const Factuality = createScorer<string, string>({
+export const Factuality = createScorer<string, string, string>({
   name: "Factuality",
   scorer: async ({ input, expected, output }) => {
     return checkFactuality({

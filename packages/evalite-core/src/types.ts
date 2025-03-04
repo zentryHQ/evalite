@@ -74,9 +74,9 @@ export declare namespace Evalite {
     metadata?: unknown;
   };
 
-  export type ScoreInput<TInput, TExpected> = {
+  export type ScoreInput<TInput, TOutput, TExpected> = {
     input: TInput;
-    output: TExpected;
+    output: TOutput;
     expected?: TExpected;
   };
 
@@ -86,21 +86,32 @@ export declare namespace Evalite {
     duration: number | undefined;
   };
 
-  export type Task<TInput, TExpected> = (
+  export type Task<TInput, TOutput> = (
     input: TInput
-  ) => MaybePromise<TExpected | AsyncIterable<TExpected>>;
+  ) => MaybePromise<TOutput | AsyncIterable<TOutput>>;
 
-  export type Scorer<TInput, TExpected> = (
-    opts: ScoreInput<TInput, TExpected>
+  export type Scorer<TInput, TOutput, TExpected> = (
+    opts: ScoreInput<TInput, TOutput, TExpected>
   ) => MaybePromise<Score>;
 
-  export type RunnerOpts<TInput, TExpected> = {
+  export type RunnerOpts<TInput, TOutput, TExpected> = {
     data: () => MaybePromise<{ input: TInput; expected?: TExpected }[]>;
-    task: Task<TInput, TExpected>;
-    scorers: Scorer<TInput, TExpected>[];
+    task: Task<TInput, TOutput>;
+    scorers: Array<
+      | Scorer<TInput, TOutput, TExpected>
+      | ScorerOpts<TInput, TOutput, TExpected>
+    >;
     experimental_customColumns?: (
-      opts: ScoreInput<TInput, TExpected>
+      opts: ScoreInput<TInput, TOutput, TExpected>
     ) => MaybePromise<RenderedColumn[]>;
+  };
+
+  export type ScorerOpts<TInput, TOutput, TExpected> = {
+    name: string;
+    description?: string;
+    scorer: (
+      input: Evalite.ScoreInput<TInput, TOutput, TExpected>
+    ) => Evalite.MaybePromise<number | Evalite.UserProvidedScoreWithMetadata>;
   };
 
   export interface Trace {
