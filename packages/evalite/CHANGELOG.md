@@ -1,5 +1,18 @@
 # evalite
 
+## 0.10.0
+
+### Minor Changes
+
+- 9fc6743: Changed the way types are inferred with Evalite - now, outputs will be inferred differently to 'expected' - much cleaner and less prone to errors.
+- 9fc6743: Added the ability to specify scorers inline, without needing to wrap with createScorer.
+
+### Patch Changes
+
+- Updated dependencies [9fc6743]
+- Updated dependencies [9fc6743]
+  - @evalite/core@0.7.0
+
 ## 0.9.1
 
 ### Patch Changes
