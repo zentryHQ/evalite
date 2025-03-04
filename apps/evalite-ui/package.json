@@ -7,7 +7,7 @@
     "build": "vite build",
     "after-build": "rm -rf ../../packages/evalite-core/dist/ui && cp -r dist ../../packages/evalite-core/dist/ui",
     "dev": "vite",
-    "lint": "tsc",
+    "lint": "tsr generate && tsc",
     "test": "vitest run"
   },
   "dependencies": {
@@ -42,6 +42,7 @@
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.15",
+    "@tanstack/router-cli": "^1.112.11",
     "@tanstack/router-devtools": "^1.99.6",
     "@tanstack/router-plugin": "^1.99.6",
     "@types/react": "19.0.10",
