@@ -1,5 +1,11 @@
 # @evalite/core
 
+## 0.7.1
+
+### Patch Changes
+
+- 1c09042: Fixed an error where timeouts would result in a non-descriptive "No result present" error.
+
 ## 0.7.0
 
 ### Minor Changes
