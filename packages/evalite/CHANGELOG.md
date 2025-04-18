@@ -1,5 +1,13 @@
 # evalite
 
+## 0.10.1
+
+### Patch Changes
+
+- 1c09042: Fixed an error where timeouts would result in a non-descriptive "No result present" error.
+- Updated dependencies [1c09042]
+  - @evalite/core@0.7.1
+
 ## 0.10.0
 
 ### Minor Changes
