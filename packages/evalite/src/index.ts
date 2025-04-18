@@ -153,6 +153,14 @@ function registerEvalite<TInput, TOutput, TExpected>(
           createEvaliteFileIfNeeded({ rootDir, input: data.expected }),
         ]);
 
+        task.meta.evalite.resultAfterFilesSaved = {
+          evalName,
+          filepath: task.file.filepath,
+          order: data.index,
+          input,
+          expected,
+        };
+
         try {
           const { output, scores, duration, experimental_columns } =
             await runTask({

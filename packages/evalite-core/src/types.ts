@@ -24,14 +24,7 @@ export declare namespace Evalite {
     order: number;
   }
 
-  export type ResultStatus = "success" | "fail";
-
-  export type RenderedColumn = {
-    label: string;
-    value: unknown;
-  };
-
-  export interface Result extends InitialResult {
+  export interface ResultAfterFilesSaved extends InitialResult {
     /**
      * Technically, input and expected are known at the start
      * of the evaluation. But because they may be files, they
@@ -41,6 +34,16 @@ export declare namespace Evalite {
      */
     input: unknown;
     expected?: unknown;
+  }
+
+  export type ResultStatus = "success" | "fail";
+
+  export type RenderedColumn = {
+    label: string;
+    value: unknown;
+  };
+
+  export interface Result extends ResultAfterFilesSaved {
     /**
      * Technically, input and expected are known at the start
      * of the evaluation. But because they may be files, they
@@ -82,6 +85,7 @@ export declare namespace Evalite {
 
   export type TaskMeta = {
     initialResult?: InitialResult;
+    resultAfterFilesSaved?: ResultAfterFilesSaved;
     result?: Result;
     duration: number | undefined;
   };

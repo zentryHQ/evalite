@@ -310,6 +310,7 @@ export default class EvaliteReporter extends BasicReporter {
             }
 
             break;
+
           default:
             throw new Error(`${event.type} not allowed in ${this.state.type}`);
         }
@@ -581,18 +582,39 @@ export default class EvaliteReporter extends BasicReporter {
       initialResult: test.meta.evalite.initialResult,
     });
   }
+
   onTestFinished(test: Test) {
     if (!test.suite) {
       throw new Error("No suite present");
     }
 
-    if (!test.meta.evalite?.result) {
-      throw new Error("No result present");
+    if (test.meta.evalite?.result) {
+      this.sendEvent({
+        type: "RESULT_SUBMITTED",
+        result: test.meta.evalite.result,
+      });
+
+      return;
     }
 
+    if (!test.meta.evalite?.resultAfterFilesSaved) {
+      throw new Error("No usable result present");
+    }
+
+    // At this point, the test has finished
+    // but not reported a result. We should
+    // indicate that the test has failed
     this.sendEvent({
       type: "RESULT_SUBMITTED",
-      result: test.meta.evalite.result,
+      result: {
+        ...test.meta.evalite.resultAfterFilesSaved,
+        status: "fail",
+        output: null,
+        duration: 0,
+        scores: [],
+        traces: [],
+        renderedColumns: [],
+      },
     });
   }
 
