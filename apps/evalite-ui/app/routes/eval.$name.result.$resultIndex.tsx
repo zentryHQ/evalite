@@ -301,6 +301,7 @@ function ResultComponent() {
                         <DisplayInput
                           shouldTruncateText={false}
                           input={score.metadata}
+                          name="metadata"
                         ></DisplayInput>
                       </div>
                     ) : null}
