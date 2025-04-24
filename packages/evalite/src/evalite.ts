@@ -5,7 +5,7 @@ import { reportTraceLocalStorage } from "./traces.js";
 import { writeFileQueueLocalStorage } from "./write-file-queue-local-storage.js";
 import { createEvaliteFileIfNeeded } from "./utils.js";
 import type { Evalite } from "./types.js";
-import { FILES_LOCATION } from "./constants.js";
+import { FILES_LOCATION } from "./backend-only-constants.js";
 import { createScorer } from "./index.js";
 
 declare module "vitest" {

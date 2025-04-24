@@ -5,11 +5,8 @@ import { createVitest, registerConsoleShortcuts } from "vitest/node";
 import EvaliteReporter from "./reporter.js";
 import { createDatabase } from "./db.js";
 import { createServer } from "./server.js";
-import {
-  DB_LOCATION,
-  DEFAULT_SERVER_PORT,
-  FILES_LOCATION,
-} from "./constants.js";
+import { DEFAULT_SERVER_PORT } from "./constants.js";
+import { DB_LOCATION, FILES_LOCATION } from "./backend-only-constants.js";
 
 declare module "vitest" {
   export interface ProvidedContext {
