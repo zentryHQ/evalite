@@ -9,7 +9,7 @@ import {
   updateEvalStatusAndDuration,
   updateResult,
   type SQLiteDatabase,
-} from "evalite/db";
+} from "./db.js";
 import type { Custom } from "@vitest/runner";
 import { getTests, hasFailed } from "@vitest/runner/utils";
 import { table } from "table";
