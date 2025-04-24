@@ -6,7 +6,7 @@ import { JSONTree } from "react-json-tree";
 import remarkGfm from "remark-gfm";
 import { downloadFile, serveFile } from "evalite/sdk";
 import type { Evalite } from "evalite/types";
-import { isEvaliteFile } from "evalite/utils";
+import { EvaliteFile } from "evalite";
 
 const MAX_HEIGHT = 240;
 
@@ -158,7 +158,7 @@ export const DisplayInput = (props: {
     );
   }
 
-  if (isEvaliteFile(props.input)) {
+  if (EvaliteFile.isEvaliteFile(props.input)) {
     return (
       <Wrapper className={props.className}>
         <DisplayEvaliteFile file={props.input} />

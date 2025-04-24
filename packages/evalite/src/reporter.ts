@@ -1,4 +1,3 @@
-import { type Evalite } from "evalite";
 import {
   createEvalIfNotExists,
   createRun,
@@ -11,7 +10,6 @@ import {
   updateResult,
   type SQLiteDatabase,
 } from "evalite/db";
-import { isEvaliteFile } from "evalite/utils";
 import type { Custom } from "@vitest/runner";
 import { getTests, hasFailed } from "@vitest/runner/utils";
 import { table } from "table";
@@ -20,6 +18,8 @@ import { inspect } from "util";
 import type { RunnerTask, RunnerTestFile, TaskResultPack, Test } from "vitest";
 import { BasicReporter } from "vitest/reporters";
 import { average } from "./utils.js";
+import type { Evalite } from "./types.js";
+import { EvaliteFile } from "./evalite-file.js";
 
 export interface EvaliteReporterOptions {
   isWatching: boolean;
@@ -659,7 +659,7 @@ const displayScore = (_score: number) => {
 };
 
 const renderMaybeEvaliteFile = (input: unknown) => {
-  if (isEvaliteFile(input)) {
+  if (EvaliteFile.isEvaliteFile(input)) {
     return input.path;
   }
 

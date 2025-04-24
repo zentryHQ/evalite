@@ -1,6 +1,6 @@
 import type * as BetterSqlite3 from "better-sqlite3";
 import Database from "better-sqlite3";
-import type { Evalite } from "./index.js";
+import type { Evalite } from "./types.js";
 import type { TaskState } from "vitest";
 import { max } from "./utils.js";
 
