@@ -3,7 +3,7 @@ import { reportTrace } from "evalite/traces";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-evalite("FilesWithColumns", {
+evalite("experimental_customColumns", {
   data: () => {
     return [
       {
@@ -16,7 +16,7 @@ evalite("FilesWithColumns", {
     return input + "def";
   },
   scorers: [],
-  columns: () => {
+  experimental_customColumns: () => {
     return [
       {
         label: "Column",

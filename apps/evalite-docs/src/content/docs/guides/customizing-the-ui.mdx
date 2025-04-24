@@ -12,7 +12,7 @@ By default, the Evalite UI renders the input, expected and output columns:
 | ------------------------ | --------------------------- | ---------------- |
 | `input` passed to `data` | `expected` passed to `data` | Result of `task` |
 
-You can customize the columns shown by the UI by passing an `experimental_customColumns` attribute to the `evalite` function:
+You can customize the columns shown by the UI by passing a `columns` attribute to the `evalite` function:
 
 ```ts
 import { evalite } from "evalite";
@@ -27,7 +27,7 @@ evalite("My Eval", {
     return input.theOnlyPropertyWeWantToShow + " World!";
   },
   scorers: [],
-  experimental_customColumns: async (result) => {
+  columns: async (result) => {
     return [
       {
         label: "Custom Input",

@@ -34,6 +34,7 @@
   "exports": {
     ".": "./dist/index.js",
     "./constants": "./dist/constants.js",
+    "./backend-only-constants": "./dist/backend-only-constants.js",
     "./utils": "./dist/utils.js",
     "./server": "./dist/server.js",
     "./types": "./dist/types.js",

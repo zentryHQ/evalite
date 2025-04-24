@@ -107,7 +107,13 @@ export declare namespace Evalite {
       | Scorer<TInput, TOutput, TExpected>
       | ScorerOpts<TInput, TOutput, TExpected>
     >;
+    /**
+     * @deprecated Use `columns` instead.
+     */
     experimental_customColumns?: (
+      opts: ScoreInput<TInput, TOutput, TExpected>
+    ) => MaybePromise<RenderedColumn[]>;
+    columns?: (
       opts: ScoreInput<TInput, TOutput, TExpected>
     ) => MaybePromise<RenderedColumn[]>;
   };

@@ -24,7 +24,7 @@ evalite("Test Objects", {
     return immutableInput;
   },
   scorers: [
-    createScorer<object>({
+    createScorer<object, object>({
       name: "Is Same",
       description: "Checks if the object passed is the same as expected.",
       scorer: ({ output, expected }) => {
@@ -32,7 +32,7 @@ evalite("Test Objects", {
       },
     }),
   ],
-  experimental_customColumns: async ({ input, output, expected }) => {
+  columns: async ({ input, output, expected }) => {
     return [
       {
         label: "Input",

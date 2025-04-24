@@ -1,4 +1,3 @@
-import { FILES_LOCATION } from "evalite/constants";
 import { createDatabase, getEvalsAsRecord } from "evalite/db";
 import { EvaliteFile } from "evalite";
 import { runVitest } from "evalite/runner";
@@ -6,6 +5,7 @@ import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { expect, it } from "vitest";
 import { captureStdout, loadFixture } from "./test-utils.js";
+import { FILES_LOCATION } from "evalite/backend-only-constants";
 
 it("Should save files returned from task() in node_modules", async () => {
   using fixture = loadFixture("files");
@@ -143,7 +143,7 @@ it("Should let users add files to data().input and data().expected", async () =>
   });
 });
 
-it("Should let users add files to experimental_customColumns", async () => {
+it("Should let users add files to columns", async () => {
   using fixture = loadFixture("files");
 
   const captured = captureStdout();
@@ -172,6 +172,48 @@ it("Should let users add files to experimental_customColumns", async () => {
   const evals = await getEvalsAsRecord(db);
 
   expect(evals.FilesWithColumns![0]).toMatchObject({
+    results: [
+      {
+        rendered_columns: [
+          {
+            label: "Column",
+            value: EvaliteFile.fromPath(filePath),
+          },
+        ],
+      },
+    ],
+  });
+});
+
+it("Should let users add files to experimental_customColumns", async () => {
+  using fixture = loadFixture("experimental_columns");
+
+  const captured = captureStdout();
+
+  await runVitest({
+    cwd: fixture.dir,
+    path: undefined,
+    testOutputWritable: captured.writable,
+    mode: "run-once-and-exit",
+  });
+
+  const dir = path.join(fixture.dir, FILES_LOCATION);
+
+  const files = await readdir(dir);
+
+  expect(files).toHaveLength(1);
+
+  const filePath = path.join(dir, files[0]!);
+
+  const file = await readFile(filePath);
+
+  expect(file).toBeTruthy();
+
+  const db = createDatabase(fixture.dbLocation);
+
+  const evals = await getEvalsAsRecord(db);
+
+  expect(evals.experimental_customColumns![0]).toMatchObject({
     results: [
       {
         rendered_columns: [

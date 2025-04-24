@@ -1,5 +1,3 @@
-import { generateText } from "ai";
-import { Levenshtein } from "autoevals";
 import { evalite } from "evalite";
 
 evalite("Columns", {
@@ -21,7 +19,7 @@ evalite("Columns", {
     };
   },
   scorers: [],
-  experimental_customColumns: async ({ input, output, expected }) => {
+  columns: async ({ input, output, expected }) => {
     return [
       {
         label: "Input First",
