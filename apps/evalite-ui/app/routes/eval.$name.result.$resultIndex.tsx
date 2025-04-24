@@ -4,6 +4,7 @@ import { SidebarCloseIcon } from "lucide-react";
 import type React from "react";
 import { Fragment } from "react";
 import { DisplayInput } from "~/components/display-input";
+import { CopyButton } from "~/components/ui/copy-button";
 import { getScoreState, Score } from "~/components/score";
 import {
   Breadcrumb,
@@ -56,17 +57,28 @@ const MainBodySection = ({
   title,
   description,
   children,
+  copyableText,
 }: {
   title: string;
   description?: string;
   children: React.ReactNode;
+  copyableText?: string;
 }) => (
   <div className="text-sm">
     <div className="mb-3">
-      <h2 className="font-medium text-base text-gray-600">{title}</h2>
-      {description && (
-        <p className="text-gray-500 text-xs mt-1">{description}</p>
-      )}
+      <div className="flex items-center justify-between">
+        <div className="flex-grow">
+          <h2 className="font-medium text-base text-gray-600">{title}</h2>
+          {description && (
+            <p className="text-gray-500 text-xs mt-1">{description}</p>
+          )}
+        </div>
+        {copyableText && (
+          <div className="flex items-center gap-2">
+            <CopyButton value={copyableText} />
+          </div>
+        )}
+      </div>
     </div>
     <div className="mt-1 text-gray-600">{children}</div>
   </div>
@@ -123,6 +135,9 @@ function ResultComponent() {
       <MainBodySection
         title="Input"
         description={`The input passed to the task.`}
+        copyableText={
+          typeof result.input === "string" ? result.input : undefined
+        }
       >
         <DisplayInput
           shouldTruncateText={false}
@@ -135,6 +150,9 @@ function ResultComponent() {
           <MainBodySection
             title="Expected"
             description={`A description of the expected output of the task.`}
+            copyableText={
+              typeof result.expected === "string" ? result.expected : undefined
+            }
           >
             <DisplayInput
               shouldTruncateText={false}
@@ -144,7 +162,13 @@ function ResultComponent() {
           <MainBodySeparator />
         </>
       ) : null}
-      <MainBodySection title="Output" description="The output of the task.">
+      <MainBodySection
+        title="Output"
+        description="The output of the task."
+        copyableText={
+          typeof result.output === "string" ? result.output : undefined
+        }
+      >
         <DisplayInput
           shouldTruncateText={false}
           input={result.output}
@@ -271,6 +295,11 @@ function ResultComponent() {
                         <MainBodySection
                           title={column.label}
                           description={undefined}
+                          copyableText={
+                            typeof column.value === "string"
+                              ? column.value
+                              : undefined
+                          }
                         >
                           <DisplayInput
                             shouldTruncateText={false}
