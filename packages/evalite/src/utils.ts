@@ -1,6 +1,5 @@
 import { fileTypeFromBuffer } from "file-type";
 import path from "path";
-import { EvaliteFile } from "./evalite-file.js";
 
 export const sum = <T>(arr: T[], fn: (item: T) => number | undefined) => {
   return arr.reduce((a, b) => a + (fn(b) || 0), 0);
@@ -43,4 +42,25 @@ export const createEvaliteFileIfNeeded = async (opts: {
 
 export const max = <T>(arr: T[], fn: (item: T) => number | undefined) => {
   return arr.reduce((a, b) => Math.max(a, fn(b) || 0), 0);
+};
+
+import type { Evalite } from "./types.js";
+
+const isEvaliteFile = (file: unknown): file is Evalite.File => {
+  return (
+    typeof file === "object" &&
+    file !== null &&
+    "__EvaliteFile" in file &&
+    file.__EvaliteFile === true
+  );
+};
+
+export const EvaliteFile = {
+  fromPath: (path: string): Evalite.File => {
+    return {
+      __EvaliteFile: true,
+      path,
+    };
+  },
+  isEvaliteFile: isEvaliteFile,
 };

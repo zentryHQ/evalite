@@ -6,7 +6,7 @@ import { JSONTree } from "react-json-tree";
 import remarkGfm from "remark-gfm";
 import { downloadFile, serveFile } from "evalite/sdk";
 import type { Evalite } from "evalite/types";
-import { EvaliteFile } from "evalite";
+import { EvaliteFile } from "evalite/utils";
 
 const MAX_HEIGHT = 240;
 

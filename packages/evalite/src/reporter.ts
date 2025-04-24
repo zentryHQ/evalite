@@ -19,7 +19,7 @@ import type { RunnerTask, RunnerTestFile, TaskResultPack, Test } from "vitest";
 import { BasicReporter } from "vitest/reporters";
 import { average } from "./utils.js";
 import type { Evalite } from "./types.js";
-import { EvaliteFile } from "./evalite-file.js";
+import { EvaliteFile } from "./utils.js";
 
 export interface EvaliteReporterOptions {
   isWatching: boolean;
