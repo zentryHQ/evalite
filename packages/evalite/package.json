@@ -52,7 +52,6 @@
     "@fastify/static": "^8.0.3",
     "@fastify/websocket": "11.0.1",
     "fastify": "^5.1.0",
-    "fs-reverse": "^0.0.3",
     "file-type": "^19.6.0",
     "table": "^6.8.2",
     "tinyrainbow": "^1.2.0"
