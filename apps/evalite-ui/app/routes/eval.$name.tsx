@@ -284,7 +284,7 @@ function EvalComponent() {
                       {isArrayOfRenderedColumns(result.rendered_columns) ? (
                         <>
                           {result.rendered_columns.map((column) => (
-                            <td className="align-top">
+                            <td className="align-top max-w-[300px] break-words">
                               <DisplayInput
                                 className={cn(
                                   isRunningEval && "opacity-25",
@@ -299,7 +299,7 @@ function EvalComponent() {
                         </>
                       ) : (
                         <>
-                          <td className="align-top">
+                          <td className="align-top max-w-[300px] break-words">
                             <DisplayInput
                               className={cn(
                                 isRunningEval && "opacity-25",
@@ -310,7 +310,7 @@ function EvalComponent() {
                               Wrapper={Wrapper}
                             />
                           </td>
-                          <td className="align-top">
+                          <td className="align-top max-w-[300px] break-words">
                             <DisplayInput
                               className={cn(
                                 isRunningEval && "opacity-25",
@@ -322,7 +322,7 @@ function EvalComponent() {
                             />
                           </td>
                           {showExpectedColumn && (
-                            <td className="align-top">
+                            <td className="align-top max-w-[300px] break-words">
                               <DisplayInput
                                 className={cn(
                                   isRunningEval && "opacity-25",

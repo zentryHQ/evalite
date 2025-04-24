@@ -148,9 +148,9 @@ function ResultComponent() {
     </>
   );
   return (
-    <>
-      <SidebarHeader>
-        <div className="flex items-center gap-3">
+    <div className="flex flex-col h-full">
+      <div className="sticky top-0 z-50 bg-sidebar border-b border-sidebar-border shadow-sm">
+        <div className="p-2 flex items-center gap-3">
           <Button size={"icon"} variant="ghost" asChild>
             <Link
               to={"/eval/$name"}
@@ -199,159 +199,161 @@ function ResultComponent() {
             </Breadcrumb>
           </div>
         </div>
-        <Separator className="mt-2" />
-      </SidebarHeader>
-      <SidebarContent className="p-2 pb-8 flex flex-row h-full">
-        <div className="w-44 flex flex-col gap-3 flex-shrink-0">
-          <TraceMenuItem
-            duration={endTime - startTime}
-            title="Eval"
-            startPercent={0}
-            endPercent={100}
-            name={name}
-            resultIndex={resultIndex}
-          />
-          {result.traces.map((trace, index) => {
-            const startTimeWithinTrace = trace.start_time - startTime;
-            const endTimeWithinTrace = trace.end_time - startTime;
+      </div>
+      <div className="flex-1 overflow-auto">
+        <div className="flex flex-row h-full">
+          <div className="w-44 flex flex-col gap-3 flex-shrink-0 p-2">
+            <TraceMenuItem
+              duration={endTime - startTime}
+              title="Eval"
+              startPercent={0}
+              endPercent={100}
+              name={name}
+              resultIndex={resultIndex}
+            />
+            {result.traces.map((trace, index) => {
+              const startTimeWithinTrace = trace.start_time - startTime;
+              const endTimeWithinTrace = trace.end_time - startTime;
 
-            const startPercent =
-              (startTimeWithinTrace / totalTraceDuration) * 100;
-            const endPercent = (endTimeWithinTrace / totalTraceDuration) * 100;
-            return (
-              <TraceMenuItem
-                key={index}
-                duration={trace.end_time - trace.start_time}
-                title={`Trace ${index + 1}`}
-                name={name}
-                resultIndex={resultIndex}
-                traceIndex={index}
-                endPercent={endPercent}
-                startPercent={startPercent}
-              />
-            );
-          })}
-          {result.traces.length === 0 && (
-            <span className="text-xs block text-gray-500 text-center text-balance">
-              Use <code>reportTrace</code> to capture traces.
-            </span>
-          )}
-        </div>
-        <div className="flex-grow border-l pl-4">
-          {traceBeingViewed == null && (
-            <>
-              {wholeEvalUsage && (
-                <>
-                  <MainBodySection
-                    title="Token Usage"
-                    description="How many tokens the entire evaluation used."
-                  >
-                    <span className="block mb-1 text-sm">
-                      Prompt Tokens: {wholeEvalUsage.prompt_tokens}
-                    </span>
-                    <span className="block">
-                      Completion Tokens: {wholeEvalUsage.completion_tokens}
-                    </span>
-                  </MainBodySection>
-                  <MainBodySeparator />
-                </>
-              )}
-              {!hasCustomColumns && inputOutputSection}
-              {hasCustomColumns &&
-                (result.rendered_columns as Evalite.RenderedColumn[]).map(
-                  (column, index) => (
-                    <Fragment key={column.label}>
-                      {index > 0 && <MainBodySeparator />}
-                      <MainBodySection
-                        title={column.label}
-                        description={undefined}
-                      >
-                        <DisplayInput
-                          shouldTruncateText={false}
-                          input={column.value}
-                        ></DisplayInput>
-                      </MainBodySection>
-                    </Fragment>
-                  )
-                )}
-
-              {result.scores.map((score) => (
-                <Fragment key={score.name}>
-                  <MainBodySeparator />
-                  <MainBodySection
-                    key={score.name}
-                    title={score.name}
-                    description={score.description}
-                  >
-                    <Score
-                      isRunning={isRunning}
-                      score={score.score ?? 0}
-                      state={getScoreState(
-                        score.score ?? 0,
-                        prevResult?.scores.find(
-                          (prevScore) => prevScore.name === score.name
-                        )?.score
-                      )}
-                      evalStatus={evaluation.status}
-                      resultStatus={result.status}
-                    />
-                  </MainBodySection>
-                  {score.metadata ? (
-                    <>
-                      <DisplayInput
-                        shouldTruncateText={false}
-                        input={score.metadata}
-                      ></DisplayInput>
-                    </>
-                  ) : null}
-                </Fragment>
-              ))}
-
-              {hasCustomColumns && (
-                <>
-                  <MainBodySeparator />
-                  {inputOutputSection}
-                </>
-              )}
-            </>
-          )}
-          {traceBeingViewed && (
-            <>
-              {typeof traceBeingViewed.completion_tokens === "number" &&
-                typeof traceBeingViewed.prompt_tokens === "number" && (
+              const startPercent =
+                (startTimeWithinTrace / totalTraceDuration) * 100;
+              const endPercent = (endTimeWithinTrace / totalTraceDuration) * 100;
+              return (
+                <TraceMenuItem
+                  key={index}
+                  duration={trace.end_time - trace.start_time}
+                  title={`Trace ${index + 1}`}
+                  name={name}
+                  resultIndex={resultIndex}
+                  traceIndex={index}
+                  endPercent={endPercent}
+                  startPercent={startPercent}
+                />
+              );
+            })}
+            {result.traces.length === 0 && (
+              <span className="text-xs block text-gray-500 text-center text-balance">
+                Use <code>reportTrace</code> to capture traces.
+              </span>
+            )}
+          </div>
+          <div className="flex-grow border-l p-4">
+            {traceBeingViewed == null && (
+              <>
+                {wholeEvalUsage && (
                   <>
                     <MainBodySection
                       title="Token Usage"
-                      description="How many tokens were used by this trace."
+                      description="How many tokens the entire evaluation used."
                     >
                       <span className="block mb-1 text-sm">
-                        Prompt Tokens: {traceBeingViewed.prompt_tokens}
+                        Prompt Tokens: {wholeEvalUsage.prompt_tokens}
                       </span>
                       <span className="block">
-                        Completion Tokens: {traceBeingViewed.completion_tokens}
+                        Completion Tokens: {wholeEvalUsage.completion_tokens}
                       </span>
                     </MainBodySection>
                     <MainBodySeparator />
                   </>
                 )}
-              <MainBodySection title="Input">
-                <DisplayInput
-                  shouldTruncateText={false}
-                  input={traceBeingViewed.input}
-                ></DisplayInput>
-              </MainBodySection>
-              <MainBodySeparator />
-              <MainBodySection title="Output">
-                <DisplayInput
-                  shouldTruncateText={false}
-                  input={traceBeingViewed.output}
-                ></DisplayInput>
-              </MainBodySection>
-            </>
-          )}
+                {!hasCustomColumns && inputOutputSection}
+                {hasCustomColumns &&
+                  (result.rendered_columns as Evalite.RenderedColumn[]).map(
+                    (column, index) => (
+                      <Fragment key={column.label}>
+                        {index > 0 && <MainBodySeparator />}
+                        <MainBodySection
+                          title={column.label}
+                          description={undefined}
+                        >
+                          <DisplayInput
+                            shouldTruncateText={false}
+                            input={column.value}
+                          ></DisplayInput>
+                        </MainBodySection>
+                      </Fragment>
+                    )
+                  )}
+
+                {result.scores.map((score) => (
+                  <Fragment key={score.name}>
+                    <MainBodySeparator />
+                    <MainBodySection
+                      key={score.name}
+                      title={score.name}
+                      description={score.description}
+                    >
+                      <Score
+                        isRunning={isRunning}
+                        score={score.score ?? 0}
+                        state={getScoreState(
+                          score.score ?? 0,
+                          prevResult?.scores.find(
+                            (prevScore) => prevScore.name === score.name
+                          )?.score
+                        )}
+                        evalStatus={evaluation.status}
+                        resultStatus={result.status}
+                      />
+                    </MainBodySection>
+                    {score.metadata ? (
+                      <>
+                        <DisplayInput
+                          shouldTruncateText={false}
+                          input={score.metadata}
+                        ></DisplayInput>
+                      </>
+                    ) : null}
+                  </Fragment>
+                ))}
+
+                {hasCustomColumns && (
+                  <>
+                    <MainBodySeparator />
+                    {inputOutputSection}
+                  </>
+                )}
+              </>
+            )}
+            {traceBeingViewed && (
+              <>
+                {typeof traceBeingViewed.completion_tokens === "number" &&
+                  typeof traceBeingViewed.prompt_tokens === "number" && (
+                    <>
+                      <MainBodySection
+                        title="Token Usage"
+                        description="How many tokens were used by this trace."
+                      >
+                        <span className="block mb-1 text-sm">
+                          Prompt Tokens: {traceBeingViewed.prompt_tokens}
+                        </span>
+                        <span className="block">
+                          Completion Tokens:{" "}
+                          {traceBeingViewed.completion_tokens}
+                        </span>
+                      </MainBodySection>
+                      <MainBodySeparator />
+                    </>
+                  )}
+                <MainBodySection title="Input">
+                  <DisplayInput
+                    shouldTruncateText={false}
+                    input={traceBeingViewed.input}
+                  ></DisplayInput>
+                </MainBodySection>
+                <MainBodySeparator />
+                <MainBodySection title="Output">
+                  <DisplayInput
+                    shouldTruncateText={false}
+                    input={traceBeingViewed.output}
+                  ></DisplayInput>
+                </MainBodySection>
+              </>
+            )}
+          </div>
         </div>
-      </SidebarContent>
-    </>
+      </div>
+    </div>
   );
 }
 
