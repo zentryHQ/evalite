@@ -1,4 +1,4 @@
-import { type Evalite } from "@evalite/core";
+import { type Evalite } from "evalite";
 import {
   createEvalIfNotExists,
   createRun,
@@ -10,8 +10,8 @@ import {
   updateEvalStatusAndDuration,
   updateResult,
   type SQLiteDatabase,
-} from "@evalite/core/db";
-import { isEvaliteFile } from "@evalite/core/utils";
+} from "evalite/db";
+import { isEvaliteFile } from "evalite/utils";
 import type { Custom } from "@vitest/runner";
 import { getTests, hasFailed } from "@vitest/runner/utils";
 import { table } from "table";

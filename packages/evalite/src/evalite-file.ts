@@ -1,5 +1,5 @@
-import { type Evalite } from "@evalite/core";
-import { isEvaliteFile } from "@evalite/core/utils";
+import type { Evalite } from "./types.js";
+import { isEvaliteFile } from "./utils.js";
 
 export const EvaliteFile = {
   fromPath: (path: string): Evalite.File => {

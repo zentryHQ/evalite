@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { runVitest } from "evalite/runner";
 import { captureStdout, loadFixture } from "./test-utils.js";
-import { createDatabase, getEvalsAsRecord } from "@evalite/core/db";
+import { createDatabase, getEvalsAsRecord } from "evalite/db";
 
 it("Should handle timeouts gracefully", async () => {
   using fixture = loadFixture("timeout");

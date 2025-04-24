@@ -1,7 +1,7 @@
 import { assert, expect, it, vitest } from "vitest";
 import { runVitest } from "evalite/runner";
 import { captureStdout, loadFixture } from "./test-utils.js";
-import { createDatabase, getEvals, getEvalsAsRecord } from "@evalite/core/db";
+import { createDatabase, getEvals, getEvalsAsRecord } from "evalite/db";
 
 it("Should set exitCode to 1 if the score is below the threshold", async () => {
   using fixture = loadFixture("threshold");

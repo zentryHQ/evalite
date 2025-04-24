@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { runVitest } from "evalite/runner";
 import { captureStdout, loadFixture } from "./test-utils.js";
 import { createScorer } from "evalite";
-import { createDatabase, getEvalsAsRecord } from "@evalite/core/db";
+import { createDatabase, getEvalsAsRecord } from "evalite/db";
 
 it("Should let users create custom scorers", async () => {
   using fixture = loadFixture("custom-scorer");

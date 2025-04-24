@@ -1,7 +1,7 @@
 import { assert, expect, it } from "vitest";
 import { runVitest } from "evalite/runner";
 import { captureStdout, loadFixture } from "./test-utils.js";
-import { createDatabase, getEvalsAsRecord } from "@evalite/core/db";
+import { createDatabase, getEvalsAsRecord } from "evalite/db";
 
 it("Should allow you to pass a specific filename to run", async () => {
   using fixture = loadFixture("paths");

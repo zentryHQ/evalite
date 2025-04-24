@@ -5,13 +5,13 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "after-build": "rm -rf ../../packages/evalite-core/dist/ui && cp -r dist ../../packages/evalite-core/dist/ui",
+    "after-build": "rm -rf ../../packages/evalite/dist/ui && cp -r dist ../../packages/evalite/dist/ui",
     "dev": "vite",
     "lint": "tsr generate && tsc",
     "test": "vitest run"
   },
   "dependencies": {
-    "@evalite/core": "workspace:*",
+    "evalite": "workspace:*",
     "@radix-ui/react-avatar": "^1.1.1",
     "@radix-ui/react-collapsible": "^1.1.1",
     "@radix-ui/react-dialog": "^1.1.2",

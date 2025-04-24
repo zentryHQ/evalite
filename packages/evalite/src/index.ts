@@ -1,10 +1,11 @@
-import { FILES_LOCATION, type Evalite } from "@evalite/core";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import { describe, inject, it } from "vitest";
 import { reportTraceLocalStorage } from "./traces.js";
 import { writeFileQueueLocalStorage } from "./write-file-queue-local-storage.js";
 import { createEvaliteFileIfNeeded } from "./utils.js";
+import type { Evalite } from "./types.js";
+import { FILES_LOCATION } from "./constants.js";
 
 declare module "vitest" {
   interface TaskMeta {

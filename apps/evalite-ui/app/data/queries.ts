@@ -1,10 +1,10 @@
-import { queryOptions } from "@tanstack/react-query";
 import {
   getMenuItems,
   getServerState,
   getResult,
   getEvalByName,
-} from "@evalite/core/sdk";
+} from "evalite/sdk";
+import { queryOptions } from "@tanstack/react-query";
 
 export const getMenuItemsQueryOptions = queryOptions({
   queryKey: ["menu-items"] as const,

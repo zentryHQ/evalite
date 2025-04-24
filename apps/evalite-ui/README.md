@@ -12,4 +12,4 @@ pnpm run dev
 
 ## Deployment
 
-The UI is copied into the `@evalite/core` package during the `after-build` script in the root `package.json`.
+The UI is copied into the `evalite` package during the `after-build` script in the root `package.json`.
