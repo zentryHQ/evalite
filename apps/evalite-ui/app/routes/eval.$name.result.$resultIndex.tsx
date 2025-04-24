@@ -1,7 +1,7 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
-import type React from "react";
 import { SidebarCloseIcon } from "lucide-react";
+import type React from "react";
 import { Fragment } from "react";
 import { DisplayInput } from "~/components/display-input";
 import { getScoreState, Score } from "~/components/score";
@@ -13,19 +13,18 @@ import {
 import { Button } from "~/components/ui/button";
 import { LiveDate } from "~/components/ui/live-date";
 import { Separator } from "~/components/ui/separator";
-import { SidebarContent, SidebarHeader } from "~/components/ui/sidebar";
 import { cn } from "~/lib/utils";
 import { formatTime, isArrayOfRenderedColumns } from "~/utils";
 
+import { useSuspenseQueries } from "@tanstack/react-query";
+import type { Evalite } from "evalite/types";
+import { sum } from "evalite/utils";
 import { z } from "zod";
 import {
   getResultQueryOptions,
   getServerStateQueryOptions,
 } from "~/data/queries";
-import { useSuspenseQueries } from "@tanstack/react-query";
 import { useServerStateUtils } from "~/hooks/use-server-state-utils";
-import { sum } from "evalite/utils";
-import type { Evalite } from "evalite/types";
 
 const searchSchema = z.object({
   trace: z.number().optional(),
@@ -298,12 +297,12 @@ function ResultComponent() {
                       />
                     </MainBodySection>
                     {score.metadata ? (
-                      <>
+                      <div className="mt-2">
                         <DisplayInput
                           shouldTruncateText={false}
                           input={score.metadata}
                         ></DisplayInput>
-                      </>
+                      </div>
                     ) : null}
                   </Fragment>
                 ))}

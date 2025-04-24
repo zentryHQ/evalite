@@ -16,12 +16,6 @@ import {
   getTraces,
   type SQLiteDatabase,
 } from "./db.js";
-import {
-  type GetEvalByNameResult,
-  type GetMenuItemsResult,
-  type GetMenuItemsResultEval,
-  type GetResultResult,
-} from "./sdk.js";
 import type { Evalite } from "./types.js";
 import { average } from "./utils.js";
 
@@ -99,7 +93,7 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
   });
 
   server.get<{
-    Reply: GetMenuItemsResult;
+    Reply: Evalite.SDK.GetMenuItemsResult;
   }>("/api/menu-items", async (req, reply) => {
     const latestFullRun = getMostRecentRun(opts.db, "full");
 
@@ -149,7 +143,7 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
 
     const createEvalMenuItem = (
       e: (typeof allEvals)[number]
-    ): GetMenuItemsResultEval => {
+    ): Evalite.SDK.GetMenuItemsResultEval => {
       const score =
         evalsAverageScores.find((s) => s.eval_id === e.id)?.average ?? 0;
       const prevScore = evalsAverageScores.find(
@@ -203,7 +197,7 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
       name: string;
       timestamp?: string;
     };
-    Reply: GetEvalByNameResult;
+    Reply: Evalite.SDK.GetEvalByNameResult;
   }>({
     method: "GET",
     url: "/api/eval",
@@ -282,7 +276,7 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
       index: string;
       timestamp?: string;
     };
-    Reply: GetResultResult;
+    Reply: Evalite.SDK.GetResultResult;
   }>({
     method: "GET",
     url: "/api/eval/result",
@@ -348,7 +342,7 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
         results.map((r) => r.id)
       );
 
-      const result: GetResultResult["result"] = {
+      const result: Evalite.SDK.GetResultResult["result"] = {
         ...thisResult,
         score:
           averageScores.find((s) => s.result_id === thisResult.id)?.average ??
@@ -359,15 +353,16 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
 
       const prevResultInDb = prevEvaluationResults[Number(req.query.index)];
 
-      const prevResult: GetResultResult["prevResult"] = prevResultInDb
-        ? {
-            ...prevResultInDb,
-            score:
-              averageScores.find((s) => s.result_id === prevResultInDb.id)
-                ?.average ?? 0,
-            scores: scores.filter((s) => s.result_id === prevResultInDb.id),
-          }
-        : undefined;
+      const prevResult: Evalite.SDK.GetResultResult["prevResult"] =
+        prevResultInDb
+          ? {
+              ...prevResultInDb,
+              score:
+                averageScores.find((s) => s.result_id === prevResultInDb.id)
+                  ?.average ?? 0,
+              scores: scores.filter((s) => s.result_id === prevResultInDb.id),
+            }
+          : undefined;
 
       return res.code(200).send({
         result,

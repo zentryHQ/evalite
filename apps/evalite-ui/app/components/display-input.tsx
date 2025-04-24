@@ -4,9 +4,36 @@ import { Button } from "./ui/button";
 import { ChevronDown, DownloadIcon } from "lucide-react";
 import { JSONTree } from "react-json-tree";
 import remarkGfm from "remark-gfm";
-import { downloadFile, serveFile } from "evalite/sdk";
+import { downloadFile, serveFile } from "~/sdk";
 import type { Evalite } from "evalite/types";
 import { EvaliteFile } from "evalite/utils";
+
+// Helper function to find single string value in an object and its path
+const findSingleStringValue = (
+  obj: object
+): { path: string[]; value: string } | null => {
+  const paths: { path: string[]; value: string }[] = [];
+
+  const traverse = (currentObj: unknown, currentPath: string[] = []) => {
+    if (typeof currentObj === "string") {
+      paths.push({ path: [...currentPath], value: currentObj });
+      return;
+    }
+
+    if (typeof currentObj !== "object" || currentObj === null) {
+      return;
+    }
+
+    Object.entries(currentObj).forEach(([key, value]) => {
+      traverse(value, [...currentPath, key]);
+    });
+  };
+
+  traverse(obj);
+
+  // If we found exactly one string value, return it with its path
+  return paths.length === 1 ? paths[0]! : null;
+};
 
 const MAX_HEIGHT = 240;
 
@@ -74,7 +101,40 @@ const DisplayText = ({
   );
 };
 
-const DisplayJSON = ({ input }: { input: object }) => {
+const DisplayJSON = ({
+  input,
+  name,
+}: {
+  input: object;
+  name: string | undefined;
+}) => {
+  // Check if object has only one string value
+  const singleStringResult = findSingleStringValue(input);
+
+  if (singleStringResult) {
+    // If it does, render the breadcrumbs and DisplayText component
+    return (
+      <div>
+        {singleStringResult.path.length > 0 && (
+          <div className="flex items-center text-sm text-muted-foreground mb-2">
+            <span className="font-mono">{name ?? "object"}</span>
+            {singleStringResult.path.map((segment, index) => (
+              <React.Fragment key={index}>
+                <span className="font-mono">.{segment}</span>
+              </React.Fragment>
+            ))}
+          </div>
+        )}
+        <DisplayText
+          input={singleStringResult.value}
+          shouldTruncateText={true}
+          Wrapper={Fragment}
+        />
+      </div>
+    );
+  }
+
+  // Otherwise, render the normal JSON tree
   return (
     <JSONTree
       data={input}
@@ -141,6 +201,11 @@ export const DisplayEvaliteFile = ({ file }: { file: Evalite.File }) => {
 };
 
 export const DisplayInput = (props: {
+  /**
+   * If displaying an object, the name is used to
+   * display the path to the value
+   */
+  name?: string;
   input: unknown;
   shouldTruncateText: boolean;
   className?: string;
@@ -169,7 +234,7 @@ export const DisplayInput = (props: {
   if (typeof props.input === "object" && props.input !== null) {
     return (
       <Wrapper className={props.className}>
-        <DisplayJSON input={props.input} />
+        <DisplayJSON input={props.input} name={props.name} />
       </Wrapper>
     );
   }

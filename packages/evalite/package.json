@@ -36,7 +36,6 @@
     "./constants": "./dist/constants.js",
     "./utils": "./dist/utils.js",
     "./server": "./dist/server.js",
-    "./sdk": "./dist/sdk.js",
     "./types": "./dist/types.js",
     "./db": "./dist/db.js",
     "./reporter": "./dist/reporter.js",

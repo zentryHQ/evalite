@@ -1,3 +1,5 @@
+import type { Db } from "./db.js";
+
 export declare namespace Evalite {
   export type RunType = "full" | "partial";
 
@@ -143,4 +145,44 @@ export declare namespace Evalite {
     __EvaliteFile: true;
     path: string;
   };
+
+  export namespace SDK {
+    export type GetEvalByNameResult = {
+      history: {
+        score: number;
+        date: string;
+      }[];
+      evaluation: Db.Eval & { results: (Db.Result & { scores: Db.Score[] })[] };
+      prevEvaluation:
+        | (Db.Eval & { results: (Db.Result & { scores: Db.Score[] })[] })
+        | undefined;
+    };
+
+    export type GetMenuItemsResultEval = {
+      filepath: string;
+      score: number;
+      name: string;
+      prevScore: number | undefined;
+      evalStatus: Db.EvalStatus;
+    };
+
+    export type GetMenuItemsResult = {
+      evals: GetMenuItemsResultEval[];
+      score: number;
+      prevScore: number | undefined;
+      evalStatus: Db.EvalStatus;
+    };
+
+    export type GetResultResult = {
+      result: Db.Result & {
+        traces: Db.Trace[];
+        score: number;
+        scores: Db.Score[];
+      };
+      prevResult:
+        | (Db.Result & { score: number; scores: Db.Score[] })
+        | undefined;
+      evaluation: Db.Eval;
+    };
+  }
 }

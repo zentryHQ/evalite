@@ -23,6 +23,18 @@ const initRouter = () => {
     Wrap: ({ children }) => (
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     ),
+    defaultNotFoundComponent: () => {
+      return (
+        <div className="flex flex-col h-full w-full items-center justify-center mt-12">
+          <h1 className="text-3xl font-bold text-gray-800 mb-3">
+            404: Eval Not Found
+          </h1>
+          <p className="text-lg text-gray-600 text-center max-w-xs">
+            The page you're looking for has already achieved AGI.
+          </p>
+        </div>
+      );
+    },
   });
 
   return router;
