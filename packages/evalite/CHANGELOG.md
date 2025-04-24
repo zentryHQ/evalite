@@ -1,5 +1,12 @@
 # evalite
 
+## 0.11.0
+
+### Minor Changes
+
+- fb65ffe: Changed experimental_customColumns to columns
+- 3677980: Removed @evalite/core and moved all code into evalite.
+
 ## 0.10.1
 
 ### Patch Changes
