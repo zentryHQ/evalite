@@ -1,7 +1,7 @@
 import { assert, expect, it } from "vitest";
 import { runVitest } from "evalite/runner";
 import { captureStdout, loadFixture } from "./test-utils.js";
-import { createDatabase, getEvals, getEvalsAsRecord } from "@evalite/core/db";
+import { createDatabase, getEvals, getEvalsAsRecord } from "evalite/db";
 
 it("Should report the basics correctly", async () => {
   using fixture = loadFixture("basics");

@@ -1,5 +1,5 @@
-import type { Evalite } from "@evalite/core";
 import { AsyncLocalStorage } from "async_hooks";
+import type { Evalite } from "./types.js";
 
 export const reportTraceLocalStorage = new AsyncLocalStorage<
   (trace: Evalite.Trace) => void

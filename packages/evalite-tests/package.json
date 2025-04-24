@@ -9,7 +9,6 @@
     "lint": "tsc"
   },
   "dependencies": {
-    "@evalite/core": "workspace:*",
     "evalite": "workspace:*",
     "strip-ansi": "^7.1.0",
     "autoevals": "^0.0.108",

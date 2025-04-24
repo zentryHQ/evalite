@@ -1,5 +1,5 @@
+import type { Evalite } from "evalite/types";
 import { useMemo } from "react";
-import type { Evalite } from "@evalite/core";
 
 export const useServerStateUtils = (state: Evalite.ServerState) => {
   return useMemo(() => {

@@ -1,5 +1,3 @@
-import type { Evalite } from "@evalite/core";
-import { sum } from "@evalite/core/utils";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 import type React from "react";
@@ -26,6 +24,8 @@ import {
 } from "~/data/queries";
 import { useSuspenseQueries } from "@tanstack/react-query";
 import { useServerStateUtils } from "~/hooks/use-server-state-utils";
+import { sum } from "evalite/utils";
+import type { Evalite } from "evalite/types";
 
 const searchSchema = z.object({
   trace: z.number().optional(),

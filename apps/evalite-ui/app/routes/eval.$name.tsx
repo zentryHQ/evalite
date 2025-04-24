@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { zodValidator } from "@tanstack/zod-adapter";
-import { average } from "@evalite/core/utils";
 import { Link, Outlet, useMatches } from "@tanstack/react-router";
 import { XCircleIcon } from "lucide-react";
 import type * as React from "react";
@@ -27,6 +26,7 @@ import {
   getServerStateQueryOptions,
 } from "~/data/queries";
 import { useSuspenseQueries } from "@tanstack/react-query";
+import { average } from "evalite/utils";
 
 const searchSchema = z.object({
   timestamp: z.string().optional(),

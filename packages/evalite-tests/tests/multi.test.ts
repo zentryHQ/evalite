@@ -1,7 +1,7 @@
 import { runVitest } from "evalite/runner";
 import { expect, it } from "vitest";
 import { captureStdout, loadFixture } from "./test-utils.js";
-import { createDatabase } from "@evalite/core/db";
+import { createDatabase } from "evalite/db";
 
 it("Should report multiple evals correctly", async () => {
   using fixture = loadFixture("multi");

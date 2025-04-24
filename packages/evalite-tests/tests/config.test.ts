@@ -1,4 +1,4 @@
-import { createDatabase, getEvalsAsRecord } from "@evalite/core/db";
+import { createDatabase, getEvalsAsRecord } from "evalite/db";
 import { runVitest } from "evalite/runner";
 import { assert, expect, it } from "vitest";
 import { captureStdout, loadFixture } from "./test-utils.js";

@@ -1,7 +1,8 @@
+import { DEFAULT_SERVER_PORT } from "./constants.js";
 import type { Db } from "./db.js";
 import type { Evalite } from "./types.js";
 
-const BASE_URL = "http://localhost:3006";
+const BASE_URL = `http://localhost:${DEFAULT_SERVER_PORT}`;
 
 export const getServerState = async (fetchOpts?: {
   signal?: AbortSignal;

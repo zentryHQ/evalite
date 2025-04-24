@@ -1,4 +1,4 @@
-import type { Evalite } from "@evalite/core";
+import type { Evalite } from "evalite/types";
 
 export const scoreToPercent = (score: number) => {
   return `${Math.round(score * 1000) / 10}%`;

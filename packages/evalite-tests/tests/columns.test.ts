@@ -1,7 +1,7 @@
 import { runVitest } from "evalite/runner";
 import { expect, it } from "vitest";
 import { captureStdout, loadFixture } from "./test-utils.js";
-import { createDatabase, getEvalsAsRecord } from "@evalite/core/db";
+import { createDatabase, getEvalsAsRecord } from "evalite/db";
 
 it("Should allow you to render columns based on the input and output", async () => {
   using fixture = loadFixture("columns");

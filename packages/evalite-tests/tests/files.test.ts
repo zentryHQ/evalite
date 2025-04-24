@@ -1,5 +1,5 @@
-import { FILES_LOCATION } from "@evalite/core";
-import { createDatabase, getEvalsAsRecord } from "@evalite/core/db";
+import { FILES_LOCATION } from "evalite/constants";
+import { createDatabase, getEvalsAsRecord } from "evalite/db";
 import { EvaliteFile } from "evalite";
 import { runVitest } from "evalite/runner";
 import { readdir, readFile } from "node:fs/promises";

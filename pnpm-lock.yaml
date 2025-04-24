@@ -56,9 +56,6 @@ importers:
 
   apps/evalite-ui:
     dependencies:
-      '@evalite/core':
-        specifier: workspace:*
-        version: link:../../packages/evalite-core
       '@radix-ui/react-avatar':
         specifier: ^1.1.1
         version: 1.1.1(@types/react-dom@19.0.4(@types/react@19.0.10))(@types/react@19.0.10)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -107,6 +104,9 @@ importers:
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
+      evalite:
+        specifier: workspace:*
+        version: link:../../packages/evalite
       isbot:
         specifier: ^4.1.0
         version: 4.4.0
@@ -204,9 +204,12 @@ importers:
 
   packages/evalite:
     dependencies:
-      '@evalite/core':
-        specifier: workspace:*
-        version: link:../evalite-core
+      '@fastify/static':
+        specifier: ^8.0.3
+        version: 8.0.3
+      '@fastify/websocket':
+        specifier: 11.0.1
+        version: 11.0.1
       '@stricli/auto-complete':
         specifier: ^1.1.1
         version: 1.1.1
@@ -216,9 +219,18 @@ importers:
       '@vitest/runner':
         specifier: ^2.1.8
         version: 2.1.8
+      better-sqlite3:
+        specifier: ^11.6.0
+        version: 11.6.0
+      fastify:
+        specifier: ^5.1.0
+        version: 5.1.0
       file-type:
         specifier: ^19.6.0
         version: 19.6.0
+      fs-reverse:
+        specifier: ^0.0.3
+        version: 0.0.3
       table:
         specifier: ^6.8.2
         version: 6.8.2
@@ -226,6 +238,9 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0
     devDependencies:
+      '@types/better-sqlite3':
+        specifier: ^7.6.12
+        version: 7.6.12
       '@types/ws':
         specifier: ^8.5.13
         version: 8.5.13
@@ -239,36 +254,11 @@ importers:
         specifier: ^1.13.1
         version: 1.13.1
 
-  packages/evalite-core:
-    dependencies:
-      '@fastify/static':
-        specifier: ^8.0.3
-        version: 8.0.3
-      '@fastify/websocket':
-        specifier: 11.0.1
-        version: 11.0.1
-      better-sqlite3:
-        specifier: ^11.6.0
-        version: 11.6.0
-      fastify:
-        specifier: ^5.1.0
-        version: 5.1.0
-      fs-reverse:
-        specifier: ^0.0.3
-        version: 0.0.3
-    devDependencies:
-      '@types/better-sqlite3':
-        specifier: ^7.6.12
-        version: 7.6.12
-
   packages/evalite-tests:
     dependencies:
       '@ai-sdk/openai':
         specifier: ^1.0.8
         version: 1.0.8(zod@3.24.1)
-      '@evalite/core':
-        specifier: workspace:*
-        version: link:../evalite-core
       ai:
         specifier: ^4.0.11
         version: 4.0.11(react@19.0.0)(zod@3.24.1)
@@ -302,6 +292,9 @@ importers:
       unstorage:
         specifier: ^1.13.1
         version: 1.13.1
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.8(@types/node@22.7.7)(terser@5.31.5)
       zod:
         specifier: ^3.23.8
         version: 3.23.8
@@ -8484,8 +8477,7 @@ snapshots:
 
   detect-libc@2.0.2: {}
 
-  detect-libc@2.0.3:
-    optional: true
+  detect-libc@2.0.3: {}
 
   detect-node-es@1.1.0: {}
 
@@ -10868,7 +10860,7 @@ snapshots:
 
   prebuild-install@7.1.2:
     dependencies:
-      detect-libc: 2.0.2
+      detect-libc: 2.0.3
       expand-template: 2.0.3
       github-from-package: 0.0.0
       minimist: 1.2.8

@@ -1,4 +1,4 @@
-import type { Db } from "@evalite/core/db";
+import type { Db } from "evalite/db";
 import {
   ChevronDownCircleIcon,
   ChevronRightCircleIcon,

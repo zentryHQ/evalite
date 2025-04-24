@@ -12,7 +12,6 @@ import {
   Outlet,
 } from "@tanstack/react-router";
 
-import type { Db } from "@evalite/core/db";
 import { lazy } from "react";
 import Logo from "~/components/logo";
 import { getScoreState, Score, type ScoreState } from "~/components/score";
@@ -33,6 +32,7 @@ import {
 import { useSubscribeToSocket } from "~/data/use-subscribe-to-socket";
 import { useServerStateUtils } from "~/hooks/use-server-state-utils";
 import "../tailwind.css";
+import type { Db } from "evalite/db";
 
 const TanStackRouterDevtools =
   process.env.NODE_ENV === "production"

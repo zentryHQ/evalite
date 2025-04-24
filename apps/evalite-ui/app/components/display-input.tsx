@@ -3,10 +3,10 @@ import ReactMarkdown from "react-markdown";
 import { Button } from "./ui/button";
 import { ChevronDown, DownloadIcon } from "lucide-react";
 import { JSONTree } from "react-json-tree";
-import { isEvaliteFile } from "@evalite/core/utils";
-import remarkGfm from "remark-gfm"
-import type { Evalite } from "@evalite/core";
-import { downloadFile, serveFile } from "@evalite/core/sdk";
+import remarkGfm from "remark-gfm";
+import { downloadFile, serveFile } from "evalite/sdk";
+import type { Evalite } from "evalite/types";
+import { EvaliteFile } from "evalite/utils";
 
 const MAX_HEIGHT = 240;
 
@@ -158,7 +158,7 @@ export const DisplayInput = (props: {
     );
   }
 
-  if (isEvaliteFile(props.input)) {
+  if (EvaliteFile.isEvaliteFile(props.input)) {
     return (
       <Wrapper className={props.className}>
         <DisplayEvaliteFile file={props.input} />

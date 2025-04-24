@@ -1,4 +1,4 @@
-import { DB_LOCATION } from "@evalite/core";
+import { DB_LOCATION } from "evalite/constants";
 import { randomUUID } from "crypto";
 import { cpSync, rmSync } from "fs";
 import path from "path";
