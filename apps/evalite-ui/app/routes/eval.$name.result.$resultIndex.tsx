@@ -217,7 +217,8 @@ function ResultComponent() {
 
               const startPercent =
                 (startTimeWithinTrace / totalTraceDuration) * 100;
-              const endPercent = (endTimeWithinTrace / totalTraceDuration) * 100;
+              const endPercent =
+                (endTimeWithinTrace / totalTraceDuration) * 100;
               return (
                 <TraceMenuItem
                   key={index}
@@ -397,6 +398,7 @@ const TraceMenuItem = (props: {
         exact: true,
       }}
       preload="intent"
+      resetScroll={false}
     >
       {({ isActive }) => (
         <>
