@@ -120,7 +120,10 @@ function ResultComponent() {
 
   const inputOutputSection = (
     <>
-      <MainBodySection title="Input">
+      <MainBodySection
+        title="Input"
+        description={`The input passed to the task.`}
+      >
         <DisplayInput
           shouldTruncateText={false}
           input={result.input}
@@ -129,7 +132,10 @@ function ResultComponent() {
       <MainBodySeparator />
       {result.expected ? (
         <>
-          <MainBodySection title="Expected">
+          <MainBodySection
+            title="Expected"
+            description={`A description of the expected output of the task.`}
+          >
             <DisplayInput
               shouldTruncateText={false}
               input={result.expected}
@@ -138,7 +144,7 @@ function ResultComponent() {
           <MainBodySeparator />
         </>
       ) : null}
-      <MainBodySection title="Output">
+      <MainBodySection title="Output" description="The output of the task.">
         <DisplayInput
           shouldTruncateText={false}
           input={result.output}
