@@ -1,5 +1,11 @@
 # evalite
 
+## 0.11.1
+
+### Patch Changes
+
+- e8f26aa: Allow the content to stretch to full width
+
 ## 0.11.0
 
 ### Minor Changes
