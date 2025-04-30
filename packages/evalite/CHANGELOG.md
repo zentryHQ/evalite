@@ -1,5 +1,11 @@
 # evalite
 
+## 0.11.3
+
+### Patch Changes
+
+- 83611bc: Handle onTaskUpdate method being undefined in Vitest 3
+
 ## 0.11.2
 
 ### Patch Changes
