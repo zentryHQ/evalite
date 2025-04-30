@@ -1,5 +1,11 @@
 # evalite
 
+## 0.11.2
+
+### Patch Changes
+
+- 508961b: Fixed a bug where the renderTable function would sometimes error when containing emoji's.
+
 ## 0.11.1
 
 ### Patch Changes
