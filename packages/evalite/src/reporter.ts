@@ -645,7 +645,7 @@ export default class EvaliteReporter extends BasicReporter {
 
     startingTests.forEach((test) => this.onTestStart(test));
 
-    super.onTaskUpdate(packs);
+    super.onTaskUpdate?.(packs);
   }
 }
 
