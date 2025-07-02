@@ -1,5 +1,11 @@
 # evalite
 
+## 0.11.4
+
+### Patch Changes
+
+- 60724bf: Exit code should be set to 1 for any failing tasks or timeouts
+
 ## 0.11.3
 
 ### Patch Changes
