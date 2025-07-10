@@ -122,8 +122,8 @@ export default defineConfig({
           ],
         },
         {
-          label: "Examples",
-          items: [{ label: "AI SDK", slug: "examples/ai-sdk" }],
+          label: "Integrations",
+          items: [{ label: "Vercel AI SDK", slug: "examples/ai-sdk" }],
         },
       ],
     }),
