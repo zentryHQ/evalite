@@ -427,6 +427,11 @@ export default class EvaliteReporter extends BasicReporter {
       ["      ", c.dim("Score"), "  ", scoreDisplay].join("")
     );
 
+    // Set exit code to 1 if there are any failed tasks (regardless of threshold)
+    if (failedTasks.length > 0) {
+      this.opts.modifyExitCode(1);
+    }
+
     if (typeof this.opts.scoreThreshold === "number") {
       let thresholdScoreSuffix = "";
 
@@ -436,7 +441,10 @@ export default class EvaliteReporter extends BasicReporter {
         this.didLastRunFailThreshold = "yes";
       } else {
         thresholdScoreSuffix = `${c.dim(` (passed)`)}`;
-        this.opts.modifyExitCode(0);
+        // Only set exit code to 0 if there are no failed tasks
+        if (failedTasks.length === 0) {
+          this.opts.modifyExitCode(0);
+        }
         this.didLastRunFailThreshold = "no";
       }
 
@@ -564,6 +572,9 @@ export default class EvaliteReporter extends BasicReporter {
             ...columns.map((col) => ({
               width: colWidth,
               wrapWord: typeof col.value === "string",
+              truncate: colWidth - 2,
+              paddingLeft: 1,
+              paddingRight: 1,
             })),
             { width: scoreWidth },
           ],
@@ -642,7 +653,7 @@ export default class EvaliteReporter extends BasicReporter {
 
     startingTests.forEach((test) => this.onTestStart(test));
 
-    super.onTaskUpdate(packs);
+    super.onTaskUpdate?.(packs);
   }
 }
 

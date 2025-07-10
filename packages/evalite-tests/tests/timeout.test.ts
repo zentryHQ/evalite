@@ -1,12 +1,32 @@
-import { expect, it } from "vitest";
+import { expect, it, vitest } from "vitest";
 import { runVitest } from "evalite/runner";
 import { captureStdout, loadFixture } from "./test-utils.js";
 import { createDatabase, getEvalsAsRecord } from "evalite/db";
+
+it("Should set exitCode to 1 if there is a timeout", async () => {
+  using fixture = loadFixture("timeout");
+
+  const captured = captureStdout();
+  const exit = vitest.fn();
+  globalThis.process.exit = exit as any;
+
+  await runVitest({
+    cwd: fixture.dir,
+    path: undefined,
+    testOutputWritable: captured.writable,
+    mode: "run-once-and-exit",
+  });
+
+  expect(captured.getOutput()).toContain("timeout");
+  expect(exit).toHaveBeenCalledWith(1);
+});
 
 it("Should handle timeouts gracefully", async () => {
   using fixture = loadFixture("timeout");
 
   const captured = captureStdout();
+  const exit = vitest.fn();
+  globalThis.process.exit = exit as any;
 
   await runVitest({
     cwd: fixture.dir,
@@ -27,6 +47,8 @@ it("Should record timeout information in the database", async () => {
   using fixture = loadFixture("timeout");
 
   const captured = captureStdout();
+  const exit = vitest.fn();
+  globalThis.process.exit = exit as any;
 
   await runVitest({
     cwd: fixture.dir,

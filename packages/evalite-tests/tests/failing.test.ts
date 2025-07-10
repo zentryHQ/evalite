@@ -1,12 +1,32 @@
 import { createDatabase, getEvalsAsRecord, type Db } from "evalite/db";
 import { runVitest } from "evalite/runner";
-import { expect, it } from "vitest";
+import { expect, it, vitest } from "vitest";
 import { captureStdout, loadFixture } from "./test-utils.js";
+
+it("Should set exitCode to 1 if there is a failing test", async () => {
+  using fixture = loadFixture("failing-test");
+
+  const captured = captureStdout();
+  const exit = vitest.fn();
+  globalThis.process.exit = exit as any;
+
+  await runVitest({
+    cwd: fixture.dir,
+    path: undefined,
+    testOutputWritable: captured.writable,
+    mode: "run-once-and-exit",
+  });
+
+  expect(captured.getOutput()).toContain("failed");
+  expect(exit).toHaveBeenCalledWith(1);
+});
 
 it("Should report a failing test", async () => {
   using fixture = loadFixture("failing-test");
 
   const captured = captureStdout();
+  const exit = vitest.fn();
+  globalThis.process.exit = exit as any;
 
   await runVitest({
     cwd: fixture.dir,
@@ -26,6 +46,8 @@ it("Should save the result AND eval as failed in the database", async () => {
   using fixture = loadFixture("failing-test");
 
   const captured = captureStdout();
+  const exit = vitest.fn();
+  globalThis.process.exit = exit as any;
 
   await runVitest({
     cwd: fixture.dir,

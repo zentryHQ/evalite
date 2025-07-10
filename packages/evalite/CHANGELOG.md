@@ -1,5 +1,23 @@
 # evalite
 
+## 0.11.4
+
+### Patch Changes
+
+- 60724bf: Exit code should be set to 1 for any failing tasks or timeouts
+
+## 0.11.3
+
+### Patch Changes
+
+- 83611bc: Handle onTaskUpdate method being undefined in Vitest 3
+
+## 0.11.2
+
+### Patch Changes
+
+- 508961b: Fixed a bug where the renderTable function would sometimes error when containing emoji's.
+
 ## 0.11.1
 
 ### Patch Changes
