@@ -1,5 +1,11 @@
 # evalite
 
+## 0.11.5
+
+### Patch Changes
+
+- 1d19066: Include .eval.mts files
+
 ## 0.11.4
 
 ### Patch Changes
