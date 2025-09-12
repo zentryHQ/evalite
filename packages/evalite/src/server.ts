@@ -3,9 +3,7 @@ import { fastifyWebsocket } from "@fastify/websocket";
 import fastify from "fastify";
 import path from "path";
 import { fileURLToPath } from "url";
-import { existsSync } from "fs";
 import { readFile } from "fs/promises";
-import { pathToFileURL } from "url";
 import {
 	getAverageScoresFromResults,
 	getEvalByName,
@@ -19,35 +17,12 @@ import {
 	getTraces,
 	type SQLiteDatabase,
 } from "./db.js";
-import type { Evalite } from "./types.js";
+import type { Evalite, EvaliteConfig } from "./types.js";
 import { average } from "./utils.js";
 
-export type Server = ReturnType<typeof createServer>;
+export type Server = Awaited<ReturnType<typeof createServer>>;
 
 const THROTTLE_TIME = 100;
-
-// Function to load evalite.config.ts from the current working directory
-async function loadEvaliteConfig() {
-	const configPath = path.resolve(process.cwd(), "evalite.config.ts");
-
-	if (!existsSync(configPath)) {
-		return null;
-	}
-
-	try {
-		// Convert file path to file URL for dynamic import
-		const configUrl = pathToFileURL(configPath).href;
-		const configModule = await import(configUrl);
-
-		// Handle both default export and named export
-		const config = configModule.default || configModule;
-
-		return config;
-	} catch (error) {
-		console.error("Failed to load evalite.config.ts:", error);
-		return null;
-	}
-}
 
 export const handleWebsockets = (server: fastify.FastifyInstance) => {
 	const websocketListeners = new Map<
@@ -88,45 +63,57 @@ export const handleWebsockets = (server: fastify.FastifyInstance) => {
 	};
 };
 
-export const createServer = (opts: { db: SQLiteDatabase }) => {
+export const createServer = async (opts: {
+	db: SQLiteDatabase;
+	evaliteConfig?: EvaliteConfig;
+}) => {
 	const UI_ROOT = path.join(
 		path.dirname(fileURLToPath(import.meta.url)),
 		"./ui",
 	);
 	const server = fastify();
 
+	// Pre-process the HTML file once during server creation
+	let processedHtml: string | null = null;
+	try {
+		const indexPath = path.join(UI_ROOT, "index.html");
+		let html = await readFile(indexPath, "utf-8");
+
+		// Inject the config into the HTML
+		if (opts.evaliteConfig) {
+			html = html.replace(
+				"<head>",
+				`<head>
+    <script>
+      window.__EVALITE_CONFIG__ = ${JSON.stringify(opts.evaliteConfig)};
+    </script>`,
+			);
+		}
+		processedHtml = html;
+	} catch (error) {
+		console.error("Error pre-processing HTML during server creation:", error);
+	}
+
 	server.register(fastifyWebsocket);
 	server.register(fastifyStatic, {
 		root: path.join(UI_ROOT),
 	});
 
-	// Load evalite config once when server starts
-	const evaliteConfigPromise = loadEvaliteConfig();
+	// Handle root path specifically to inject config
+	server.get("/", async (req, reply) => {
+		if (processedHtml) {
+			return reply.status(200).type("text/html").send(processedHtml);
+		} else {
+			// Fallback to original behavior if pre-processing failed
+			return reply.status(200).sendFile("index.html");
+		}
+	});
 
 	server.setNotFoundHandler(async (req, reply) => {
-		try {
-			// Load the config (cached after first load)
-			const evaliteConfig = await evaliteConfigPromise;
-
-			// Read the index.html file
-			const indexPath = path.join(UI_ROOT, "index.html");
-			let html = await readFile(indexPath, "utf-8");
-
-			// Inject the config into the HTML
-			if (evaliteConfig) {
-				html = html.replace(
-					"<head>",
-					`<head>
-    <script>
-      window.__EVALITE_CONFIG__ = ${JSON.stringify(evaliteConfig)};
-    </script>`,
-				);
-			}
-
-			return reply.status(200).type("text/html").send(html);
-		} catch (error) {
-			// Fallback to original behavior if there's an error
-			console.error("Error injecting config into HTML:", error);
+		if (processedHtml) {
+			return reply.status(200).type("text/html").send(processedHtml);
+		} else {
+			// Fallback to original behavior if pre-processing failed
 			return reply.status(200).sendFile("index.html");
 		}
 	});
@@ -467,10 +454,11 @@ export const createServer = (opts: { db: SQLiteDatabase }) => {
 
 	return {
 		updateState: websockets.updateState,
-		start: (port: number) => {
+		start: (port: number, host?: string) => {
 			server.listen(
 				{
 					port,
+					host,
 				},
 				(err) => {
 					if (err) {
