@@ -3,18 +3,21 @@ import { fastifyWebsocket } from "@fastify/websocket";
 import fastify from "fastify";
 import path from "path";
 import { fileURLToPath } from "url";
+import { existsSync } from "fs";
+import { readFile } from "fs/promises";
+import { pathToFileURL } from "url";
 import {
-  getAverageScoresFromResults,
-  getEvalByName,
-  getEvals,
-  getEvalsAverageScores,
-  getHistoricalEvalsWithScoresByName,
-  getMostRecentRun,
-  getPreviousCompletedEval,
-  getResults,
-  getScores,
-  getTraces,
-  type SQLiteDatabase,
+	getAverageScoresFromResults,
+	getEvalByName,
+	getEvals,
+	getEvalsAverageScores,
+	getHistoricalEvalsWithScoresByName,
+	getMostRecentRun,
+	getPreviousCompletedEval,
+	getResults,
+	getScores,
+	getTraces,
+	type SQLiteDatabase,
 } from "./db.js";
 import type { Evalite } from "./types.js";
 import { average } from "./utils.js";
@@ -23,405 +26,459 @@ export type Server = ReturnType<typeof createServer>;
 
 const THROTTLE_TIME = 100;
 
+// Function to load evalite.config.ts from the current working directory
+async function loadEvaliteConfig() {
+	const configPath = path.resolve(process.cwd(), "evalite.config.ts");
+
+	if (!existsSync(configPath)) {
+		return null;
+	}
+
+	try {
+		// Convert file path to file URL for dynamic import
+		const configUrl = pathToFileURL(configPath).href;
+		const configModule = await import(configUrl);
+
+		// Handle both default export and named export
+		const config = configModule.default || configModule;
+
+		return config;
+	} catch (error) {
+		console.error("Failed to load evalite.config.ts:", error);
+		return null;
+	}
+}
+
 export const handleWebsockets = (server: fastify.FastifyInstance) => {
-  const websocketListeners = new Map<
-    string,
-    (event: Evalite.ServerState) => void
-  >();
+	const websocketListeners = new Map<
+		string,
+		(event: Evalite.ServerState) => void
+	>();
 
-  let currentState: Evalite.ServerState = {
-    type: "idle",
-  };
+	let currentState: Evalite.ServerState = {
+		type: "idle",
+	};
 
-  let timeout: NodeJS.Timeout | undefined;
+	let timeout: NodeJS.Timeout | undefined;
 
-  server.register(async (fastify) => {
-    fastify.get("/api/socket", { websocket: true }, (socket, req) => {
-      websocketListeners.set(req.id, (event) => {
-        socket.send(JSON.stringify(event));
-      });
+	server.register(async (fastify) => {
+		fastify.get("/api/socket", { websocket: true }, (socket, req) => {
+			websocketListeners.set(req.id, (event) => {
+				socket.send(JSON.stringify(event));
+			});
 
-      socket.on("close", () => {
-        websocketListeners.delete(req.id);
-      });
-    });
-  });
+			socket.on("close", () => {
+				websocketListeners.delete(req.id);
+			});
+		});
+	});
 
-  return {
-    updateState: (newState: Evalite.ServerState) => {
-      currentState = newState;
-      clearTimeout(timeout);
+	return {
+		updateState: (newState: Evalite.ServerState) => {
+			currentState = newState;
+			clearTimeout(timeout);
 
-      timeout = setTimeout(() => {
-        websocketListeners.forEach((listener) => {
-          listener(newState);
-        });
-      }, THROTTLE_TIME);
-    },
-    getState: () => currentState,
-  };
+			timeout = setTimeout(() => {
+				websocketListeners.forEach((listener) => {
+					listener(newState);
+				});
+			}, THROTTLE_TIME);
+		},
+		getState: () => currentState,
+	};
 };
 
 export const createServer = (opts: { db: SQLiteDatabase }) => {
-  const UI_ROOT = path.join(
-    path.dirname(fileURLToPath(import.meta.url)),
-    "./ui"
-  );
-  const server = fastify();
+	const UI_ROOT = path.join(
+		path.dirname(fileURLToPath(import.meta.url)),
+		"./ui",
+	);
+	const server = fastify();
 
-  server.register(fastifyWebsocket);
-  server.register(fastifyStatic, {
-    root: path.join(UI_ROOT),
-  });
+	server.register(fastifyWebsocket);
+	server.register(fastifyStatic, {
+		root: path.join(UI_ROOT),
+	});
 
-  server.setNotFoundHandler(async (req, reply) => {
-    return reply.status(200).sendFile("index.html");
-  });
+	// Load evalite config once when server starts
+	const evaliteConfigPromise = loadEvaliteConfig();
 
-  // Add CORS headers
-  server.addHook("onSend", (req, reply, payload, done) => {
-    reply.header("access-control-allow-origin", "*");
-    done(null, payload);
-  });
+	server.setNotFoundHandler(async (req, reply) => {
+		try {
+			// Load the config (cached after first load)
+			const evaliteConfig = await evaliteConfigPromise;
 
-  const websockets = handleWebsockets(server);
+			// Read the index.html file
+			const indexPath = path.join(UI_ROOT, "index.html");
+			let html = await readFile(indexPath, "utf-8");
 
-  server.get<{
-    Reply: Evalite.ServerState;
-  }>("/api/server-state", async (req, reply) => {
-    return reply.code(200).send(websockets.getState());
-  });
+			// Inject the config into the HTML
+			if (evaliteConfig) {
+				html = html.replace(
+					"<head>",
+					`<head>
+    <script>
+      window.__EVALITE_CONFIG__ = ${JSON.stringify(evaliteConfig)};
+    </script>`,
+				);
+			}
 
-  server.get<{
-    Reply: Evalite.SDK.GetMenuItemsResult;
-  }>("/api/menu-items", async (req, reply) => {
-    const latestFullRun = getMostRecentRun(opts.db, "full");
+			return reply.status(200).type("text/html").send(html);
+		} catch (error) {
+			// Fallback to original behavior if there's an error
+			console.error("Error injecting config into HTML:", error);
+			return reply.status(200).sendFile("index.html");
+		}
+	});
 
-    if (!latestFullRun) {
-      return reply.code(200).send({
-        evals: [],
-        prevScore: undefined,
-        score: 0,
-        evalStatus: "success",
-      });
-    }
+	// Add CORS headers
+	server.addHook("onSend", (req, reply, payload, done) => {
+		reply.header("access-control-allow-origin", "*");
+		done(null, payload);
+	});
 
-    let latestPartialRun = getMostRecentRun(opts.db, "partial");
+	const websockets = handleWebsockets(server);
 
-    /**
-     * Ignore latestPartialRun if the latestFullRun is more
-     * up to date
-     */
-    if (
-      latestPartialRun &&
-      new Date(latestPartialRun.created_at).getTime() <
-        new Date(latestFullRun.created_at).getTime()
-    ) {
-      latestPartialRun = undefined;
-    }
+	server.get<{
+		Reply: Evalite.ServerState;
+	}>("/api/server-state", async (req, reply) => {
+		return reply.code(200).send(websockets.getState());
+	});
 
-    const allEvals = getEvals(
-      opts.db,
-      [latestFullRun.id, latestPartialRun?.id].filter(
-        (id) => typeof id === "number"
-      ),
-      ["fail", "success", "running"]
-    ).map((e) => ({
-      ...e,
-      prevEval: getPreviousCompletedEval(opts.db, e.name, e.created_at),
-    }));
+	server.get<{
+		Reply: Evalite.SDK.GetMenuItemsResult;
+	}>("/api/menu-items", async (req, reply) => {
+		const latestFullRun = getMostRecentRun(opts.db, "full");
 
-    const evalsAverageScores = getEvalsAverageScores(
-      opts.db,
-      allEvals.flatMap((e) => {
-        if (e.prevEval) {
-          return [e.id, e.prevEval.id];
-        }
-        return [e.id];
-      })
-    );
+		if (!latestFullRun) {
+			return reply.code(200).send({
+				evals: [],
+				prevScore: undefined,
+				score: 0,
+				evalStatus: "success",
+			});
+		}
 
-    const createEvalMenuItem = (
-      e: (typeof allEvals)[number]
-    ): Evalite.SDK.GetMenuItemsResultEval => {
-      const score =
-        evalsAverageScores.find((s) => s.eval_id === e.id)?.average ?? 0;
-      const prevScore = evalsAverageScores.find(
-        (s) => s.eval_id === e.prevEval?.id
-      )?.average;
+		let latestPartialRun = getMostRecentRun(opts.db, "partial");
 
-      return {
-        filepath: e.filepath,
-        name: e.name,
-        score,
-        prevScore,
-        evalStatus: e.status,
-      };
-    };
+		/**
+		 * Ignore latestPartialRun if the latestFullRun is more
+		 * up to date
+		 */
+		if (
+			latestPartialRun &&
+			new Date(latestPartialRun.created_at).getTime() <
+				new Date(latestFullRun.created_at).getTime()
+		) {
+			latestPartialRun = undefined;
+		}
 
-    let lastFullRunEvals = allEvals.filter(
-      (e) => e.run_id === latestFullRun.id
-    );
+		const allEvals = getEvals(
+			opts.db,
+			[latestFullRun.id, latestPartialRun?.id].filter(
+				(id) => typeof id === "number",
+			),
+			["fail", "success", "running"],
+		).map((e) => ({
+			...e,
+			prevEval: getPreviousCompletedEval(opts.db, e.name, e.created_at),
+		}));
 
-    if (latestPartialRun) {
-      const partialEvals = allEvals.filter(
-        (e) => e.run_id === latestPartialRun.id
-      );
+		const evalsAverageScores = getEvalsAverageScores(
+			opts.db,
+			allEvals.flatMap((e) => {
+				if (e.prevEval) {
+					return [e.id, e.prevEval.id];
+				}
+				return [e.id];
+			}),
+		);
 
-      // Filter out the partial evals from the full run
-      // and add them to the lastFullRunEvals
-      lastFullRunEvals = [
-        ...partialEvals,
-        ...lastFullRunEvals.filter(
-          (e) => !partialEvals.some((p) => p.name === e.name)
-        ),
-      ];
-    }
+		const createEvalMenuItem = (
+			e: (typeof allEvals)[number],
+		): Evalite.SDK.GetMenuItemsResultEval => {
+			const score =
+				evalsAverageScores.find((s) => s.eval_id === e.id)?.average ?? 0;
+			const prevScore = evalsAverageScores.find(
+				(s) => s.eval_id === e.prevEval?.id,
+			)?.average;
 
-    const menuItems = lastFullRunEvals.map(createEvalMenuItem).sort((a, b) => {
-      return a.name.localeCompare(b.name);
-    });
+			return {
+				filepath: e.filepath,
+				name: e.name,
+				score,
+				prevScore,
+				evalStatus: e.status,
+			};
+		};
 
-    return reply.code(200).send({
-      evals: menuItems,
-      score: average(menuItems, (e) => e.score),
-      prevScore: average(menuItems, (e) => e.prevScore ?? e.score),
-      evalStatus: menuItems.some((e) => e.evalStatus === "fail")
-        ? "fail"
-        : "success",
-    });
-  });
+		let lastFullRunEvals = allEvals.filter(
+			(e) => e.run_id === latestFullRun.id,
+		);
 
-  server.route<{
-    Querystring: {
-      name: string;
-      timestamp?: string;
-    };
-    Reply: Evalite.SDK.GetEvalByNameResult;
-  }>({
-    method: "GET",
-    url: "/api/eval",
-    schema: {
-      querystring: {
-        type: "object",
-        properties: {
-          name: { type: "string" },
-          timestamp: { type: "string" },
-        },
-        required: ["name"],
-      },
-    },
-    handler: async (req, res) => {
-      const name = req.query.name;
+		if (latestPartialRun) {
+			const partialEvals = allEvals.filter(
+				(e) => e.run_id === latestPartialRun.id,
+			);
 
-      const evaluation = getEvalByName(opts.db, {
-        name,
-        timestamp: req.query.timestamp,
-      });
+			// Filter out the partial evals from the full run
+			// and add them to the lastFullRunEvals
+			lastFullRunEvals = [
+				...partialEvals,
+				...lastFullRunEvals.filter(
+					(e) => !partialEvals.some((p) => p.name === e.name),
+				),
+			];
+		}
 
-      if (!evaluation) {
-        return res.code(404).send();
-      }
+		const menuItems = lastFullRunEvals.map(createEvalMenuItem).sort((a, b) => {
+			return a.name.localeCompare(b.name);
+		});
 
-      const prevEvaluation = getPreviousCompletedEval(
-        opts.db,
-        name,
-        evaluation.created_at
-      );
+		return reply.code(200).send({
+			evals: menuItems,
+			score: average(menuItems, (e) => e.score),
+			prevScore: average(menuItems, (e) => e.prevScore ?? e.score),
+			evalStatus: menuItems.some((e) => e.evalStatus === "fail")
+				? "fail"
+				: "success",
+		});
+	});
 
-      const results = getResults(
-        opts.db,
-        [evaluation.id, prevEvaluation?.id].filter((i) => typeof i === "number")
-      );
+	server.route<{
+		Querystring: {
+			name: string;
+			timestamp?: string;
+		};
+		Reply: Evalite.SDK.GetEvalByNameResult;
+	}>({
+		method: "GET",
+		url: "/api/eval",
+		schema: {
+			querystring: {
+				type: "object",
+				properties: {
+					name: { type: "string" },
+					timestamp: { type: "string" },
+				},
+				required: ["name"],
+			},
+		},
+		handler: async (req, res) => {
+			const name = req.query.name;
 
-      const scores = getScores(
-        opts.db,
-        results.map((r) => r.id)
-      );
+			const evaluation = getEvalByName(opts.db, {
+				name,
+				timestamp: req.query.timestamp,
+			});
 
-      const history = getHistoricalEvalsWithScoresByName(opts.db, name);
+			if (!evaluation) {
+				return res.code(404).send();
+			}
 
-      return res.code(200).send({
-        history: history.map((h) => ({
-          score: h.average_score,
-          date: h.created_at,
-        })),
-        evaluation: {
-          ...evaluation,
-          results: results
-            .filter((r) => r.eval_id === evaluation.id)
-            .map((r) => ({
-              ...r,
-              scores: scores.filter((s) => s.result_id === r.id),
-            })),
-        },
-        prevEvaluation: prevEvaluation
-          ? {
-              ...prevEvaluation,
-              results: results
-                .filter((r) => r.eval_id === prevEvaluation.id)
-                .map((r) => ({
-                  ...r,
-                  scores: scores.filter((s) => s.result_id === r.id),
-                })),
-            }
-          : undefined,
-      });
-    },
-  });
+			const prevEvaluation = getPreviousCompletedEval(
+				opts.db,
+				name,
+				evaluation.created_at,
+			);
 
-  server.route<{
-    Querystring: {
-      name: string;
-      index: string;
-      timestamp?: string;
-    };
-    Reply: Evalite.SDK.GetResultResult;
-  }>({
-    method: "GET",
-    url: "/api/eval/result",
-    schema: {
-      querystring: {
-        type: "object",
-        properties: {
-          name: { type: "string" },
-          index: { type: "string" },
-          timestamp: { type: "string" },
-        },
-        required: ["name", "index"],
-      },
-    },
-    handler: async (req, res) => {
-      const evaluation = getEvalByName(opts.db, {
-        name: req.query.name,
-        timestamp: req.query.timestamp,
-        statuses: ["fail", "success"],
-      });
+			const results = getResults(
+				opts.db,
+				[evaluation.id, prevEvaluation?.id].filter(
+					(i) => typeof i === "number",
+				),
+			);
 
-      if (!evaluation) {
-        return res.code(404).send();
-      }
+			const scores = getScores(
+				opts.db,
+				results.map((r) => r.id),
+			);
 
-      const prevEvaluation = getPreviousCompletedEval(
-        opts.db,
-        req.query.name,
-        evaluation.created_at
-      );
+			const history = getHistoricalEvalsWithScoresByName(opts.db, name);
 
-      const results = getResults(
-        opts.db,
-        [evaluation.id, prevEvaluation?.id].filter((i) => typeof i === "number")
-      );
+			return res.code(200).send({
+				history: history.map((h) => ({
+					score: h.average_score,
+					date: h.created_at,
+				})),
+				evaluation: {
+					...evaluation,
+					results: results
+						.filter((r) => r.eval_id === evaluation.id)
+						.map((r) => ({
+							...r,
+							scores: scores.filter((s) => s.result_id === r.id),
+						})),
+				},
+				prevEvaluation: prevEvaluation
+					? {
+							...prevEvaluation,
+							results: results
+								.filter((r) => r.eval_id === prevEvaluation.id)
+								.map((r) => ({
+									...r,
+									scores: scores.filter((s) => s.result_id === r.id),
+								})),
+						}
+					: undefined,
+			});
+		},
+	});
 
-      const thisEvaluationResults = results.filter(
-        (r) => r.eval_id === evaluation.id
-      );
+	server.route<{
+		Querystring: {
+			name: string;
+			index: string;
+			timestamp?: string;
+		};
+		Reply: Evalite.SDK.GetResultResult;
+	}>({
+		method: "GET",
+		url: "/api/eval/result",
+		schema: {
+			querystring: {
+				type: "object",
+				properties: {
+					name: { type: "string" },
+					index: { type: "string" },
+					timestamp: { type: "string" },
+				},
+				required: ["name", "index"],
+			},
+		},
+		handler: async (req, res) => {
+			const evaluation = getEvalByName(opts.db, {
+				name: req.query.name,
+				timestamp: req.query.timestamp,
+				statuses: ["fail", "success"],
+			});
 
-      const thisResult = thisEvaluationResults[Number(req.query.index)];
+			if (!evaluation) {
+				return res.code(404).send();
+			}
 
-      if (!thisResult) {
-        return res.code(404).send();
-      }
+			const prevEvaluation = getPreviousCompletedEval(
+				opts.db,
+				req.query.name,
+				evaluation.created_at,
+			);
 
-      const prevEvaluationResults = results.filter(
-        (r) => r.eval_id === prevEvaluation?.id
-      );
+			const results = getResults(
+				opts.db,
+				[evaluation.id, prevEvaluation?.id].filter(
+					(i) => typeof i === "number",
+				),
+			);
 
-      const averageScores = getAverageScoresFromResults(
-        opts.db,
-        results.map((r) => r.id)
-      );
+			const thisEvaluationResults = results.filter(
+				(r) => r.eval_id === evaluation.id,
+			);
 
-      const scores = getScores(
-        opts.db,
-        results.map((r) => r.id)
-      );
+			const thisResult = thisEvaluationResults[Number(req.query.index)];
 
-      const traces = getTraces(
-        opts.db,
-        results.map((r) => r.id)
-      );
+			if (!thisResult) {
+				return res.code(404).send();
+			}
 
-      const result: Evalite.SDK.GetResultResult["result"] = {
-        ...thisResult,
-        score:
-          averageScores.find((s) => s.result_id === thisResult.id)?.average ??
-          0,
-        scores: scores.filter((s) => s.result_id === thisResult.id),
-        traces: traces.filter((t) => t.result_id === thisResult.id),
-      };
+			const prevEvaluationResults = results.filter(
+				(r) => r.eval_id === prevEvaluation?.id,
+			);
 
-      const prevResultInDb = prevEvaluationResults[Number(req.query.index)];
+			const averageScores = getAverageScoresFromResults(
+				opts.db,
+				results.map((r) => r.id),
+			);
 
-      const prevResult: Evalite.SDK.GetResultResult["prevResult"] =
-        prevResultInDb
-          ? {
-              ...prevResultInDb,
-              score:
-                averageScores.find((s) => s.result_id === prevResultInDb.id)
-                  ?.average ?? 0,
-              scores: scores.filter((s) => s.result_id === prevResultInDb.id),
-            }
-          : undefined;
+			const scores = getScores(
+				opts.db,
+				results.map((r) => r.id),
+			);
 
-      return res.code(200).send({
-        result,
-        prevResult,
-        evaluation,
-      });
-    },
-  });
+			const traces = getTraces(
+				opts.db,
+				results.map((r) => r.id),
+			);
 
-  server.route<{
-    Querystring: {
-      path: string;
-      download?: boolean;
-    };
-  }>({
-    method: "GET",
-    url: "/api/file",
-    schema: {
-      querystring: {
-        type: "object",
-        properties: {
-          path: { type: "string" },
-          download: { type: "boolean" },
-        },
-        required: ["path"],
-      },
-    },
-    handler: async (req, res) => {
-      const filePath = req.query.path;
+			const result: Evalite.SDK.GetResultResult["result"] = {
+				...thisResult,
+				score:
+					averageScores.find((s) => s.result_id === thisResult.id)?.average ??
+					0,
+				scores: scores.filter((s) => s.result_id === thisResult.id),
+				traces: traces.filter((t) => t.result_id === thisResult.id),
+			};
 
-      const parsed = path.parse(filePath);
+			const prevResultInDb = prevEvaluationResults[Number(req.query.index)];
 
-      if (req.query.download) {
-        return res
-          .header(
-            "content-disposition",
-            `attachment; filename="${parsed.base}"`
-          )
-          .sendFile(parsed.base, parsed.dir);
-      }
+			const prevResult: Evalite.SDK.GetResultResult["prevResult"] =
+				prevResultInDb
+					? {
+							...prevResultInDb,
+							score:
+								averageScores.find((s) => s.result_id === prevResultInDb.id)
+									?.average ?? 0,
+							scores: scores.filter((s) => s.result_id === prevResultInDb.id),
+						}
+					: undefined;
 
-      return res.sendFile(parsed.base, parsed.dir);
-    },
-  });
+			return res.code(200).send({
+				result,
+				prevResult,
+				evaluation,
+			});
+		},
+	});
 
-  return {
-    updateState: websockets.updateState,
-    start: (port: number) => {
-      server.listen(
-        {
-          port,
-        },
-        (err) => {
-          if (err) {
-            console.error(err);
-            process.exit(1);
-          }
-        }
-      );
-    },
-  };
+	server.route<{
+		Querystring: {
+			path: string;
+			download?: boolean;
+		};
+	}>({
+		method: "GET",
+		url: "/api/file",
+		schema: {
+			querystring: {
+				type: "object",
+				properties: {
+					path: { type: "string" },
+					download: { type: "boolean" },
+				},
+				required: ["path"],
+			},
+		},
+		handler: async (req, res) => {
+			const filePath = req.query.path;
+
+			const parsed = path.parse(filePath);
+
+			if (req.query.download) {
+				return res
+					.header(
+						"content-disposition",
+						`attachment; filename="${parsed.base}"`,
+					)
+					.sendFile(parsed.base, parsed.dir);
+			}
+
+			return res.sendFile(parsed.base, parsed.dir);
+		},
+	});
+
+	return {
+		updateState: websockets.updateState,
+		start: (port: number) => {
+			server.listen(
+				{
+					port,
+				},
+				(err) => {
+					if (err) {
+						console.error(err);
+						process.exit(1);
+					}
+				},
+			);
+		},
+	};
 };
