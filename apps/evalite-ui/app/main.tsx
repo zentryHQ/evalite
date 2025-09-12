@@ -15,6 +15,7 @@ const initRouter = () => {
     },
   });
 
+
   const router = createRouter({
     routeTree,
     scrollRestoration: true,
