@@ -41,7 +41,6 @@
     "./db": "./dist/db.js",
     "./reporter": "./dist/reporter.js",
     "./traces": "./dist/traces.js",
-    "./ai-sdk": "./dist/ai-sdk.js",
     "./runner": "./dist/run-vitest.js"
   },
   "dependencies": {

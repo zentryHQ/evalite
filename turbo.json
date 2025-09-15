@@ -2,6 +2,7 @@
   "$schema": "https://turbo.build/schema.json",
   "daemon": true,
   "ui": "tui",
+  "extends": ["//"],
   "tasks": {
     "setup": {
       "dependsOn": ["build"],
