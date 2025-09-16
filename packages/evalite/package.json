@@ -42,7 +42,8 @@
     "./reporter": "./dist/reporter.js",
     "./traces": "./dist/traces.js",
     "./ai-sdk": "./dist/ai-sdk.js",
-    "./runner": "./dist/run-vitest.js"
+    "./runner": "./dist/run-vitest.js",
+    "./config": "./dist/config.js"
   },
   "dependencies": {
     "@stricli/auto-complete": "^1.1.1",
