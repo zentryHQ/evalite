@@ -41,7 +41,8 @@
     "./db": "./dist/db.js",
     "./reporter": "./dist/reporter.js",
     "./traces": "./dist/traces.js",
-    "./runner": "./dist/run-vitest.js"
+    "./runner": "./dist/run-vitest.js",
+    "./config": "./dist/config.js"
   },
   "dependencies": {
     "@stricli/auto-complete": "^1.1.1",
