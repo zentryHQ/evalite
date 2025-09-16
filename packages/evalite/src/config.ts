@@ -26,3 +26,7 @@ export async function loadEvaliteConfig(): Promise<EvaliteConfig | undefined> {
     return;
   }
 }
+
+export const defineConfig = (config: EvaliteConfig) => {
+  return config;
+};
