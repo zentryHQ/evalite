@@ -1,9 +1,9 @@
+import { ThemeSwitch } from "./theme-switch";
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-  BreadcrumbPage,
 } from "./ui/breadcrumb";
 import { Separator } from "./ui/separator";
 import { SidebarTrigger } from "./ui/sidebar";
@@ -32,6 +32,9 @@ export const InnerPageLayout = ({
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
+          <div className="ml-auto">
+            <ThemeSwitch />
+          </div>
         </div>
       </header>
       <div className="flex-1 p-4">{children}</div>
