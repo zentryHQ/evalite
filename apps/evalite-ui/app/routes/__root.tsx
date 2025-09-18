@@ -159,7 +159,7 @@ const EvalSidebarItem = (props: {
         to={`/eval/$name`}
         params={{ name: props.name }}
         className={
-          "flex justify-between text-sm px-2 py-1 rounded hover:bg-gray-100 transition-colors"
+          "flex justify-between text-sm px-2 py-1 rounded hover:bg-muted/50 transition-colors"
         }
         activeProps={{
           className: "bg-muted text-foreground hover:bg-muted",
